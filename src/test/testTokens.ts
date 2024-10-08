@@ -2,7 +2,8 @@ import AlienLexer from "../alien/AlienLexer";
 import {es6Tokens} from "../es6/Es6Tokens";
 import {code1} from "./getcode";
 import AlienParser from "../alien/AlienParser";
-import Es6Parser, {Es6SyntaxName} from "../jsparser/Es6Parser";
+import Es6Parser, {Es6SyntaxName} from "../es6/Es6Parser";
+import JsonUtil from "../alien/JsonUtil";
 
 const lexer = new AlienLexer(es6Tokens)
 
@@ -20,5 +21,4 @@ for (const rulekey in parser.ruleMap) {
 
 parser.exec(Es6SyntaxName.program)
 
-console.log(parser.cstStack)
-console.log(parser.curCst)
+console.log(JsonUtil.toJson(parser.rootCst))

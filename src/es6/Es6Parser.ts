@@ -1,6 +1,6 @@
 import AlienParser, {alienParser} from "../alien/AlienParser";
 import AlienCst from "../alien/AlienCst";
-import {Es6TokenName} from "../es6/Es6Tokens";
+import {Es6TokenName} from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
 
 export enum Es6SyntaxName {

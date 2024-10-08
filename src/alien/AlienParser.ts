@@ -2,7 +2,7 @@ import AlienMatchToken from "./AlienMatchToken";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
-import {Es6SyntaxName} from "../jsparser/Es6Parser";
+import {Es6SyntaxName} from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "./JsonUtil";
 
@@ -32,6 +32,7 @@ export default class AlienParser {
 
     syntaxStack = []
 
+    rootCst: AlienCst
     curCst: AlienCst
     // curCst: AlienCst
     // parentCst: AlienCst
@@ -60,9 +61,10 @@ export default class AlienParser {
     exec(ruleName: string) {
         this.execFlag = true
         this.curRuleName = ruleName
-        this.curCst = new AlienCst()
-        this.curCst.name = ruleName
-        this.curCst.children = []
+        this.rootCst = new AlienCst()
+        this.rootCst.name = ruleName
+        this.rootCst.children = []
+        this.curCst = this.rootCst
         // this.curCst = this.cst
         // this.parentCst = this.cst
         this.curRule.ruleFun()
@@ -93,9 +95,10 @@ export default class AlienParser {
     consume(tokenName: string) {
         if (this.execFlag) {
             if (this.continueMatching) {
-                const popToken = this.tokens.pop()
+                const popToken = this.tokens.shift()
                 if (popToken.tokenName !== tokenName) {
                     this.continueMatching = false
+                    console.log('shezhiwei  false')
                 }
                 const cst = new AlienCst()
                 cst.name = popToken.tokenName
@@ -139,6 +142,7 @@ export default class AlienParser {
     subRule(ruleName: string) {
         if (this.execFlag) {
             if (this.continueMatching) {
+                this.curRuleName = ruleName
                 let cst = new AlienCst()
                 cst.name = ruleName
                 this.cstStack.push(this.curCst)
@@ -160,9 +164,9 @@ export default class AlienParser {
     or(alienParserOrs: AlienParserOr[]) {
         if (this.execFlag) {
             console.log('zhixingle')
-            if (this.tokens.length < this.realMaxLookahead) {
-                throw new Error('语法错误')
-            }
+            // if (this.tokens.length < this.realMaxLookahead) {
+            //     throw new Error('语法错误')
+            // }
             //获取当前token的最大前瞻数量
             const lookTokens = this.tokens.slice(0, this.realMaxLookahead)
             const lookStr = lookTokens.map(item => item.tokenName).join('$$')
@@ -172,8 +176,9 @@ export default class AlienParser {
             let flag = false
             //匹配成功，则遍历执行这个规则
             for (const ruleToken of ruleTokens) {
-                console.log(ruleToken)
                 const tokenStr = ruleToken.join('$$')
+                console.log(tokenStr)
+                console.log(lookStr)
                 if (tokenStr === lookStr) {
                     console.log('pipie 成功：' + tokenStr)
                     flag = true

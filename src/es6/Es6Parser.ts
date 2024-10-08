@@ -22,14 +22,12 @@ export default class Es6Parser extends AlienParser {
 
     constructor(tokens: AlienMatchToken[]) {
         super(tokens);
-        this.initRule()
     }
-
 
     mappingRule(ruleName: string, fun: Function): RuleObj<MappingObj> {
         const ruleObj = super.rule(ruleName, fun);
         const mappingRule = new MappingObj(ruleObj)
-            // , mappingFun: Function
+        // , mappingFun: Function
         // mappingRule.mappingFun = mappingFun
         return mappingRule
     }
@@ -40,50 +38,43 @@ export default class Es6Parser extends AlienParser {
         console.log(cst.tokens)
         return cst
     }
-
-    initRule() {
-        this.mappingRule(Es6SyntaxName.program, () => {
-            this.or([
-                {
-                    alt: () => {
-                        this.consume(Es6TokenName.let)
-                    }
-                },
-                {
-                    alt: () => {
-                        this.consume(Es6TokenName.const)
-                    }
+    @AlienRule
+    program() {
+        this.or([
+            {
+                alt: () => {
+                    this.consume(Es6TokenName.let)
                 }
-            ])
-            this.subRule(Es6SyntaxName.identifierEqual)
-            this.subRule(Es6SyntaxName.assignmentExpression)
-        })
-
-
-        this.mappingRule(Es6SyntaxName.identifierEqual, () => {
-            this.consume(Es6TokenName.identifier)
-            this.consume(Es6TokenName.equal)
-        })
-
-
-        this.mappingRule(Es6SyntaxName.assignmentExpression, () => {
-            this.or([
-                {
-                    alt: () => {
-                        this.consume(Es6TokenName.integer)
-                    }
-                },
-                {
-                    alt: () => {
-                        this.consume(Es6TokenName.string)
-                    }
+            },
+            {
+                alt: () => {
+                    this.consume(Es6TokenName.const)
                 }
-            ])
-        })
+            }
+        ])
+        this.subRule(Es6SyntaxName.identifierEqual)
+        this.subRule(Es6SyntaxName.assignmentExpression)
+    }
+
+
+    @AlienRule
+    assignmentExpression() {
+        this.or([
+            {
+                alt: () => {
+                    this.consume(Es6TokenName.integer)
+                }
+            },
+            {
+                alt: () => {
+                    this.consume(Es6TokenName.string)
+                }
+            }
+        ])
     }
 
     @AlienRule
-    identifierEqual(){
+    identifierEqual() {
         this.consume(Es6TokenName.identifier)
         this.consume(Es6TokenName.equal)
     }

@@ -22,8 +22,13 @@ class AlienParserOr {
 
 export function AlienRule(targetFun: any, context) {
     return function () {
-        const classThis: AlienParser = this
-        return alienParserRule.apply(classThis, [targetFun.name, targetFun])
+        const ruleName = targetFun.name
+        const curRule = new RuleObj()
+        curRule.ruleName = ruleName
+        curRule.ruleTokens = [[]]
+        curRule.ruleFun = targetFun
+        this.ruleMap[ruleName] = curRule
+        curRule.ruleFun.apply(this)
     }
 }
 
@@ -78,7 +83,14 @@ export default class AlienParser<T = any, E = any> {
     }
 
 
-    exec(ruleName: string) {
+    exec(ruleName: string | Function) {
+        if (typeof ruleName === 'function') {
+            console.log(11111)
+            console.log(ruleName.name)
+        } else {
+
+        }
+        console.log(ruleName)
         this.execFlag = true
         this.curRuleName = ruleName
         this.rootCst = new AlienCst()
@@ -154,10 +166,10 @@ export default class AlienParser<T = any, E = any> {
     }
 
 
-    rule(ruleName: string, fun: Function) {
+    /*rule(ruleName: string, fun: Function) {
         return alienParserRule.apply(this, [ruleName, fun])
         // fun()
-    }
+    }*/
 
     generateCst(cst: AlienCst<T>) {
         return cst
@@ -184,6 +196,7 @@ export default class AlienParser<T = any, E = any> {
             if (!this.needLookahead) {
                 return
             }
+            console.log(ruleName)
             this.ruleMap[ruleName].ruleFun()
         }
     }

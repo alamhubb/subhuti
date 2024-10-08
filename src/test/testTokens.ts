@@ -19,6 +19,6 @@ for (const rulekey in parser.ruleMap) {
     console.log(parser.ruleMap[rulekey].ruleTokens)
 }*/
 
-parser.exec(Es6SyntaxName.program)
+const res = parser.program()
 
-console.log(JsonUtil.toJson(parser.rootCst))
+console.log(res)

@@ -1,5 +1,5 @@
 import AlienToken from "./AlienToken";
-import {AlienCreateToken} from "./AlienCreateToken";
+import {AlienCreateToken, AlienCreateTokenGroupType} from "./AlienCreateToken";
 import AlienMatchToken, {createMatchToken} from "./AlienMatchToken";
 
 export default class AlienLexer {
@@ -62,7 +62,7 @@ export default class AlienLexer {
             }
             //获取最长长度的tokens
             const maxLengthTokens = map.get(maxLength)
-            let resToken
+            let resToken: AlienMatchToken
             //如果有一个以上
             if (maxLengthTokens.length > 1) {
                 const resTokens = maxLengthTokens.filter(item => this.tokenMap.get(item.tokenName).isKeyword)
@@ -73,8 +73,11 @@ export default class AlienLexer {
             } else {
                 resToken = maxLengthTokens[0]
             }
-
             input = input.substring(maxLength)
+            const createToken = this.tokenMap.get(resToken.tokenName)
+            if (createToken.group === AlienCreateTokenGroupType.skip) {
+                continue
+            }
             resTokens.push(resToken)
         }
         return resTokens;

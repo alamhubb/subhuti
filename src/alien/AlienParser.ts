@@ -1,14 +1,19 @@
 import AlienMatchToken from "./AlienMatchToken";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
+import RuleObj from "./RuleObj";
 
 
-function alienParser(targetFun: any, context) {
+export function alienParser(targetFun: any, context) {
     return function (...args) {
         const classThis: AlienParser = this
         classThis.syntaxStack.push(targetFun.name)
         return targetFun.apply(classThis, args)
     }
+}
+
+class AlienParserOr {
+    alt: Function
 }
 
 
@@ -26,39 +31,65 @@ export default class AlienParser {
         this.tokens = tokens;
     }
 
+
     //你要做的是在处理过程中，可以生成多个tree
     //一般一个方法只有一个返回
     consume(tokenName: string) {
-        const newTokens = [...this.tokens]
-        const firstToken = newTokens.shift()
-        if (firstToken.tokenName !== tokenName) {
-            throw new Error('语法错误')
-        }
-        const cstState = {
-            name: tokenName
-        }
-        return cstState
+
+
+        /* const newTokens = [...this.tokens]
+         const firstToken = newTokens.shift()
+         if (firstToken.tokenName !== tokenName) {
+             throw new Error('语法错误')
+         }
+         const cstState = {
+             name: tokenName
+         }
+         return cstState*/
     }
 
-    @alienParser
-    program(): AlienCst {
-        // this.syntaxStack.push()
-        if (!this.cst) {
-            this.cst = new AlienCst()
+    ruleMap: { [key in string]: RuleObj } = {}
+
+    curRule: RuleObj
+
+    rule(ruleName: string, fun: Function) {
+        console.log(`ruleName:${ruleName}`)
+
+        this.curRule = new RuleObj()
+        this.curRule.ruleName = ruleName
+        this.ruleMap[ruleName] = this.curRule
+
+        this.curRule.curTokens = []
+        this.curRule.ruleTokens = [this.curRule.curTokens]
+
+        fun()
+
+    }
+
+    subRule(ruleName: string) {
+        this.curRule.curTokens.push(ruleName)
+    }
+
+    or(alienParserOrs: AlienParserOr[]) {
+        const oldLength = this.curRule.ruleTokens.length
+        //copy + 扩容
+        const newLength = oldLength * alienParserOrs.length
+        //之前的数量 copy 几倍，
+
+
+        const newRuleTokens = []
+
+        for (const ruleToken of this.curRule.ruleTokens) {
+            //二位数组数量*2
+            alienParserOrs.forEach((alienParserOr, index) => {
+
+                this.curRule.curTokens = [...ruleToken]
+                newRuleTokens.push(this.curRule.curTokens)
+
+                alienParserOr.alt()
+
+            })
         }
-        this.parentCstState = this.cst
-        this.consume(Es6TokenName.let)
-        this.parentCstState.children.push(this.cstState)
-
-        //如何生成mappingCst，肯定不是消耗一个 生成一个。
-        //问题是两个语法不一致，导致token顺序不一致
-        //你要做的是调整token顺序，调整成符合mapping的顺序
-        //应该是从子往父级
-
-        //parser是从上到下的
-        //是可以做到最底层的映射的，因为program执行顺序，问题是执行完子级和父级如何组合的问题
-        //执行完了，发现他存在 ，mapping，则执行mapping，
-
-        return this.cst
+        this.curRule.ruleTokens = newRuleTokens
     }
 }

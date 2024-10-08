@@ -8,6 +8,7 @@ export enum Es6TokenName {
 
     identifier = 'identifier',
     integer = 'integer',
+    string = 'string',
 }
 
 
@@ -19,4 +20,6 @@ export const es6Tokens = [
 
     createToken({name: Es6TokenName.identifier, pattern: /[a-zA-Z$_]\w*/}),
     createToken({name: Es6TokenName.integer, pattern: /0|[1-9]\d*/}),
+    //匹配非'\,和转义字符
+    createToken({name: Es6TokenName.string, pattern: /'([^'\\]|\\.)*'/}),
 ]

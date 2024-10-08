@@ -1,4 +1,4 @@
-import AlienParser, {alienParser} from "../alien/AlienParser";
+import AlienParser, {alienParser, AlienRule} from "../alien/AlienParser";
 import AlienCst from "../alien/AlienCst";
 import {Es6TokenName} from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
@@ -65,6 +65,7 @@ export default class Es6Parser extends AlienParser {
             this.consume(Es6TokenName.equal)
         })
 
+
         this.mappingRule(Es6SyntaxName.assignmentExpression, () => {
             this.or([
                 {
@@ -80,6 +81,13 @@ export default class Es6Parser extends AlienParser {
             ])
         })
     }
+
+    @AlienRule
+    identifierEqual(){
+        this.consume(Es6TokenName.identifier)
+        this.consume(Es6TokenName.equal)
+    }
+
 
     /*program(): AlienCst {
         // this.syntaxStack.push()

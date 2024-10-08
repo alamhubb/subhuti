@@ -20,6 +20,26 @@ class AlienParserOr {
 }
 
 
+export function AlienRule(targetFun: any, context) {
+    return function () {
+        const classThis: AlienParser = this
+        return alienParserRule.apply(classThis, [targetFun.name, targetFun])
+    }
+}
+
+
+function alienParserRule(ruleName: string, fun: Function) {
+    console.log(`ruleName:${ruleName}`)
+    const curRule = new RuleObj()
+    curRule.ruleName = ruleName
+    curRule.ruleTokens = [[]]
+    curRule.ruleFun = fun
+    console.log(this)
+    this.ruleMap[ruleName] = curRule
+    return curRule
+    // fun()
+}
+
 export default class AlienParser<T = any, E = any> {
 
     tokens: AlienMatchToken[]
@@ -135,17 +155,7 @@ export default class AlienParser<T = any, E = any> {
 
 
     rule(ruleName: string, fun: Function) {
-        console.log(`ruleName:${ruleName}`)
-
-        const curRule = new RuleObj()
-        curRule.ruleName = ruleName
-        curRule.ruleTokens = [[]]
-        curRule.ruleFun = fun
-
-        this.ruleMap[ruleName] = curRule
-
-        return curRule
-
+        return alienParserRule.apply(this, [ruleName, fun])
         // fun()
     }
 

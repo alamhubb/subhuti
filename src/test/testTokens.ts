@@ -12,6 +12,9 @@ const parser = new Es6Parser(tokens)
 
 parser.test()
 
-// console.log(parser.ruleMap)
+console.log(parser.ruleMap)
 
+for (const rulekey in parser.ruleMap) {
+    console.log(parser.ruleMap[rulekey].ruleTokens)
+}
 

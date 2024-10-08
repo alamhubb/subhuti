@@ -36,10 +36,20 @@ export default class AlienParser {
     }
 
     test() {
-        /*for (const ruleObjKey in this.ruleMap) {
+        for (const ruleObjKey in this.ruleMap) {
+            this.curRuleName = ruleObjKey
             this.ruleMap[ruleObjKey].ruleFun()
-        }*/
-        this.ruleMap[Es6SyntaxName.program].ruleFun()
+        }
+    }
+
+    curRuleName = null
+
+
+    get curRule() {
+        if (this.curRuleName) {
+            return this.ruleMap[this.curRuleName]
+        }
+        return null
     }
 
 
@@ -55,27 +65,20 @@ export default class AlienParser {
              name: tokenName
          }
          return cstState*/
-        console.log(`consume:${tokenName}`)
-
         for (const curTokens of this.curRule.ruleTokens) {
             curTokens.push(tokenName)
         }
-        console.log(999999)
-        console.log(this.curRule.ruleTokens)
     }
-
-    curRule: RuleObj
 
     rule(ruleName: string, fun: Function) {
         console.log(`ruleName:${ruleName}`)
 
-        this.curRule = new RuleObj()
-        this.curRule.ruleName = ruleName
-        this.ruleMap[ruleName] = this.curRule
+        const curRule = new RuleObj()
+        curRule.ruleName = ruleName
+        curRule.ruleTokens = [[]]
+        curRule.ruleFun = fun
 
-        this.curRule.curTokens = []
-        this.curRule.ruleTokens = [this.curRule.curTokens]
-        this.curRule.ruleFun = fun
+        this.ruleMap[ruleName] = curRule
 
         // fun()
     }
@@ -91,7 +94,6 @@ export default class AlienParser {
         //之前的数量 copy 几倍，
 
 
-
         // for (const ruleToken of this.curRule.ruleTokens) {
         //二位数组数量*2
 
@@ -101,22 +103,16 @@ export default class AlienParser {
         alienParserOrs.forEach((alienParserOr, index) => {
             //每次进入都进入上次的状态
             this.curRule.ruleTokens = lodash.cloneDeep(oldTokens)
-            console.log('zhigxingle  alt')
-            console.log(oldTokens)
             // console.log([...ruleToken])
             // this.curRule.curTokens = [...ruleToken]
             alienParserOr.alt()
 
             newRuleTokens = [...newRuleTokens, ...this.curRule.ruleTokens]
 
-            console.log(77777)
-            console.log(newRuleTokens)
             //执行完毕后
             // newRuleTokens.push(this.curRule.curTokens)
         })
         // }
         this.curRule.ruleTokens = newRuleTokens
-        console.log('---------')
-        console.log(this.curRule.ruleTokens)
     }
 }

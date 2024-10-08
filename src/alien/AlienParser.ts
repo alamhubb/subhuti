@@ -95,15 +95,21 @@ export default class AlienParser {
     consume(tokenName: string) {
         if (this.execFlag) {
             if (this.continueMatching) {
-                const popToken = this.tokens.shift()
-                if (popToken.tokenName !== tokenName) {
-                    this.continueMatching = false
-                    console.log('shezhiwei  false')
+                if (this.tokens.length){
+                    let popToken = this.tokens[0]
+                    if (popToken.tokenName !== tokenName) {
+                        console.log(popToken.tokenName)
+                        console.log(tokenName)
+                        this.setContinueMatching(false)
+                        return
+                    }
+                    popToken = this.tokens.shift()
+                    console.log('消灭token:' + popToken.tokenName)
+                    const cst = new AlienCst()
+                    cst.name = popToken.tokenName
+                    cst.value = popToken.tokenValue
+                    this.curCst.children.push(cst)
                 }
-                const cst = new AlienCst()
-                cst.name = popToken.tokenName
-                cst.value = popToken.tokenValue
-                this.curCst.children.push(cst)
             }
         } else {
             if (!this.needLookahead) {
@@ -161,6 +167,11 @@ export default class AlienParser {
         }
     }
 
+    setContinueMatching(flag: boolean) {
+        this.continueMatching = flag
+        console.log('shezhi this.continueMatching:' + flag)
+    }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.execFlag) {
             console.log('zhixingle')
@@ -194,14 +205,14 @@ export default class AlienParser {
             for (const alienParserOr of alienParserOrs) {
                 if (!this.continueMatching) {
                     this.tokens = lodash.cloneDeep(tokens)
-                    this.continueMatching = true
-                    alienParserOr.alt()
+                    this.setContinueMatching(true)
                 }
+                alienParserOr.alt()
                 // if (this.curCst) {
                 //     this.parentCst.children.push(this.curCst)
                 // }
             }
-
+            this.setContinueMatching(true)
         } else {
             if (!this.needLookahead) {
                 return

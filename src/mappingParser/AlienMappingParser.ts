@@ -11,7 +11,6 @@ export class AlienMappingParser extends AlienParser {
     syntaxStack = []
 
     curCst: MappingCst
-    curCst: MappingCst
     parentCstState: MappingCst
 
 

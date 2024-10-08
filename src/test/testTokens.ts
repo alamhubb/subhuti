@@ -10,8 +10,8 @@ const tokens = lexer.lexer(code1)
 
 const parser = new Es6Parser(tokens)
 
-parser.program()
+parser.test()
 
-console.log(parser.ruleMap)
+// console.log(parser.ruleMap)
 
 

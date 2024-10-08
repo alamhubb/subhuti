@@ -2,6 +2,9 @@ import AlienMatchToken from "./AlienMatchToken";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
+import {Es6SyntaxName} from "../jsparser/Es6Parser";
+import lodash from "../plugins/Lodash";
+import JsonUtil from "./JsonUtil";
 
 
 export function alienParser(targetFun: any, context) {
@@ -26,17 +29,23 @@ export default class AlienParser {
     cst: AlienCst
     cstState: AlienCst
     parentCstState: AlienCst
+    ruleMap: { [key in string]: RuleObj } = {}
 
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
+    }
+
+    test() {
+        /*for (const ruleObjKey in this.ruleMap) {
+            this.ruleMap[ruleObjKey].ruleFun()
+        }*/
+        this.ruleMap[Es6SyntaxName.program].ruleFun()
     }
 
 
     //你要做的是在处理过程中，可以生成多个tree
     //一般一个方法只有一个返回
     consume(tokenName: string) {
-
-
         /* const newTokens = [...this.tokens]
          const firstToken = newTokens.shift()
          if (firstToken.tokenName !== tokenName) {
@@ -46,9 +55,14 @@ export default class AlienParser {
              name: tokenName
          }
          return cstState*/
-    }
+        console.log(`consume:${tokenName}`)
 
-    ruleMap: { [key in string]: RuleObj } = {}
+        for (const curTokens of this.curRule.ruleTokens) {
+            curTokens.push(tokenName)
+        }
+        console.log(999999)
+        console.log(this.curRule.ruleTokens)
+    }
 
     curRule: RuleObj
 
@@ -61,13 +75,13 @@ export default class AlienParser {
 
         this.curRule.curTokens = []
         this.curRule.ruleTokens = [this.curRule.curTokens]
+        this.curRule.ruleFun = fun
 
-        fun()
-
+        // fun()
     }
 
     subRule(ruleName: string) {
-        this.curRule.curTokens.push(ruleName)
+        this.ruleMap[ruleName].ruleFun()
     }
 
     or(alienParserOrs: AlienParserOr[]) {
@@ -77,19 +91,32 @@ export default class AlienParser {
         //之前的数量 copy 几倍，
 
 
-        const newRuleTokens = []
 
-        for (const ruleToken of this.curRule.ruleTokens) {
-            //二位数组数量*2
-            alienParserOrs.forEach((alienParserOr, index) => {
+        // for (const ruleToken of this.curRule.ruleTokens) {
+        //二位数组数量*2
 
-                this.curRule.curTokens = [...ruleToken]
-                newRuleTokens.push(this.curRule.curTokens)
+        const oldTokens = this.curRule.ruleTokens
 
-                alienParserOr.alt()
+        let newRuleTokens = []
+        alienParserOrs.forEach((alienParserOr, index) => {
+            //每次进入都进入上次的状态
+            this.curRule.ruleTokens = lodash.cloneDeep(oldTokens)
+            console.log('zhigxingle  alt')
+            console.log(oldTokens)
+            // console.log([...ruleToken])
+            // this.curRule.curTokens = [...ruleToken]
+            alienParserOr.alt()
 
-            })
-        }
+            newRuleTokens = [...newRuleTokens, ...this.curRule.ruleTokens]
+
+            console.log(77777)
+            console.log(newRuleTokens)
+            //执行完毕后
+            // newRuleTokens.push(this.curRule.curTokens)
+        })
+        // }
         this.curRule.ruleTokens = newRuleTokens
+        console.log('---------')
+        console.log(this.curRule.ruleTokens)
     }
 }

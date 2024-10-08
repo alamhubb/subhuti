@@ -57,7 +57,7 @@ export default class Es6Parser extends AlienParser {
         })
     }
 
-    program(): AlienCst {
+    /*program(): AlienCst {
         // this.syntaxStack.push()
         if (!this.cst) {
             this.cst = new AlienCst()
@@ -76,5 +76,5 @@ export default class Es6Parser extends AlienParser {
         //执行完了，发现他存在 ，mapping，则执行mapping，
 
         return this.cst
-    }
+    }*/
 }

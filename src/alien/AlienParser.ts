@@ -110,6 +110,7 @@ export default class AlienParser {
                     cst.value = popToken.tokenValue
                     this.curCst.children.push(cst)
                     this.curCst.tokens.push(popToken)
+                    return cst
                 }
             }
         } else {
@@ -160,6 +161,7 @@ export default class AlienParser {
                     this.curCst.children.push(cst)
                     this.curCst.tokens.push(...cst.tokens)
                 }
+                return cst
             }
         } else {
             if (!this.needLookahead) {

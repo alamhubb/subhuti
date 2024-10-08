@@ -3,7 +3,7 @@ import AlienMatchToken from "./AlienMatchToken";
 export default class AlienCst {
     name: string
     children?: AlienCst[] = []
-    tokens?: AlienMatchToken[]
+    tokens?: AlienMatchToken[] = []
     tokenTypeIdx?: number
     tokenTypeName?: string
     value?: string | number

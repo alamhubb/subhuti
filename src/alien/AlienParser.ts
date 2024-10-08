@@ -109,6 +109,7 @@ export default class AlienParser {
                     cst.name = popToken.tokenName
                     cst.value = popToken.tokenValue
                     this.curCst.children.push(cst)
+                    this.curCst.tokens.push(popToken)
                 }
             }
         } else {
@@ -157,6 +158,7 @@ export default class AlienParser {
                 if (this.continueMatching) {
                     this.curCst = this.cstStack.pop()
                     this.curCst.children.push(cst)
+                    this.curCst.tokens.push(...cst.tokens)
                 }
             }
         } else {
@@ -203,6 +205,7 @@ export default class AlienParser {
 
             let tokens = lodash.cloneDeep(this.tokens)
             for (const alienParserOr of alienParserOrs) {
+                //如果上轮解析失败，则重新解析
                 if (!this.continueMatching) {
                     this.tokens = lodash.cloneDeep(tokens)
                     this.setContinueMatching(true)

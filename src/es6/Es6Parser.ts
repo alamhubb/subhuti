@@ -2,6 +2,7 @@ import AlienParser, {alienParser} from "../alien/AlienParser";
 import AlienCst from "../alien/AlienCst";
 import {Es6TokenName} from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
+import RuleObj from "../alien/RuleObj";
 
 export enum Es6SyntaxName {
     assignmentExpression = 'assignmentExpression',
@@ -9,6 +10,13 @@ export enum Es6SyntaxName {
     program = 'program',
 }
 
+class MappingObj extends RuleObj {
+    mappingFun: Function
+
+    constructor(ruleObj: RuleObj) {
+        super(ruleObj)
+    }
+}
 
 export default class Es6Parser extends AlienParser {
 
@@ -17,8 +25,24 @@ export default class Es6Parser extends AlienParser {
         this.initRule()
     }
 
+
+    mappingRule(ruleName: string, fun: Function): RuleObj<MappingObj> {
+        const ruleObj = super.rule(ruleName, fun);
+        const mappingRule = new MappingObj(ruleObj)
+            // , mappingFun: Function
+        // mappingRule.mappingFun = mappingFun
+        return mappingRule
+    }
+
+    generateCst(cst: AlienCst<any>): AlienCst {
+        console.log(78787878)
+        console.log(cst)
+        console.log(cst.tokens)
+        return cst
+    }
+
     initRule() {
-        this.rule(Es6SyntaxName.program, () => {
+        this.mappingRule(Es6SyntaxName.program, () => {
             this.or([
                 {
                     alt: () => {
@@ -36,12 +60,12 @@ export default class Es6Parser extends AlienParser {
         })
 
 
-        this.rule(Es6SyntaxName.identifierEqual, () => {
+        this.mappingRule(Es6SyntaxName.identifierEqual, () => {
             this.consume(Es6TokenName.identifier)
             this.consume(Es6TokenName.equal)
         })
 
-        this.rule(Es6SyntaxName.assignmentExpression, () => {
+        this.mappingRule(Es6SyntaxName.assignmentExpression, () => {
             this.or([
                 {
                     alt: () => {

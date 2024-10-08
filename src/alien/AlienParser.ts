@@ -20,7 +20,7 @@ class AlienParserOr {
 }
 
 
-export default class AlienParser<T = any> {
+export default class AlienParser<T = any, E = any> {
 
     tokens: AlienMatchToken[]
 
@@ -37,7 +37,7 @@ export default class AlienParser<T = any> {
     // curCst: AlienCst
     // parentCst: AlienCst
     parentCstState: AlienCst
-    ruleMap: { [key in string]: RuleObj } = {}
+    ruleMap: { [key in string]: RuleObj<E> } = {}
 
     execFlag = false
 
@@ -110,7 +110,7 @@ export default class AlienParser<T = any> {
                     cst.value = popToken.tokenValue
                     this.curCst.children.push(cst)
                     this.curCst.tokens.push(popToken)
-                    return cst
+                    return this.generateCst(cst)
                 }
             }
         } else {
@@ -144,9 +144,14 @@ export default class AlienParser<T = any> {
 
         this.ruleMap[ruleName] = curRule
 
+        return curRule
+
         // fun()
     }
 
+    generateCst(cst: AlienCst<T>) {
+        return cst
+    }
 
 
     subRule(ruleName: string) {
@@ -163,7 +168,7 @@ export default class AlienParser<T = any> {
                     this.curCst.children.push(cst)
                     this.curCst.tokens.push(...cst.tokens)
                 }
-                return cst
+                return this.generateCst(cst)
             }
         } else {
             if (!this.needLookahead) {

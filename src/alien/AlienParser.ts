@@ -24,6 +24,7 @@ export default class AlienParser {
 
     tokens: AlienMatchToken[]
 
+    maxLookahead = 1
     syntaxStack = []
 
     cst: AlienCst
@@ -53,9 +54,20 @@ export default class AlienParser {
     }
 
 
+    get needLookahead() {
+        let flag = false
+        if (this.curRule) {
+            flag = this.curRule.ruleTokens.some(item => item.length < (this.maxLookahead + 1))
+        }
+        return flag
+    }
+
     //你要做的是在处理过程中，可以生成多个tree
     //一般一个方法只有一个返回
     consume(tokenName: string) {
+        if (!this.needLookahead){
+            return
+        }
         /* const newTokens = [...this.tokens]
          const firstToken = newTokens.shift()
          if (firstToken.tokenName !== tokenName) {
@@ -84,10 +96,16 @@ export default class AlienParser {
     }
 
     subRule(ruleName: string) {
+        if (!this.needLookahead){
+            return
+        }
         this.ruleMap[ruleName].ruleFun()
     }
 
     or(alienParserOrs: AlienParserOr[]) {
+        if (!this.needLookahead){
+            return
+        }
         const oldLength = this.curRule.ruleTokens.length
         //copy + 扩容
         const newLength = oldLength * alienParserOrs.length

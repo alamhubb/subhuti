@@ -20,7 +20,7 @@ class AlienParserOr {
 }
 
 
-export default class AlienParser {
+export default class AlienParser<T = any> {
 
     tokens: AlienMatchToken[]
 
@@ -32,8 +32,8 @@ export default class AlienParser {
 
     syntaxStack = []
 
-    rootCst: AlienCst
-    curCst: AlienCst
+    rootCst: AlienCst<T>
+    curCst: AlienCst<T>
     // curCst: AlienCst
     // parentCst: AlienCst
     parentCstState: AlienCst
@@ -41,7 +41,7 @@ export default class AlienParser {
 
     execFlag = false
 
-    cstStack: AlienCst[] = []
+    cstStack: AlienCst<T>[] = []
 
     matchFlag = false
     continueMatching = false
@@ -95,7 +95,7 @@ export default class AlienParser {
     consume(tokenName: string) {
         if (this.execFlag) {
             if (this.continueMatching) {
-                if (this.tokens.length){
+                if (this.tokens.length) {
                     let popToken = this.tokens[0]
                     if (popToken.tokenName !== tokenName) {
                         console.log(popToken.tokenName)
@@ -146,6 +146,8 @@ export default class AlienParser {
 
         // fun()
     }
+
+
 
     subRule(ruleName: string) {
         if (this.execFlag) {

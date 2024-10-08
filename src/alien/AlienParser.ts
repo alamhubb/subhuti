@@ -1,5 +1,6 @@
 import AlienMatchToken from "./AlienMatchToken";
 import {Es6TokenName} from "../es6/Es6Tokens";
+import AlienCst from "./AlienCst";
 
 
 function alienParser(targetFun: any, context) {
@@ -17,7 +18,11 @@ export default class AlienParser {
 
     syntaxStack = []
 
-    constructor(tokens: AlienMatchToken[]) {
+    cst: AlienCst
+    cstState: AlienCst
+    parentCstState: AlienCst
+
+    constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
 
@@ -29,14 +34,31 @@ export default class AlienParser {
         if (firstToken.tokenName !== tokenName) {
             throw new Error('语法错误')
         }
+        const cstState = {
+            name: tokenName
+        }
+        return cstState
     }
 
     @alienParser
-    program(arg) {
-        console.log(this)
-        console.log(arg)
+    program(): AlienCst {
         // this.syntaxStack.push()
-        console.log('zhixingle programs')
+        if (!this.cst) {
+            this.cst = new AlienCst()
+        }
+        this.parentCstState = this.cst
         this.consume(Es6TokenName.let)
+        this.parentCstState.children.push(this.cstState)
+
+        //如何生成mappingCst，肯定不是消耗一个 生成一个。
+        //问题是两个语法不一致，导致token顺序不一致
+        //你要做的是调整token顺序，调整成符合mapping的顺序
+        //应该是从子往父级
+
+        //parser是从上到下的
+        //是可以做到最底层的映射的，因为program执行顺序，问题是执行完子级和父级如何组合的问题
+        //执行完了，发现他存在 ，mapping，则执行mapping，
+
+        return this.cst
     }
 }

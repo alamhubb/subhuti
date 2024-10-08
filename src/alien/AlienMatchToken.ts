@@ -1,10 +1,10 @@
 export default class AlienMatchToken {
-    name: string
-    value: string
+    tokenName: string
+    tokenValue: string
 
     constructor(osvToken: AlienMatchToken) {
-        this.name = osvToken.name;
-        this.value = osvToken.value;
+        this.tokenName = osvToken.tokenName;
+        this.tokenValue = osvToken.tokenValue;
     }
 }
 

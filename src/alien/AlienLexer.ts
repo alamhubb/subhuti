@@ -39,7 +39,7 @@ export default class AlienLexer {
                 //存在匹配结果，
                 if (matchRes) {
                     //则加入到匹配的token列表中
-                    matchTokens.push(createMatchToken({name: token.name, value: matchRes[0]}))
+                    matchTokens.push(createMatchToken({tokenName: token.name, tokenValue: matchRes[0]}))
                 }
             }
 
@@ -52,7 +52,7 @@ export default class AlienLexer {
             //遍历所有匹配的token
             for (const matchToken of matchTokens) {
                 //获取当前匹配token长度
-                const matchTokenLength = matchToken.value.length
+                const matchTokenLength = matchToken.tokenValue.length
                 //记录最长的
                 maxLength = Math.max(maxLength, matchTokenLength)
                 //如果是最长的，加入到结果中
@@ -65,9 +65,9 @@ export default class AlienLexer {
             let resToken
             //如果有一个以上
             if (maxLengthTokens.length > 1) {
-                const resTokens = maxLengthTokens.filter(item => this.tokenMap.get(item.name).isKeyword)
+                const resTokens = maxLengthTokens.filter(item => this.tokenMap.get(item.tokenName).isKeyword)
                 if (resTokens.length > 1) {
-                    throw new Error('匹配了多个关键字:' + resTokens.map(item => item.name).join(','))
+                    throw new Error('匹配了多个关键字:' + resTokens.map(item => item.tokenName).join(','))
                 }
                 resToken = resTokens[0]
             } else {

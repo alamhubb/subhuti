@@ -19,3 +19,6 @@ for (const rulekey in parser.ruleMap) {
 }
 
 parser.exec(Es6SyntaxName.program)
+
+console.log(parser.cstStack)
+console.log(parser.curCst)

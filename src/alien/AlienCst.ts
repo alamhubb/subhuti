@@ -2,11 +2,11 @@ import AlienMatchToken from "./AlienMatchToken";
 
 export default class AlienCst {
     name: string
-    children?: AlienCst[]
+    children?: AlienCst[] = []
     tokens?: AlienMatchToken[]
     tokenTypeIdx?: number
     tokenTypeName?: string
-    image?: string | number
+    value?: string | number
     startOffset?: number
     endOffset?: number
 
@@ -16,7 +16,7 @@ export default class AlienCst {
             this.children = cst.children;
             this.tokenTypeIdx = cst.tokenTypeIdx;
             this.tokenTypeName = cst.tokenTypeName;
-            this.image = cst.image;
+            this.value = cst.value;
             this.startOffset = cst.startOffset;
             this.endOffset = cst.endOffset;
         }

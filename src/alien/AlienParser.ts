@@ -32,12 +32,18 @@ export default class AlienParser {
 
     syntaxStack = []
 
-    cst: AlienCst
-    cstState: AlienCst
+    curCst: AlienCst
+    // curCst: AlienCst
+    // parentCst: AlienCst
     parentCstState: AlienCst
     ruleMap: { [key in string]: RuleObj } = {}
 
     execFlag = false
+
+    cstStack: AlienCst[] = []
+
+    matchFlag = false
+    continueMatching = false
 
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
@@ -50,9 +56,15 @@ export default class AlienParser {
         }
     }
 
+
     exec(ruleName: string) {
         this.execFlag = true
         this.curRuleName = ruleName
+        this.curCst = new AlienCst()
+        this.curCst.name = ruleName
+        this.curCst.children = []
+        // this.curCst = this.cst
+        // this.parentCst = this.cst
         this.curRule.ruleFun()
         this.execFlag = false
     }
@@ -80,7 +92,16 @@ export default class AlienParser {
     //一般一个方法只有一个返回
     consume(tokenName: string) {
         if (this.execFlag) {
-
+            if (this.continueMatching) {
+                const popToken = this.tokens.pop()
+                if (popToken.tokenName !== tokenName) {
+                    this.continueMatching = false
+                }
+                const cst = new AlienCst()
+                cst.name = popToken.tokenName
+                cst.value = popToken.tokenValue
+                this.curCst.children.push(cst)
+            }
         } else {
             if (!this.needLookahead) {
                 return
@@ -117,7 +138,17 @@ export default class AlienParser {
 
     subRule(ruleName: string) {
         if (this.execFlag) {
-            this.ruleMap[ruleName].ruleFun()
+            if (this.continueMatching) {
+                let cst = new AlienCst()
+                cst.name = ruleName
+                this.cstStack.push(this.curCst)
+                this.curCst = cst
+                this.ruleMap[ruleName].ruleFun()
+                if (this.continueMatching) {
+                    this.curCst = this.cstStack.pop()
+                    this.curCst.children.push(cst)
+                }
+            }
         } else {
             if (!this.needLookahead) {
                 return
@@ -137,13 +168,35 @@ export default class AlienParser {
             const lookStr = lookTokens.map(item => item.tokenName).join('$$')
             console.log(lookStr)
             const ruleTokens = this.curRule.ruleTokens
+
+            let flag = false
+            //匹配成功，则遍历执行这个规则
             for (const ruleToken of ruleTokens) {
+                console.log(ruleToken)
                 const tokenStr = ruleToken.join('$$')
                 if (tokenStr === lookStr) {
                     console.log('pipie 成功：' + tokenStr)
+                    flag = true
                     break
                 }
             }
+            if (!flag) {
+                throw new Error('未找到匹配的规则')
+                // return;
+            }
+
+            let tokens = lodash.cloneDeep(this.tokens)
+            for (const alienParserOr of alienParserOrs) {
+                if (!this.continueMatching) {
+                    this.tokens = lodash.cloneDeep(tokens)
+                    this.continueMatching = true
+                    alienParserOr.alt()
+                }
+                // if (this.curCst) {
+                //     this.parentCst.children.push(this.curCst)
+                // }
+            }
+
         } else {
             if (!this.needLookahead) {
                 return

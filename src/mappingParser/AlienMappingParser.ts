@@ -10,16 +10,16 @@ export class AlienMappingParser extends AlienParser {
 
     syntaxStack = []
 
-    cst: MappingCst
-    cstState: MappingCst
+    curCst: MappingCst
+    curCst: MappingCst
     parentCstState: MappingCst
 
 
     mapping(cst: AlienCst, mappingCstFun: Function) {
-        this.cst = new MappingCst(cst)
+        this.curCst = new MappingCst(cst)
         this.tokens = cst.tokens
         const mappingAst = mappingCstFun()
-        this.cst.mappingCst = mappingAst
+        this.curCst.mappingCst = mappingAst
     }
 }
 

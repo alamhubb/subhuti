@@ -14,12 +14,20 @@ class MappingObj extends RuleObj {
         super(ruleObj);
     }
 }
+
+export function MappingRule(targetFun: any, context) {
+
+    return function () {
+        const res = targetFun
+        console.log(res)
+    };
+}
 export default class Es6Parser extends AlienParser {
     constructor(tokens: AlienMatchToken[]) {
         super(tokens);
     }
     mappingRule(ruleName: string, fun: Function): RuleObj<MappingObj> {
-        const ruleObj = super.rule(ruleName, fun);
+        // const ruleObj = super.rule(ruleName, fun);
         const mappingRule = new MappingObj(ruleObj);
         // , mappingFun: Function
         // mappingRule.mappingFun = mappingFun
@@ -28,6 +36,8 @@ export default class Es6Parser extends AlienParser {
     generateCst(cst: AlienCst<any>): AlienCst {
         return cst;
     }
+
+
     @AlienRule
     program() {
         this.or([
@@ -45,6 +55,7 @@ export default class Es6Parser extends AlienParser {
         this.identifierEqual();
         this.assignmentExpression();
     }
+
     @AlienRule
     assignmentExpression() {
         this.or([
@@ -60,6 +71,7 @@ export default class Es6Parser extends AlienParser {
             }
         ]);
     }
+
     @AlienRule
     identifierEqual() {
         this.consume(Es6TokenName.identifier);

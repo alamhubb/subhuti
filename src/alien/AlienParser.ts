@@ -1,14 +1,12 @@
 import AlienMatchToken from "./AlienMatchToken";
-import {Es6TokenName} from "../es6/Es6Tokens";
+import { Es6TokenName } from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
-import {Es6SyntaxName} from "../es6/Es6Parser";
+import { Es6SyntaxName } from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
-
 class AlienParserOr {
     alt: Function;
 }
-
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
@@ -17,16 +15,15 @@ export function AlienRule(targetFun: any, context) {
     curRule.ruleTokens = [[]];
     curRule.ruleFun = targetFun;
     return function () {
-        this.alienRule(targetFun, ruleName, curRule)
+        this.alienRule(targetFun, ruleName, curRule);
         return this.generateCst(this.curCst);
     };
 }
-
 export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
     syntaxStack = [];
-    rootFlag = true
+    rootFlag = true;
     curCst: AlienCst<T>;
     ruleMap: {
         [key in string]: RuleObj<E>;
@@ -37,37 +34,31 @@ export default class AlienParser<T = any, E = any> {
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
-
-
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
-
     get realMaxLookahead() {
         return this.maxLookahead + 1;
     }
-
     get curRule() {
         return this.curRuleName ? this.ruleMap[this.curRuleName] : null;
     }
-
     get needLookahead() {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
-
     initializeParserState(ruleName: string) {
-        this.rootFlag = false
+        this.rootFlag = false;
         this.parserMode = false;
         this.ruleMap = {};
         this.cstStack = [];
         this.continueMatching = true;
         this.curRuleName = ruleName;
     }
-
     executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
         if (this.parserMode) {
             this.curRuleName = ruleName;
-        } else {
+        }
+        else {
             targetFun.apply(this);
             if (rootFlag) {
                 for (const ruleObjKey in this.ruleMap) {
@@ -80,9 +71,8 @@ export default class AlienParser<T = any, E = any> {
             }
         }
     }
-
     alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
-        const rootFlag = this.rootFlag
+        const rootFlag = this.rootFlag;
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
@@ -96,18 +86,18 @@ export default class AlienParser<T = any, E = any> {
                 this.parserMode = true;
                 this.continueMatching = true;
                 this.processCst(targetFun, cst);
-                this.curCst = cst
+                this.curCst = cst;
                 //执行完毕，改为false
-                this.rootFlag = false
-            } else if (this.parserMode && this.continueMatching) {
+                this.rootFlag = false;
+            }
+            else if (this.parserMode && this.continueMatching) {
                 this.processCst(targetFun, cst);
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(this.curCst);
-                this.curCst = parentCst
+                this.curCst = parentCst;
             }
         }
     }
-
     processCst(targetFun: Function, cst: AlienCst<T>) {
         this.curCst = cst;
         this.cstStack.push(this.curCst);
@@ -115,19 +105,18 @@ export default class AlienParser<T = any, E = any> {
         targetFun.apply(this);
         this.cstStack.pop();
     }
-
     consume(tokenName: string) {
         if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return this.consumeToken(tokenName);
             }
-        } else if (this.needLookahead) {
+        }
+        else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);
             }
         }
     }
-
     private consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -142,15 +131,12 @@ export default class AlienParser<T = any, E = any> {
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);
     }
-
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
-
     setContinueMatching(flag: boolean) {
         this.continueMatching = flag;
     }
-
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
             const tokenLength = this.tokens.length;
@@ -161,12 +147,12 @@ export default class AlienParser<T = any, E = any> {
             const lookTokens = this.tokens.slice(0, lookaheadLength);
             const lookStr = lookTokens.map(item => item.tokenName).join('$$');
             const ruleTokens = this.curRule.ruleTokens;
-            let matchFound = false
+            let matchFound = false;
             for (const ruleToken of ruleTokens) {
-                let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$')
+                let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$');
                 if (ruleTokenStr === lookStr) {
-                    matchFound = true
-                    break
+                    matchFound = true;
+                    break;
                 }
             }
             if (!matchFound) {
@@ -184,7 +170,8 @@ export default class AlienParser<T = any, E = any> {
                     }
                 }
             }
-        } else if (this.needLookahead) {
+        }
+        else if (this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];
             alienParserOrs.forEach(alienParserOr => {
@@ -195,7 +182,6 @@ export default class AlienParser<T = any, E = any> {
             this.curRule.ruleTokens = newRuleTokens;
         }
     }
-
     getCurCst() {
         return this.curCst;
     }

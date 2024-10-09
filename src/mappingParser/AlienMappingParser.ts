@@ -4,9 +4,7 @@ import AlienCst from "../alien/AlienCst";
 import AlienParser, {AlienRule} from "../alien/AlienParser";
 import RuleObj from "../alien/RuleObj";
 import Es6Parser, {Es6SyntaxName} from "../es6/Es6Parser";
-import typescriptParser from "../ts/TypescriptParser";
-import AlienGenerator from "../alien/AlienGenerator";
-import {gen} from "../ts/TypescriptGenerator";
+import {gen, MappingCst} from "../ts/TypescriptGenerator";
 
 export function mappingRule(cst: AlienCst<MappingCst>, fun: Function) {
     if (cst) {
@@ -16,9 +14,6 @@ export function mappingRule(cst: AlienCst<MappingCst>, fun: Function) {
     }
 }
 
-class MappingCst {
-    alt: Function
-}
 
 export class AlienMappingParser extends Es6Parser<MappingCst> {
     @AlienRule

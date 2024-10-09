@@ -12,12 +12,12 @@ export function GeneratorRule(targetFun: any) {
     };
 }
 
-export default class AlienGenerator {
+export default class AlienGenerator<T = any> {
 
     tokens: AlienMatchToken[]
-    curCst: AlienCst;
-    rootCst: AlienCst
-    cstStack: AlienCst[] = [];
+    curCst: AlienCst<T>;
+    rootCst: AlienCst<T>
+    cstStack: AlienCst<T>[] = [];
 
 
     generatorCst(ruleName, paramCst: AlienCst<any>, targetFun: any) {
@@ -58,6 +58,10 @@ export default class AlienGenerator {
         const curCst = new AlienCst()
         curCst.name = appendToken.tokenName
         curCst.value = appendToken.tokenValue
+
+        this.curCst.children.push(curCst);
+        this.curCst.tokens.push(appendToken);
+        return this.generateCst(curCst);
     }
 
     initializeParserState(ruleName: string, cst: AlienCst) {
@@ -68,7 +72,7 @@ export default class AlienGenerator {
 
 
     //默认就是遍历生成
-    generator(cst: AlienCst, code = '') {
+    generator(cst: AlienCst<T>, code = '') {
         cst.children.forEach(item => {
             if (item.value) {
                 code += ' ' + item.value;

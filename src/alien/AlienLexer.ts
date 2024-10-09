@@ -1,4 +1,3 @@
-import AlienToken from "./AlienToken";
 import { AlienCreateToken, AlienCreateTokenGroupType } from "./AlienCreateToken";
 import AlienMatchToken, { createMatchToken } from "./AlienMatchToken";
 export default class AlienLexer {

@@ -1,6 +1,5 @@
 import AlienCst from "./AlienCst";
 import AlienMatchToken from "./AlienMatchToken";
-import RuleObj from "./RuleObj";
 export function GeneratorRule(targetFun: any) {
     const ruleName = targetFun.name;
     return function (paramCst: AlienCst) {

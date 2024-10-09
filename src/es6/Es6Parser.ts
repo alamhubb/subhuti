@@ -1,25 +1,7 @@
 import AlienParser, { AlienRule } from "../alien/AlienParser";
-import AlienCst from "../alien/AlienCst";
 import { Es6TokenName } from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
-import RuleObj from "../alien/RuleObj";
-export enum Es6SyntaxName {
-    assignmentExpression = 'assignmentExpression',
-    identifierEqual = 'identifierEqual',
-    program = 'program'
-}
-class MappingObj extends RuleObj {
-    mappingFun: Function;
-    constructor(ruleObj: RuleObj) {
-        super(ruleObj);
-    }
-}
-export function MappingRule(targetFun: any, context) {
-    return function () {
-        const res = targetFun.apply(this);
-        return res;
-    };
-}
+
 export default class Es6Parser<T> extends AlienParser<T> {
     constructor(tokens?: AlienMatchToken[]) {
         super(tokens);

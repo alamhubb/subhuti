@@ -1,8 +1,6 @@
 import AlienMatchToken from "./AlienMatchToken";
-import { Es6TokenName } from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
-import { Es6SyntaxName } from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
 class AlienParserOr {
     alt: Function;

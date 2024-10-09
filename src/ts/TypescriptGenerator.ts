@@ -23,4 +23,4 @@ export default class TypescriptGenerator extends AlienGenerator<MappingCst> {
         return super.generator(cst, code);
     }
 }
-export const gen = new TypescriptGenerator();
+export const typescriptGenerator = new TypescriptGenerator();

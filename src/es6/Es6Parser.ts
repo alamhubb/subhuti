@@ -1,15 +1,18 @@
-import AlienParser, {  AlienRule } from "../alien/AlienParser";
+import AlienParser, {AlienRule} from "../alien/AlienParser";
 import AlienCst from "../alien/AlienCst";
-import { Es6TokenName } from "./Es6Tokens";
+import {Es6TokenName} from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
 import RuleObj from "../alien/RuleObj";
+
 export enum Es6SyntaxName {
     assignmentExpression = 'assignmentExpression',
     identifierEqual = 'identifierEqual',
     program = 'program'
 }
+
 class MappingObj extends RuleObj {
     mappingFun: Function;
+
     constructor(ruleObj: RuleObj) {
         super(ruleObj);
     }
@@ -18,14 +21,19 @@ class MappingObj extends RuleObj {
 export function MappingRule(targetFun: any, context) {
 
     return function () {
-        const res = targetFun
+        const res = targetFun.apply(this)
+        console.log(77777)
         console.log(res)
+        console.log(8888)
+        return res
     };
 }
+
 export default class Es6Parser extends AlienParser {
     constructor(tokens: AlienMatchToken[]) {
         super(tokens);
     }
+
     mappingRule(ruleName: string, fun: Function): RuleObj<MappingObj> {
         // const ruleObj = super.rule(ruleName, fun);
         const mappingRule = new MappingObj(ruleObj);
@@ -33,17 +41,17 @@ export default class Es6Parser extends AlienParser {
         // mappingRule.mappingFun = mappingFun
         return mappingRule;
     }
+
     generateCst(cst: AlienCst<any>): AlienCst {
         return cst;
     }
-
 
     @AlienRule
     program() {
         this.or([
             {
                 alt: () => {
-                    this.consume(Es6TokenName.let);
+                    this.let();
                 }
             },
             {
@@ -54,6 +62,13 @@ export default class Es6Parser extends AlienParser {
         ]);
         this.identifierEqual();
         this.assignmentExpression();
+        return this.getCurCst()
+    }
+
+
+    let(){
+        this.consume(Es6TokenName.let);
+        return this.getCurCst()
     }
 
     @AlienRule
@@ -70,11 +85,13 @@ export default class Es6Parser extends AlienParser {
                 }
             }
         ]);
+        return this.getCurCst()
     }
 
     @AlienRule
     identifierEqual() {
         this.consume(Es6TokenName.identifier);
         this.consume(Es6TokenName.equal);
+        return this.getCurCst()
     }
 }

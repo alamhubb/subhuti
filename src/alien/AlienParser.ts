@@ -97,21 +97,19 @@ export default class AlienParser<T = any, E = any> {
         this.continueMatching = true;
         this.curCst = this.rootCst;
         this.cstStack.push(this.curCst);
-        const resCst = targetFun.apply(this);
+        targetFun.apply(this);
         this.cstStack.pop();
-        return resCst
     }
 
     processCst(cst: AlienCst<T>, targetFun: Function) {
         this.curCst = cst;
         this.cstStack.push(this.curCst);
-        const resCst = targetFun.apply(this);
+        targetFun.apply(this);
         const temCst = this.curCst;
         this.cstStack.pop();
         const parentCst = this.cstStack[this.cstStack.length - 1];
         parentCst.children.push(temCst);
         parentCst.tokens.push(...temCst.tokens);
-        return resCst
     }
 
     consume(tokenName: string) {
@@ -175,5 +173,9 @@ export default class AlienParser<T = any, E = any> {
             });
             this.curRule.ruleTokens = newRuleTokens;
         }
+    }
+
+    getCurCst() {
+        return this.curCst
     }
 }

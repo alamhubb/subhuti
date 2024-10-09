@@ -1,10 +1,11 @@
 import AlienMatchToken from "./AlienMatchToken";
-import { Es6TokenName } from "../es6/Es6Tokens";
+import {Es6TokenName} from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
-import { Es6SyntaxName } from "../es6/Es6Parser";
+import {Es6SyntaxName} from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "./JsonUtil";
+
 export function alienParser(targetFun: any, context) {
     return function (...args) {
         const classThis: AlienParser = this;
@@ -12,9 +13,11 @@ export function alienParser(targetFun: any, context) {
         return targetFun.apply(classThis, args);
     };
 }
+
 class AlienParserOr {
     alt: Function;
 }
+
 /*test() {
     for (const ruleObjKey in this.ruleMap) {
         this.curRuleName = ruleObjKey
@@ -37,9 +40,13 @@ export function AlienRule(targetFun: any, context) {
             this.execFlag = false;
             this.ruleMap = {};
             this.ruleTree = new Map();
+            this.continueMatching = true;
+            this.curRuleName = ruleName;
         }
         this.ruleMap[ruleName] = curRule;
-        this.curRuleName = ruleName;
+        if (this.execFlag) {
+            this.curRuleName = ruleName;
+        }
         targetFun.apply(this);
         if (rootFlag) {
             for (const ruleObjKey in this.ruleMap) {
@@ -48,6 +55,7 @@ export function AlienRule(targetFun: any, context) {
                     this.ruleMap[ruleObjKey].ruleFun.apply(this);
                 }
             }
+            console.log(this.ruleMap[ruleName].ruleTokens)
         }
         this.curRuleName = ruleName;
         //遍历所有规则，
@@ -57,49 +65,39 @@ export function AlienRule(targetFun: any, context) {
         /*[...this.ruleTree].reverse().forEach(([key, value]) => {
             console.log(key, value);
         });*/
-        if (this.continueMatching) {
-            //上个cst出栈
-            let cst = this.curCst;
-            this.curCst = this.cstStack.pop();
-            this.curCst.children.push(cst);
-            this.curCst.tokens.push(...cst.tokens);
-        }
         if (rootFlag) {
-            // this.execFlag = true
-            // console.log('shezhiwei true')
-            // this.continueMatching = true
-            // this.curCst = cst
-            // this.rootCst = this.curCst
-            // targetFun.apply(this)
-            // return this.generateCst(this.curCst)
-        }
-        else {
-            // if (this.execFlag) {
-            //     if (this.continueMatching) {
-            //         this.cstStack.push(this.curCst)
-            //         this.curCst = cst
-            //         targetFun.apply(this)
-            //         return this.generateCst(this.curCst)
-            //     }
-            // }
+            this.execFlag = true
+            this.continueMatching = true
+            this.curCst = this.rootCst
+            targetFun.apply(this)
+            return this.generateCst(this.curCst)
+        } else {
+            if (this.execFlag) {
+                if (this.continueMatching) {
+                    //上个cst出栈
+                    let temCst = this.curCst
+                    this.curCst = this.cstStack.pop();
+                    this.curCst.children.push(temCst);
+                    this.curCst.tokens.push(...temCst.tokens);
+
+                    this.cstStack.push(this.curCst)
+                    this.curCst = cst
+                    targetFun.apply(this)
+                    return this.generateCst(this.curCst)
+                }
+            }
         }
     };
 }
-function alienParserRule(ruleName: string, fun: Function) {
-    const curRule = new RuleObj();
-    curRule.ruleName = ruleName;
-    curRule.ruleTokens = [[]];
-    curRule.ruleFun = fun;
-    this.ruleMap[ruleName] = curRule;
-    return curRule;
-    // fun()
-}
+
 export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
+
     get realMaxLookahead() {
         return this.maxLookahead + 1;
     }
+
     syntaxStack = [];
     rootCst: AlienCst<T>;
     curCst: AlienCst<T>;
@@ -116,32 +114,20 @@ export default class AlienParser<T = any, E = any> {
     cstStack: AlienCst<T>[] = [];
     matchFlag = false;
     continueMatching = false;
+
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
-    exec(ruleName: string | Function) {
-        if (typeof ruleName === 'function') {
-        }
-        else {
-        }
-        this.execFlag = true;
-        this.curRuleName = ruleName;
-        this.rootCst = new AlienCst();
-        this.rootCst.name = ruleName;
-        this.rootCst.children = [];
-        this.curCst = this.rootCst;
-        // this.curCst = this.cst
-        // this.parentCst = this.cst
-        this.curRule.ruleFun();
-        this.execFlag = false;
-    }
+
     curRuleName = null;
+
     get curRule() {
         if (this.curRuleName) {
             return this.ruleMap[this.curRuleName];
         }
         return null;
     }
+
     get needLookahead() {
         let flag = false;
         if (this.curRule) {
@@ -149,6 +135,7 @@ export default class AlienParser<T = any, E = any> {
         }
         return true;
     }
+
     //你要做的是在处理过程中，可以生成多个tree
     //一般一个方法只有一个返回
     consume(tokenName: string) {
@@ -169,8 +156,7 @@ export default class AlienParser<T = any, E = any> {
                     return this.generateCst(cst);
                 }
             }
-        }
-        else {
+        } else {
             if (!this.needLookahead) {
                 return;
             }
@@ -188,6 +174,7 @@ export default class AlienParser<T = any, E = any> {
             }
         }
     }
+
     /*rule(ruleName: string, fun: Function) {
         return alienParserRule.apply(this, [ruleName, fun])
         // fun()
@@ -195,33 +182,11 @@ export default class AlienParser<T = any, E = any> {
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
-    subRule(ruleFun: string) {
-        if (this.execFlag) {
-            if (this.continueMatching) {
-                this.curRuleName = ruleName;
-                let cst = new AlienCst();
-                cst.name = ruleName;
-                this.cstStack.push(this.curCst);
-                this.curCst = cst;
-                ruleFun();
-                if (this.continueMatching) {
-                    this.curCst = this.cstStack.pop();
-                    this.curCst.children.push(cst);
-                    this.curCst.tokens.push(...cst.tokens);
-                }
-                return this.generateCst(cst);
-            }
-        }
-        else {
-            if (!this.needLookahead) {
-                return;
-            }
-            ruleFun();
-        }
-    }
+
     setContinueMatching(flag: boolean) {
         this.continueMatching = flag;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.execFlag) {
             // if (this.tokens.length < this.realMaxLookahead) {
@@ -235,6 +200,8 @@ export default class AlienParser<T = any, E = any> {
             //匹配成功，则遍历执行这个规则
             for (const ruleToken of ruleTokens) {
                 const tokenStr = ruleToken.join('$$');
+                console.log(lookStr)
+                console.log(tokenStr)
                 if (tokenStr === lookStr) {
                     flag = true;
                     break;
@@ -257,8 +224,7 @@ export default class AlienParser<T = any, E = any> {
                 // }
             }
             this.setContinueMatching(true);
-        }
-        else {
+        } else {
             if (!this.needLookahead) {
                 return;
             }

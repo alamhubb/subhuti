@@ -1,3 +1,3 @@
 export const code1 = `
-let
+let a = 1
 `;

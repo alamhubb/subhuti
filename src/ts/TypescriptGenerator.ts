@@ -12,19 +12,28 @@ export class MappingCst {
 
 export default class TypescriptGenerator extends AlienGenerator<MappingCst> {
 
+    //怎么执行constKeywords 由 GeneratorRule决定
     @GeneratorRule
     constKeywords(cst: AlienCst) {
+        console.log(444444)
+        console.log(cst)
         this.append(Es6TokenName.const);
         return this.getCurCst();
     }
 
     //默认就是遍历生成
     generator(cst: AlienCst<MappingCst>, code = '') {
-        if (cst.extendObject.alt) {
-            const newCst = cst.extendObject.alt.apply(this, cst)
-            return this.generator(newCst, code)
+        console.log(cst.name)
+        console.log('zhixingle 11111')
+        if (cst.extendObject && cst.extendObject.alt) {
+            console.log('zhixingl 2222')
+            console.log(cst)
+            //执行，constKeywords
+            const newCst = cst.extendObject.alt.call(this, cst)
+            console.log(newCst)
+            return super.generator(newCst, code)
         }
-        return this.generator(cst, code)
+        return super.generator(cst, code)
     }
 }
 export const gen = new TypescriptGenerator();

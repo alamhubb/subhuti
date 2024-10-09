@@ -7,6 +7,8 @@ export function GeneratorRule(targetFun: any) {
     console.log(targetFun)
     const ruleName = targetFun.name;
     return function (paramCst: AlienCst) {
+        console.log(333333)
+        console.log(paramCst)
         this.generatorCst(ruleName, paramCst, targetFun);
         return this.generateCst(this.curCst);
     };
@@ -18,10 +20,14 @@ export default class AlienGenerator<T = any> {
     curCst: AlienCst<T>;
     rootCst: AlienCst<T>
     cstStack: AlienCst<T>[] = [];
+    rootFlag = true
 
 
-    generatorCst(ruleName, paramCst: AlienCst<any>, targetFun: any) {
-        const rootFlag = !this.rootCst;
+    //paramCst = 旧版cst
+    generatorCst(ruleName: string, paramCst: AlienCst<any>, targetFun: any) {
+        console.log(22222)
+        console.log(paramCst)
+        const rootFlag = this.rootFlag
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
@@ -32,19 +38,24 @@ export default class AlienGenerator<T = any> {
         }
         this.curCst = cst
         this.cstStack.push(this.curCst);
-        targetFun.apply(this);
+        console.log('zhixingfangfa')
+        console.log(paramCst)
+        targetFun.apply(this, paramCst);
         paramCst.children.forEach(item => {
             if (item.extendObject && item.extendObject.alt) {
-                item.extendObject.alt.apply(this, item)
+                const child = item.extendObject.alt.call(this, item)
+                cst.children.push(child)
             }
         })
         this.cstStack.pop();
         //重置状态
         if (rootFlag) {
-            this.rootCst = null
+            this.rootFlag = true
+            return this.curCst
         } else {
             const parentCst = this.cstStack[this.cstStack.length - 1];
             parentCst.children.push(this.curCst);
+            return this.curCst
         }
     }
 
@@ -65,6 +76,7 @@ export default class AlienGenerator<T = any> {
     }
 
     initializeParserState(ruleName: string, cst: AlienCst) {
+        this.rootFlag = false
         this.tokens = [];
         this.rootCst = cst;
         this.cstStack = [];

@@ -26,7 +26,7 @@ export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
     syntaxStack = [];
-    rootCst: AlienCst<T>;
+    rootFlag = true
     curCst: AlienCst<T>;
     ruleMap: {
         [key in string]: RuleObj<E>;
@@ -37,6 +37,7 @@ export default class AlienParser<T = any, E = any> {
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
+
 
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
@@ -54,8 +55,8 @@ export default class AlienParser<T = any, E = any> {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
 
-    initializeParserState(ruleName: string, cst: AlienCst<T>) {
-        this.rootCst = cst;
+    initializeParserState(ruleName: string) {
+        this.rootFlag = false
         this.parserMode = false;
         this.ruleMap = {};
         this.cstStack = [];
@@ -81,47 +82,38 @@ export default class AlienParser<T = any, E = any> {
     }
 
     alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
-        const rootFlag = !this.rootCst;
+        const rootFlag = this.rootFlag
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
         if (rootFlag) {
-            this.initializeParserState(ruleName, cst);
+            this.initializeParserState(ruleName);
         }
         this.ruleMap[ruleName] = curRule;
         this.executeRule(targetFun, rootFlag, ruleName);
         if (this.tokens.length) {
             if (rootFlag) {
-                this.finalizeParsing(targetFun);
+                this.parserMode = true;
+                this.continueMatching = true;
+                this.processCst(targetFun, cst);
+                this.curCst = cst
+                //执行完毕，改为false
+                this.rootFlag = false
             } else if (this.parserMode && this.continueMatching) {
-                this.processCst(cst, targetFun);
+                this.processCst(targetFun, cst);
+                const parentCst = this.cstStack[this.cstStack.length - 1];
+                parentCst.children.push(this.curCst);
+                this.curCst = parentCst
             }
         }
     }
 
-
-    finalizeParsing(targetFun: Function) {
-        this.parserMode = true;
-        this.continueMatching = true;
-        this.curCst = this.rootCst;
-        this.cstStack.push(this.curCst);
-        // 规则解析
-        targetFun.apply(this);
-        this.cstStack.pop();
-        this.curCst = this.rootCst
-    }
-
-    processCst(cst: AlienCst<T>, targetFun: Function) {
+    processCst(targetFun: Function, cst: AlienCst<T>) {
         this.curCst = cst;
         this.cstStack.push(this.curCst);
         // 规则解析
         targetFun.apply(this);
-        const temCst = this.curCst;
         this.cstStack.pop();
-        const parentCst = this.cstStack[this.cstStack.length - 1];
-        parentCst.children.push(temCst);
-        this.curCst = parentCst
-        // parentCst.tokens.push(...temCst.tokens);
     }
 
     consume(tokenName: string) {

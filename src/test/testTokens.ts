@@ -6,6 +6,7 @@ import Es6Parser, { Es6SyntaxName } from "../es6/Es6Parser";
 import JsonUtil from "../alien/JsonUtil";
 import { AlienMappingParser } from "../mappingParser/AlienMappingParser";
 import AlienGenerator from "../alien/AlienGenerator";
+import TypescriptGenerator, {gen} from "../ts/TypescriptGenerator";
 const lexer = new AlienLexer(es6Tokens);
 const tokens = lexer.lexer(code1);
 const parser = new AlienMappingParser(tokens);
@@ -16,7 +17,8 @@ for (const rulekey in parser.ruleMap) {
     console.log(parser.ruleMap[rulekey].ruleTokens)
 }*/
 const res = parser.program();
-const generator = new AlienGenerator();
-const code = generator.generator(parser.rootCst);
-console.log(res)
+// console.log(res)
+// console.log(parser.curCst)
+const code = gen.generator(res);
+// console.log(res)
 console.log(code)

@@ -43,9 +43,11 @@ export default class AlienParser<T = any, E = any> {
     ruleMap: {
         [key in string]: RuleObj<E>;
     } = {};
-    execFlag = false;
+    //是否为parser模式，开始为校验模式
+    parserMode = false;
     cstStack: AlienCst<T>[] = [];
     continueMatching = false;
+    //为什么需要，因为获取curRule
     curRuleName = null;
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
@@ -61,14 +63,14 @@ export default class AlienParser<T = any, E = any> {
     }
     initializeParserState(ruleName: string, cst: AlienCst<T>) {
         this.rootCst = cst;
-        this.execFlag = false;
+        this.parserMode = false;
         this.ruleMap = {};
         this.cstStack = [];
         this.continueMatching = true;
         this.curRuleName = ruleName;
     }
     executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
-        if (this.execFlag) {
+        if (this.parserMode) {
             this.curRuleName = ruleName;
         }
         else {
@@ -85,7 +87,7 @@ export default class AlienParser<T = any, E = any> {
         }
     }
     finalizeParsing(targetFun: Function) {
-        this.execFlag = true;
+        this.parserMode = true;
         this.continueMatching = true;
         this.curCst = this.rootCst;
         this.cstStack.push(this.curCst);
@@ -103,7 +105,7 @@ export default class AlienParser<T = any, E = any> {
         // parentCst.tokens.push(...temCst.tokens);
     }
     consume(tokenName: string) {
-        if (this.execFlag && this.continueMatching) {
+        if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return this.consumeToken(tokenName);
             }
@@ -126,6 +128,9 @@ export default class AlienParser<T = any, E = any> {
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
         this.curCst.tokens.push(popToken);
+        console.log('chufale cst')
+        console.log(cst)
+        console.log(cst.name)
         return this.generateCst(cst);
     }
     generateCst(cst: AlienCst<T>) {
@@ -135,7 +140,7 @@ export default class AlienParser<T = any, E = any> {
         this.continueMatching = flag;
     }
     or(alienParserOrs: AlienParserOr[]) {
-        if (this.execFlag) {
+        if (this.parserMode) {
             const tokenLength = this.tokens.length;
             if (!tokenLength) {
                 throw new Error('语法错误');

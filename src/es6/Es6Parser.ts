@@ -24,16 +24,6 @@ export default class Es6Parser<T> extends AlienParser<T> {
     constructor(tokens?: AlienMatchToken[]) {
         super(tokens);
     }
-    mappingRule(ruleName: string, fun: Function): RuleObj<MappingObj> {
-        // const ruleObj = super.rule(ruleName, fun);
-        const mappingRule = new MappingObj(ruleObj);
-        // , mappingFun: Function
-        // mappingRule.mappingFun = mappingFun
-        return mappingRule;
-    }
-    generateCst(cst: AlienCst<any>): AlienCst {
-        return cst;
-    }
     @AlienRule
     program() {
         this.or([

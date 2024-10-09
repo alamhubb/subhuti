@@ -18,3 +18,5 @@ for (const rulekey in parser.ruleMap) {
 const res = parser.program();
 const generator = new AlienGenerator();
 const code = generator.generator(parser.rootCst);
+console.log(res)
+console.log(code)

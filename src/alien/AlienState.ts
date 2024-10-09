@@ -1,4 +1,3 @@
 export default class AlienState {
-    tokens: string[]
-
+    tokens: string[];
 }

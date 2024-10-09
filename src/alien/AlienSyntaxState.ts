@@ -1,4 +1,4 @@
 export default class AlienSyntaxState {
-    syntaxName: string
-    tokens: string[]
+    syntaxName: string;
+    tokens: string[];
 }

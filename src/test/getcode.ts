@@ -1,2 +1,3 @@
-export const code1 = `let a = 1
-`
+export const code1 = `
+let a = 1
+`;

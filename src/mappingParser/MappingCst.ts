@@ -1,10 +1,8 @@
 import AlienCst from "../alien/AlienCst";
-
 export default class MappingCst extends AlienCst {
-    mappingCst?: AlienCst
-
+    mappingCst?: AlienCst;
     constructor(mappingCst: AlienCst) {
-        super(mappingCst)
+        super(mappingCst);
         this.mappingCst = null;
     }
 }

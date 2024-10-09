@@ -1,3 +1,3 @@
 export default class AlienToken {
-    tokenName: string
+    tokenName: string;
 }

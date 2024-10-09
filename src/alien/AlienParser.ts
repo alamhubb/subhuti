@@ -39,25 +39,26 @@ export function AlienRule(targetFun: any, context) {
             this.rootCst = cst;
             this.execFlag = false;
             this.ruleMap = {};
-            this.ruleTree = new Map();
+            this.cstStack = [];
             this.continueMatching = true;
             this.curRuleName = ruleName;
         }
         this.ruleMap[ruleName] = curRule;
         if (this.execFlag) {
             this.curRuleName = ruleName;
-        }
-        targetFun.apply(this);
-        if (rootFlag) {
-            for (const ruleObjKey in this.ruleMap) {
-                if (ruleName !== ruleObjKey) {
-                    this.curRuleName = ruleObjKey;
-                    this.ruleMap[ruleObjKey].ruleFun.apply(this);
+        } else {
+            targetFun.apply(this);
+            if (rootFlag) {
+                for (const ruleObjKey in this.ruleMap) {
+                    if (ruleName !== ruleObjKey) {
+                        this.curRuleName = ruleObjKey;
+                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
+                    }
                 }
+                this.curRuleName = ruleName;
             }
-            console.log(this.ruleMap[ruleName].ruleTokens)
         }
-        this.curRuleName = ruleName;
+
         //遍历所有规则，
         //判断当前的token数量，是否小于realMaxLookahead
         //如果小于最大前瞻数
@@ -66,24 +67,30 @@ export function AlienRule(targetFun: any, context) {
             console.log(key, value);
         });*/
         if (rootFlag) {
-            this.execFlag = true
-            this.continueMatching = true
-            this.curCst = this.rootCst
-            targetFun.apply(this)
-            return this.generateCst(this.curCst)
+            this.execFlag = true;
+            this.continueMatching = true;
+            this.curCst = this.rootCst;
+            this.cstStack.push(this.curCst);
+            targetFun.apply(this);
+            this.cstStack.pop();
+            return this.generateCst(this.curCst);
         } else {
             if (this.execFlag) {
                 if (this.continueMatching) {
-                    //上个cst出栈
-                    let temCst = this.curCst
-                    this.curCst = this.cstStack.pop();
+                    this.curCst = cst;
+                    console.log(cst.name)
+                    this.cstStack.push(this.curCst);
+                    console.log(this.cstStack.length)
+                    targetFun.apply(this);
+                    console.log(this.cstStack.length)
+                    //执行完毕，cst出栈
+                    let temCst = this.curCst;
+                    this.cstStack.pop();
+                    this.curCst = this.cstStack[this.cstStack.length - 1]
+                    console.log(this.curCst.name)
                     this.curCst.children.push(temCst);
                     this.curCst.tokens.push(...temCst.tokens);
-
-                    this.cstStack.push(this.curCst)
-                    this.curCst = cst
-                    targetFun.apply(this)
-                    return this.generateCst(this.curCst)
+                    return this.generateCst(this.curCst);
                 }
             }
         }
@@ -101,18 +108,11 @@ export default class AlienParser<T = any, E = any> {
     syntaxStack = [];
     rootCst: AlienCst<T>;
     curCst: AlienCst<T>;
-    // curCst: AlienCst
-    // parentCst: AlienCst
-    parentCstState: AlienCst;
     ruleMap: {
         [key in string]: RuleObj<E>;
     } = {};
-    ruleTree: Map<string, string[]> = new Map();
-    ruleStack: RuleObj[] = [];
-    ruleStackIndex: number = 0;
     execFlag = false;
     cstStack: AlienCst<T>[] = [];
-    matchFlag = false;
     continueMatching = false;
 
     constructor(tokens?: AlienMatchToken[]) {
@@ -133,7 +133,7 @@ export default class AlienParser<T = any, E = any> {
         if (this.curRule) {
             flag = this.curRule.ruleTokens.some(item => item.length < (this.realMaxLookahead));
         }
-        return true;
+        return flag;
     }
 
     //你要做的是在处理过程中，可以生成多个tree
@@ -189,10 +189,6 @@ export default class AlienParser<T = any, E = any> {
 
     or(alienParserOrs: AlienParserOr[]) {
         if (this.execFlag) {
-            // if (this.tokens.length < this.realMaxLookahead) {
-            //     throw new Error('语法错误')
-            // }
-            //获取当前token的最大前瞻数量
             const lookTokens = this.tokens.slice(0, this.realMaxLookahead);
             const lookStr = lookTokens.map(item => item.tokenName).join('$$');
             const ruleTokens = this.curRule.ruleTokens;
@@ -200,8 +196,6 @@ export default class AlienParser<T = any, E = any> {
             //匹配成功，则遍历执行这个规则
             for (const ruleToken of ruleTokens) {
                 const tokenStr = ruleToken.join('$$');
-                console.log(lookStr)
-                console.log(tokenStr)
                 if (tokenStr === lookStr) {
                     flag = true;
                     break;

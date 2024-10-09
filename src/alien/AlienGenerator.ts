@@ -4,11 +4,8 @@ import RuleObj from "./RuleObj";
 
 
 export function GeneratorRule(targetFun: any) {
-    console.log(targetFun)
     const ruleName = targetFun.name;
     return function (paramCst: AlienCst) {
-        console.log(333333)
-        console.log(paramCst)
         this.generatorCst(ruleName, paramCst, targetFun);
         return this.generateCst(this.curCst);
     };
@@ -25,8 +22,6 @@ export default class AlienGenerator<T = any> {
 
     //paramCst = 旧版cst
     generatorCst(ruleName: string, paramCst: AlienCst<any>, targetFun: any) {
-        console.log(22222)
-        console.log(paramCst)
         const rootFlag = this.rootFlag
         let cst = new AlienCst();
         cst.name = ruleName;
@@ -34,12 +29,12 @@ export default class AlienGenerator<T = any> {
         if (rootFlag) {
             //初始化
             this.initializeParserState(ruleName, cst);
+            console.log(11111)
+            console.log(paramCst)
             this.tokens = paramCst.tokens
         }
         this.curCst = cst
         this.cstStack.push(this.curCst);
-        console.log('zhixingfangfa')
-        console.log(paramCst)
         targetFun.apply(this, paramCst);
         paramCst.children.forEach(item => {
             if (item.extendObject && item.extendObject.alt) {
@@ -61,6 +56,8 @@ export default class AlienGenerator<T = any> {
 
     append(tokenName: string) {
         const findTokenIndex = this.tokens.findIndex(item => item.tokenName === tokenName)
+        console.log(this.tokens)
+        console.log(tokenName)
         if (findTokenIndex < 0) {
             throw new Error('不存在的token')
         }

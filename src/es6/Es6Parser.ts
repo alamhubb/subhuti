@@ -1,4 +1,4 @@
-import AlienParser, { alienParser, AlienRule } from "../alien/AlienParser";
+import AlienParser, {  AlienRule } from "../alien/AlienParser";
 import AlienCst from "../alien/AlienCst";
 import { Es6TokenName } from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";

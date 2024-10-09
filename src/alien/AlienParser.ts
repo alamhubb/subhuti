@@ -6,24 +6,9 @@ import {Es6SyntaxName} from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "./JsonUtil";
 
-export function alienParser(targetFun: any, context) {
-    return function (...args) {
-        const classThis: AlienParser = this;
-        classThis.syntaxStack.push(targetFun.name);
-        return targetFun.apply(classThis, args);
-    };
-}
-
 class AlienParserOr {
     alt: Function;
 }
-
-/*test() {
-    for (const ruleObjKey in this.ruleMap) {
-        this.curRuleName = ruleObjKey
-        this.ruleMap[ruleObjKey].ruleFun()
-    }
-}*/
 export function AlienRule(targetFun: any, context) {
     const ruleName = targetFun.name;
     const curRule = new RuleObj();

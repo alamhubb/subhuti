@@ -29,7 +29,7 @@ export function MappingRule(targetFun: any, context) {
     };
 }
 
-export default class Es6Parser extends AlienParser {
+export default class Es6Parser<T> extends AlienParser<T> {
     constructor(tokens?: AlienMatchToken[]) {
         super(tokens);
     }
@@ -56,7 +56,7 @@ export default class Es6Parser extends AlienParser {
             },
             {
                 alt: () => {
-                    this.consume(Es6TokenName.const);
+                    this.constKeywords();
                 }
             }
         ]);
@@ -68,6 +68,12 @@ export default class Es6Parser extends AlienParser {
     @AlienRule
     letKeywords() {
         this.consume(Es6TokenName.let);
+        return this.getCurCst()
+    }
+
+    @AlienRule
+    constKeywords() {
+        this.consume(Es6TokenName.const);
         return this.getCurCst()
     }
 

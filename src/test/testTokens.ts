@@ -4,9 +4,10 @@ import { code1 } from "./getcode";
 import AlienParser from "../alien/AlienParser";
 import Es6Parser, { Es6SyntaxName } from "../es6/Es6Parser";
 import JsonUtil from "../alien/JsonUtil";
+import {AlienMappingParser} from "../mappingParser/AlienMappingParser";
 const lexer = new AlienLexer(es6Tokens);
 const tokens = lexer.lexer(code1);
-const parser = new Es6Parser(tokens);
+const parser = new AlienMappingParser(tokens);
 // parser.test()
 /*console.log(parser.ruleMap)
 

@@ -1,39 +1,27 @@
 import AlienMatchToken from "./AlienMatchToken";
-import { Es6TokenName } from "../es6/Es6Tokens";
+import {Es6TokenName} from "../es6/Es6Tokens";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
-import { Es6SyntaxName } from "../es6/Es6Parser";
+import {Es6SyntaxName} from "../es6/Es6Parser";
 import lodash from "../plugins/Lodash";
+
 class AlienParserOr {
     alt: Function;
 }
+
 export function AlienRule(targetFun: any, context) {
+    //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     const curRule = new RuleObj();
     curRule.ruleName = ruleName;
     curRule.ruleTokens = [[]];
     curRule.ruleFun = targetFun;
     return function () {
-        const rootFlag = !this.rootCst;
-        let cst = new AlienCst();
-        cst.name = ruleName;
-        cst.children = [];
-        if (rootFlag) {
-            this.initializeParserState(ruleName, cst);
-        }
-        this.ruleMap[ruleName] = curRule;
-        this.executeRule(targetFun, rootFlag, ruleName);
-        if (this.tokens.length) {
-            if (rootFlag) {
-                this.finalizeParsing(targetFun);
-            }
-            else if (this.execFlag && this.continueMatching) {
-                this.processCst(cst, targetFun);
-            }
-        }
+        this.alienRule(targetFun, ruleName, curRule)
         return this.generateCst(this.curCst);
     };
 }
+
 export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
@@ -49,18 +37,23 @@ export default class AlienParser<T = any, E = any> {
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
+
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
+
     get realMaxLookahead() {
         return this.maxLookahead + 1;
     }
+
     get curRule() {
         return this.curRuleName ? this.ruleMap[this.curRuleName] : null;
     }
+
     get needLookahead() {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
+
     initializeParserState(ruleName: string, cst: AlienCst<T>) {
         this.rootCst = cst;
         this.parserMode = false;
@@ -69,11 +62,11 @@ export default class AlienParser<T = any, E = any> {
         this.continueMatching = true;
         this.curRuleName = ruleName;
     }
+
     executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
         if (this.parserMode) {
             this.curRuleName = ruleName;
-        }
-        else {
+        } else {
             targetFun.apply(this);
             if (rootFlag) {
                 for (const ruleObjKey in this.ruleMap) {
@@ -86,36 +79,63 @@ export default class AlienParser<T = any, E = any> {
             }
         }
     }
+
+    alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
+        const rootFlag = !this.rootCst;
+        let cst = new AlienCst();
+        cst.name = ruleName;
+        cst.children = [];
+        if (rootFlag) {
+            this.initializeParserState(ruleName, cst);
+        }
+        this.ruleMap[ruleName] = curRule;
+        this.executeRule(targetFun, rootFlag, ruleName);
+        if (this.tokens.length) {
+            if (rootFlag) {
+                this.finalizeParsing(targetFun);
+            } else if (this.parserMode && this.continueMatching) {
+                this.processCst(cst, targetFun);
+            }
+        }
+    }
+
+
     finalizeParsing(targetFun: Function) {
         this.parserMode = true;
         this.continueMatching = true;
         this.curCst = this.rootCst;
         this.cstStack.push(this.curCst);
+        // 规则解析
         targetFun.apply(this);
         this.cstStack.pop();
+        this.curCst = this.rootCst
     }
+
     processCst(cst: AlienCst<T>, targetFun: Function) {
         this.curCst = cst;
         this.cstStack.push(this.curCst);
+        // 规则解析
         targetFun.apply(this);
         const temCst = this.curCst;
         this.cstStack.pop();
         const parentCst = this.cstStack[this.cstStack.length - 1];
         parentCst.children.push(temCst);
+        this.curCst = parentCst
         // parentCst.tokens.push(...temCst.tokens);
     }
+
     consume(tokenName: string) {
         if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return this.consumeToken(tokenName);
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);
             }
         }
     }
+
     private consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -128,17 +148,17 @@ export default class AlienParser<T = any, E = any> {
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
         this.curCst.tokens.push(popToken);
-        console.log('chufale cst')
-        console.log(cst)
-        console.log(cst.name)
         return this.generateCst(cst);
     }
+
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
+
     setContinueMatching(flag: boolean) {
         this.continueMatching = flag;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
             const tokenLength = this.tokens.length;
@@ -149,7 +169,14 @@ export default class AlienParser<T = any, E = any> {
             const lookTokens = this.tokens.slice(0, lookaheadLength);
             const lookStr = lookTokens.map(item => item.tokenName).join('$$');
             const ruleTokens = this.curRule.ruleTokens;
-            const matchFound = ruleTokens.some(ruleToken => ruleToken.slice(0, lookaheadLength).join('$$') === lookStr);
+            let matchFound = false
+            for (const ruleToken of ruleTokens) {
+                let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$')
+                if (ruleTokenStr === lookStr) {
+                    matchFound = true
+                    break
+                }
+            }
             if (!matchFound) {
                 throw new Error('未找到匹配的规则');
             }
@@ -165,8 +192,7 @@ export default class AlienParser<T = any, E = any> {
                     }
                 }
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];
             alienParserOrs.forEach(alienParserOr => {
@@ -177,6 +203,7 @@ export default class AlienParser<T = any, E = any> {
             this.curRule.ruleTokens = newRuleTokens;
         }
     }
+
     getCurCst() {
         return this.curCst;
     }

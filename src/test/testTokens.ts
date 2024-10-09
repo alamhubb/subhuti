@@ -14,4 +14,4 @@ for (const rulekey in parser.ruleMap) {
     console.log(parser.ruleMap[rulekey].ruleTokens)
 }*/
 const res = parser.program();
-console.log(parser.rootCst)
+console.log(JsonUtil.toJson(parser.rootCst))

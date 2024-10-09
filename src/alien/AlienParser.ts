@@ -29,10 +29,12 @@ export function AlienRule(targetFun: any, context) {
         this.ruleMap[ruleName] = curRule;
         this.executeRule(targetFun, rootFlag, ruleName);
 
-        if (rootFlag) {
-            this.finalizeParsing(targetFun);
-        } else if (this.execFlag && this.continueMatching) {
-            this.processCst(cst, targetFun);
+        if (this.tokens.length) {
+            if (rootFlag) {
+                this.finalizeParsing(targetFun);
+            } else if (this.execFlag && this.continueMatching) {
+                this.processCst(cst, targetFun);
+            }
         }
         return this.generateCst(this.curCst);
     };
@@ -145,10 +147,19 @@ export default class AlienParser<T = any, E = any> {
 
     or(alienParserOrs: AlienParserOr[]) {
         if (this.execFlag) {
-            const lookTokens = this.tokens.slice(0, this.realMaxLookahead);
+
+            const tokenLength = this.tokens.length
+            console.log(tokenLength)
+            if (!tokenLength) {
+                throw new Error('语法错误');
+            }
+
+            const lookaheadLength = Math.min(this.realMaxLookahead, this.tokens.length)
+
+            const lookTokens = this.tokens.slice(0, lookaheadLength);
             const lookStr = lookTokens.map(item => item.tokenName).join('$$');
             const ruleTokens = this.curRule.ruleTokens;
-            const matchFound = ruleTokens.some(ruleToken => ruleToken.join('$$') === lookStr);
+            const matchFound = ruleTokens.some(ruleToken => ruleToken.slice(0, lookaheadLength).join('$$') === lookStr);
 
             if (!matchFound) {
                 throw new Error('未找到匹配的规则');

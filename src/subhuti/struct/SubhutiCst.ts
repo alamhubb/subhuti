@@ -1,4 +1,5 @@
-import SubhutiMatchToken from "./token/SubhutiMatchToken";
+import SubhutiMatchToken from "./SubhutiMatchToken";
+
 export default class SubhutiCst {
     name: string;
     children?: SubhutiCst[] = [];

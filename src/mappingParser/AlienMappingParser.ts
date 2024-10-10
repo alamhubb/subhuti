@@ -13,8 +13,8 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
 
     openMappingMode() {
         this.setGeneratorMode(true);
-        this.initFlag = false;
-        this.initParserMode();
+        // this.initFlag = false;
+        // this.initParserMode();
     }
 
     count = 0

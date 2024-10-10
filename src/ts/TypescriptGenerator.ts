@@ -1,7 +1,7 @@
 import SubhutiGenerator from "../subhuti/SubhutiGenerator";
 import { SubhutiRule } from "../subhuti/SubhutiParser";
 import { Es6TokenName } from "../es6/Es6Tokens";
-import SubhutiCst from "../subhuti/SubhutiCst";
+import SubhutiCst from "../subhuti/struct/SubhutiCst";
 import alienMappingParser from "../mappingParser/SubhutiMappingParser";
 export default class TypescriptGenerator extends SubhutiGenerator {
     //默认就是遍历生成

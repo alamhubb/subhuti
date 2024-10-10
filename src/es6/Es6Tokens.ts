@@ -1,10 +1,11 @@
-import { SubhutiCreateTokenGroupType, createKeywordToken, createToken } from "../subhuti/SubhutiCreateToken";
+import {SubhutiCreateTokenGroupType, createKeywordToken, createToken} from "../subhuti/struct/SubhutiCreateToken";
+
 export enum Es6TokenName {
-    equal = 'equal',
     let = 'let',
     const = 'const',
     whitespace = 'whitespace',
     identifier = 'identifier',
+    equal = 'equal',
     integer = 'integer',
     string = 'string'
 }

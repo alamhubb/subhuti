@@ -1,8 +1,8 @@
-import SubhutiCst from "../subhuti/SubhutiCst";
+import SubhutiCst from "../subhuti/struct/SubhutiCst";
 import SubhutiParser, {SubhutiParserOr, SubhutiRule} from "../subhuti/SubhutiParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import Es6Parser from "../es6/Es6Parser";
-import SubhutiMatchToken from "../subhuti/SubhutiMatchToken";
+import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 import lodash from "../plugins/Lodash";
 
 const mappingTokenMap = {

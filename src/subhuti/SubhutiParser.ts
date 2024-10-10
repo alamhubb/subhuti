@@ -1,5 +1,5 @@
-import SubhutiMatchToken from "./SubhutiMatchToken";
-import SubhutiCst from "./SubhutiCst";
+import SubhutiMatchToken from "./struct/SubhutiMatchToken";
+import SubhutiCst from "./struct/SubhutiCst";
 import lodash from "../plugins/Lodash";
 export class SubhutiParserOr {
     alt: Function;

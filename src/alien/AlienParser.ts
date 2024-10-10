@@ -3,11 +3,9 @@ import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "../utils/JsonUtil";
-
 export class AlienParserOr {
     alt: Function;
 }
-
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
@@ -16,7 +14,6 @@ export function AlienRule(targetFun: any, context) {
         return this.generateCst(this.curCst);
     };
 }
-
 export default class AlienParser<T = any, E = any> {
     _tokens: AlienMatchToken[];
     initFlag = true;
@@ -26,38 +23,31 @@ export default class AlienParser<T = any, E = any> {
     get matchSuccess() {
         return this._matchSuccess;
     }
-
     setMatchSuccess(flag: boolean) {
         this._matchSuccess = flag;
     }
-
     //为什么需要，因为获取curRule
     curRuleName = null;
-
     setCurCst(curCst: AlienCst<T>) {
         this.curCst = curCst;
     }
-
     get tokens() {
         if (!this._tokens?.length) {
             throw new Error('tokens is empty, please set tokens');
         }
         return this._tokens;
     }
-
     setTokens(tokens?: AlienMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty');
         }
         this._tokens = tokens;
     }
-
     constructor(tokens?: AlienMatchToken[]) {
         if (tokens) {
             this.setTokens(tokens);
         }
     }
-
     alienRule(targetFun: any, ruleName: string) {
         //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
         //校验模式，且为首次执行
@@ -75,13 +65,13 @@ export default class AlienParser<T = any, E = any> {
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
-        } else {
+        }
+        else {
             const parentCst = this.cstStack[this.cstStack.length - 1];
             parentCst.children.push(this.curCst);
             this.setCurCst(parentCst);
         }
     }
-
     //初始化时执行，像内添加初始化的program
     //执行时执行，执行每一个具体的时候，parser时执行4次没问题
     //为什么Generate执行了12次呢
@@ -96,7 +86,6 @@ export default class AlienParser<T = any, E = any> {
         this.cstStack.pop();
         return cst;
     }
-
     consume(tokenName: string) {
         return this.consumeToken(tokenName);
         /*else if (this.needLookahead) {
@@ -105,11 +94,9 @@ export default class AlienParser<T = any, E = any> {
             }
         }*/
     }
-
     setCurRuleName(ruleName: string) {
         this.curRuleName = ruleName;
     }
-
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -124,11 +111,9 @@ export default class AlienParser<T = any, E = any> {
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);
     }
-
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
-
     or(alienParserOrs: AlienParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
@@ -160,12 +145,11 @@ export default class AlienParser<T = any, E = any> {
             alienParserOr.alt();
             //如果处理成功则跳出
             if (this.matchSuccess) {
-                break
+                break;
             }
         }
         return this.getCurCst();
     }
-
     getCurCst() {
         return this.curCst;
     }

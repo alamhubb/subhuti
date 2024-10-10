@@ -14,7 +14,7 @@ TestUtil.test({
         const parser = new Es6Parser(tokens);
         const res = parser.program();
         console.log(JsonUtil.toJson(res))
-        alienMappingParser.openMappingMode()
+        alienMappingParser.openMappingMode(res)
         return typescriptGenerator.generator(res);
     },
 });

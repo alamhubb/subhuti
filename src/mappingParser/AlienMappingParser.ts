@@ -2,17 +2,37 @@ import AlienCst from "../alien/AlienCst";
 import AlienParser, {AlienParserOr, AlienRule} from "../alien/AlienParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
+import AlienMatchToken from "../alien/AlienMatchToken";
 
 const mappingTokenMap = {
     const: 'let'
 };
 
+
+function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
+    if (!currentNode || !currentNode.name) return;
+
+    // 将当前节点添加到 Map 中
+    map.set(currentNode.name, currentNode);
+
+    // 递归遍历子节点
+    if (currentNode.children && currentNode.children.length > 0) {
+        currentNode.children.forEach(child => traverse(child, map));
+    }
+    return map
+}
+
+
 export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
     generatorMode = false;
     mappingCst: AlienCst;
+    mappingCstMap: Map<string, AlienCst>
 
-    openMappingMode() {
+    openMappingMode(mappingCst: AlienCst) {
         this.setGeneratorMode(true);
+        this.mappingCst = mappingCst
+        this.mappingCstMap = traverse(this.mappingCst)
+
         // this.initFlag = false;
         // this.initParserMode();
     }
@@ -62,30 +82,60 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
     generateToken(tokenName: string) {
         //消耗token，从children里面找，找到就更改继续匹配为false
         //获取token对应的映射
-        const mappingTokenName = mappingTokenMap[tokenName];
+        console.log(22222)
+        console.log(tokenName)
+        let mappingTokenName = mappingTokenMap[tokenName];
         if (mappingTokenName) {
-            console.log(3333333)
-            console.log(tokenName)
-            console.log(mappingTokenName)
+            mappingTokenName = tokenName
         }
-        /*let popToken = this._tokens[0];
-        if (popToken.tokenName !== tokenName) {
-            this.setContinueMatching(false);
-            return;
+        console.log(3333333)
+        console.log(this.curCst.name)
+        const mappingCst = this.mappingCstMap.get(this.curCst.name)
+        if (!mappingCst) {
+            return
         }
-        popToken = this._tokens.shift();
+        //在子节点中找到并删除
+        const mappingChildren = mappingCst.children
+        if (!mappingCst.children.length) {
+            return
+        }
+        const findChildIndex = mappingChildren.findIndex(item => item.name === mappingTokenName)
+        if (findChildIndex < 0) {
+            return
+        }
+        //在父元素中删除
+        const childCst = mappingChildren.splice(findChildIndex, 1)[0]
+
+
+        console.log(44444)
+        console.log(mappingChildren.map(item => item.name))
+        console.log(mappingTokenName)
+        console.log(childCst)
+
+        //需要有一个标识，标志这个节点已经处理完毕了
+
+
         const cst = new AlienCst();
-        cst.name = popToken.tokenName;
-        cst.value = popToken.tokenValue;
+
+        cst.name = childCst.name;
+        cst.value = childCst.value;
+
+        const token = new AlienMatchToken({
+            tokenName: cst.name,
+            tokenValue: cst.value
+        })
+
         this.curCst.children.push(cst);
-        this.curCst.tokens.push(popToken);
-        return this.generateCst(cst);*/
+        this.curCst.tokens.push(token);
+        console.log('pipeichenggong')
+        this.setMatchSuccess(true)
+        return this.generateCst(cst);
     }
 
     consume(tokenName: string): AlienCst<T> {
         if (this.generatorMode) {
-            this.generateToken(tokenName);
-        } else if (this.continueMatching) {
+            return this.generateToken(tokenName);
+        } else {
             return super.consumeToken(tokenName);
         }
         // return super.consume(tokenName);

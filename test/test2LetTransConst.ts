@@ -14,6 +14,7 @@ TestUtil.test({
         const parser = new Es6Parser(tokens);
         let res = parser.program();
         subhutiMappingParser.openMappingMode(res)
+        subhutiMappingParser.setGeneratorMode(true);
         return subhutiMappingGenerator.generator(res);
     },
 });

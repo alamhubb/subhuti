@@ -1,4 +1,4 @@
-import AlienLexer from "../src/subhuti/SubhutiLexer";
+import SubhutiLexer from "../src/subhuti/SubhutiLexer";
 import { es6Tokens } from "../src/es6/Es6Tokens";
 import TestUtil from "./TestUtil";
 import JsonUtil from "../src/utils/JsonUtil";
@@ -10,12 +10,10 @@ TestUtil.test({
     input: `let a = 1`,
     expect: res,
     test(input: string) {
-        const lexer = new AlienLexer(es6Tokens);
+        const lexer = new SubhutiLexer(es6Tokens);
         const tokens = lexer.lexer(input);
         const parser = new Es6Parser(tokens);
         const res = parser.program();
         return JsonUtil.toJson(res)
-        // alienMappingParser.openMappingMode()
-        // return typescriptGenerator.generator(res);
     },
 });

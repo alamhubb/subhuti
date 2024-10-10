@@ -3,6 +3,7 @@ import AlienParser, {AlienParserOr, AlienRule} from "../alien/AlienParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
 import AlienMatchToken from "../alien/AlienMatchToken";
+import lodash from "../plugins/Lodash";
 
 const mappingTokenMap = {
     const: 'let'
@@ -35,6 +36,8 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
 
     processCst(ruleName: string, targetFun: Function) {
         const cst = super.processCst(ruleName, targetFun);
+        console.log(77777)
+        console.log(cst)
         return cst;
     }
 
@@ -44,17 +47,16 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
 
     or(alienParserOrs: AlienParserOr[]) {
         if (this.generatorMode) {
-            //你这里要做什么？
-            // console.log(this.generatorMode)
-            if (!this._tokens) {
-                // throw new Error('ceshi')
-                //问题是我这里什么也没执行，为什么继续执行了呢
-            }
             for (const alienParserOr of alienParserOrs) {
+                this.setMatchSuccess(false);
                 alienParserOr.alt();
-                // console.log(alienParserOr.alt.name)
+                //如果处理成功则跳出
+                if (this.matchSuccess) {
+                    break;
+                }
             }
         } else if (!this.generatorMode) {
+            console.log('zhixingle fei generatorMode')
             return super.or(alienParserOrs);
         }
     }

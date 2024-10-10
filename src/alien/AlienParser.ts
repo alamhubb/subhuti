@@ -39,6 +39,10 @@ export default class AlienParser<T = any, E = any> {
     //为什么需要，因为获取curRule
     curRuleName = null;
 
+    get checkMode() {
+        return !this.parserMode
+    }
+
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
@@ -100,68 +104,29 @@ export default class AlienParser<T = any, E = any> {
     }
 
     private alienRuleHandler(rootFlag: boolean, ruleName: string, targetFun: any, cst: AlienCst<any>) {
-
-        /*if (this.parserMode) {
-            this.setCurRuleName(ruleName)
+        if (this.checkMode) {
             if (rootFlag) {
+                this.setCurRuleName(ruleName)
+                targetFun.apply(this);
+                for (const ruleObjKey in this.ruleMap) {
+                    if (ruleName !== ruleObjKey) {
+                        this.setCurRuleName(ruleObjKey)
+                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
+                    }
+                }
+                this.setCurRuleName(ruleName)
+                // this.executeRule(targetFun, rootFlag, ruleName);
                 this.parserMode = true;
                 this.continueMatching = true;
                 this.processCst(targetFun, cst);
-
-            }
-            this.setCurRuleName(ruleName)
-            // this.executeRule(targetFun, rootFlag, ruleName);
-            this.processCst(targetFun, cst);
-            if (rootFlag){
                 this.curCst = cst;
                 //执行完毕，改为false
                 this.rootFlag = false;
-            }else {
-                const parentCst = this.cstStack[this.cstStack.length - 1];
-                parentCst.children.push(this.curCst);
-                this.curCst = parentCst;
+            } else {
+                targetFun.apply(this);
             }
         } else {
-            if (rootFlag) {
-                this.setCurRuleName(ruleName)
-                console.log('zhixing 预先设置')
-            }
-            targetFun.apply(this);
-            if (rootFlag) {
-                for (const ruleObjKey in this.ruleMap) {
-                    if (ruleName !== ruleObjKey) {
-                        this.setCurRuleName(ruleObjKey)
-                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                    }
-                }
-            }
-        }*/
-
-        if (!this.parserMode) {
-            if (rootFlag) {
-                this.setCurRuleName(ruleName)
-                console.log('zhixing 预先设置')
-            }
-            targetFun.apply(this);
-            if (rootFlag) {
-                for (const ruleObjKey in this.ruleMap) {
-                    if (ruleName !== ruleObjKey) {
-                        this.setCurRuleName(ruleObjKey)
-                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                    }
-                }
-            }
-        }
-        if (rootFlag) {
-            this.setCurRuleName(ruleName)
-            // this.executeRule(targetFun, rootFlag, ruleName);
-            this.parserMode = true;
-            this.continueMatching = true;
-            this.processCst(targetFun, cst);
-            this.curCst = cst;
-            //执行完毕，改为false
-            this.rootFlag = false;
-        } else if (this.parserMode) {
+            //无论是否 parserMode 都必须执行，不能和上面if合并
             this.setCurRuleName(ruleName)
             // this.executeRule(targetFun, rootFlag, ruleName);
             this.processCst(targetFun, cst);
@@ -169,39 +134,6 @@ export default class AlienParser<T = any, E = any> {
             parentCst.children.push(this.curCst);
             this.curCst = parentCst;
         }
-
-        /*if (!this.parserMode) {
-            if (rootFlag) {
-                this.setCurRuleName(ruleName)
-                console.log('zhixing 预先设置')
-            }
-            targetFun.apply(this);
-            if (rootFlag) {
-                for (const ruleObjKey in this.ruleMap) {
-                    if (ruleName !== ruleObjKey) {
-                        this.setCurRuleName(ruleObjKey)
-                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                    }
-                }
-            }
-        }
-        if (rootFlag || (this.parserMode)) {
-            this.setCurRuleName(ruleName)
-            // this.executeRule(targetFun, rootFlag, ruleName);
-            if (rootFlag) {
-                this.parserMode = true;
-                this.continueMatching = true;
-                this.processCst(targetFun, cst);
-                this.curCst = cst;
-                //执行完毕，改为false
-                this.rootFlag = false;
-            } else if (this.parserMode) {
-                this.processCst(targetFun, cst);
-                const parentCst = this.cstStack[this.cstStack.length - 1];
-                parentCst.children.push(this.curCst);
-                this.curCst = parentCst;
-            }
-        }*/
     }
 
     processCst(targetFun: Function, cst: AlienCst<T>) {

@@ -46,6 +46,7 @@ export default class SubhutiParser {
         }
         this.thisClassName = this.constructor.name;
     }
+    //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     subhutiRule(targetFun: any, ruleName: string) {
         const initFlag = this.initFlag;
         if (initFlag) {
@@ -54,8 +55,6 @@ export default class SubhutiParser {
             this.cstStack = [];
         }
         let cst = this.processCst(ruleName, targetFun);
-        if (cst) {
-        }
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
@@ -68,6 +67,7 @@ export default class SubhutiParser {
             }
         }
     }
+    //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
     processCst(ruleName: string, targetFun: Function) {
         let cst = new SubhutiCst();
         cst.name = ruleName;
@@ -85,6 +85,7 @@ export default class SubhutiParser {
     consume(tokenName: string) {
         return this.consumeToken(tokenName);
     }
+    //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -99,9 +100,7 @@ export default class SubhutiParser {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
-    generateCst(cst: SubhutiCst) {
-        return cst;
-    }
+    //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     or(subhutiParserOrs: SubhutiParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
@@ -118,6 +117,9 @@ export default class SubhutiParser {
             }
         }
         return this.getCurCst();
+    }
+    generateCst(cst: SubhutiCst) {
+        return cst;
     }
     getCurCst() {
         return this.curCst;

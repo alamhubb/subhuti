@@ -1,10 +1,10 @@
 import SubhutiMatchToken from "./SubhutiMatchToken";
-export default class SubhutiCst<T = any> {
+
+export default class SubhutiCst {
     name: string;
     children?: SubhutiCst[] = [];
     tokens?: SubhutiMatchToken[] = [];
     value?: string | number;
-    extendObject: T;
     constructor(cst?: SubhutiCst) {
         if (cst) {
             this.name = cst.name;

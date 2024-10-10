@@ -1,14 +1,14 @@
 import SubhutiMatchToken from "./struct/SubhutiMatchToken";
 import SubhutiCst from "./struct/SubhutiCst";
-import lodash from "../plugins/Lodash";
+import JsonUtil from "../utils/JsonUtil";
+
 export class SubhutiParserOr {
     alt: Function;
 }
 export function SubhutiRule(targetFun: any, context) {
-    //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     return function () {
-        this.alienRule(targetFun, ruleName);
+        this.subhutiRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
     };
 }
@@ -25,8 +25,6 @@ export default class SubhutiParser {
     setMatchSuccess(flag: boolean) {
         this._matchSuccess = flag;
     }
-    //为什么需要，因为获取curRule
-    curRuleName = null;
     setCurCst(curCst: SubhutiCst) {
         this.curCst = curCst;
     }
@@ -48,19 +46,15 @@ export default class SubhutiParser {
         }
         this.thisClassName = this.constructor.name;
     }
-    alienRule(targetFun: any, ruleName: string) {
-        //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
-        //校验模式，且为首次执行
+    //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
+    subhutiRule(targetFun: any, ruleName: string) {
         const initFlag = this.initFlag;
         if (initFlag) {
-            //init check mode
             this.initFlag = false;
             this.setMatchSuccess(false);
             this.cstStack = [];
         }
         let cst = this.processCst(ruleName, targetFun);
-        if (cst) {
-        }
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
@@ -73,9 +67,7 @@ export default class SubhutiParser {
             }
         }
     }
-    //初始化时执行，像内添加初始化的program
-    //执行时执行，执行每一个具体的时候，parser时执行4次没问题
-    //为什么Generate执行了12次呢
+    //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
     processCst(ruleName: string, targetFun: Function) {
         let cst = new SubhutiCst();
         cst.name = ruleName;
@@ -92,15 +84,8 @@ export default class SubhutiParser {
     }
     consume(tokenName: string) {
         return this.consumeToken(tokenName);
-        /*else if (this.needLookahead) {
-            for (const curTokens of this.curRule.ruleTokens) {
-                curTokens.push(tokenName);
-            }
-        }*/
     }
-    setCurRuleName(ruleName: string) {
-        this.curRuleName = ruleName;
-    }
+    //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -115,25 +100,26 @@ export default class SubhutiParser {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
-    generateCst(cst: SubhutiCst) {
-        return cst;
-    }
-    or(alienParserOrs: SubhutiParserOr[]) {
+    //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
+    or(subhutiParserOrs: SubhutiParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
         }
-        const tokensBackup = lodash.cloneDeep(this.tokens);
-        for (const alienParserOr of alienParserOrs) {
-            const tokens = lodash.cloneDeep(tokensBackup);
+        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+        for (const subhutiParserOr of subhutiParserOrs) {
+            const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             this.setMatchSuccess(false);
-            alienParserOr.alt();
-            //如果处理成功则跳出
+            subhutiParserOr.alt();
+            // 如果处理成功则跳出
             if (this.matchSuccess) {
                 break;
             }
         }
         return this.getCurCst();
+    }
+    generateCst(cst: SubhutiCst) {
+        return cst;
     }
     getCurCst() {
         return this.curCst;

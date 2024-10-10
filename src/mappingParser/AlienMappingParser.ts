@@ -1,7 +1,7 @@
 import AlienCst from "../subhuti/AlienCst";
 import AlienParser, {AlienParserOr, AlienRule} from "../subhuti/AlienParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
-import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
+import Es6Parser from "../es6/Es6Parser";
 import AlienMatchToken from "../subhuti/AlienMatchToken";
 import lodash from "../plugins/Lodash";
 
@@ -21,7 +21,7 @@ function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
     return map;
 }
 
-export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
+export class AlienMappingParser<T> extends Es6Parser<T> {
     _generatorMode = false;
     mappingCst: AlienCst;
     mappingCstMap: Map<string, AlienCst>;

@@ -2,14 +2,19 @@ import AlienMatchToken from "./AlienMatchToken";
 import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
 import lodash from "../plugins/Lodash";
+import JsonUtil from "../utils/JsonUtil";
+
 class AlienParserOr {
     alt: Function;
 }
+
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     const curRule = new RuleObj();
     curRule.ruleName = ruleName;
+    console.log(66666)
+    console.log(ruleName)
     curRule.ruleTokens = [[]];
     curRule.ruleFun = targetFun;
     return function () {
@@ -17,6 +22,7 @@ export function AlienRule(targetFun: any, context) {
         return this.generateCst(this.curCst);
     };
 }
+
 export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
@@ -32,70 +38,104 @@ export default class AlienParser<T = any, E = any> {
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
+
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
     }
+
     get realMaxLookahead() {
         return this.maxLookahead + 1;
     }
+
     get curRule() {
         return this.curRuleName ? this.ruleMap[this.curRuleName] : null;
     }
+
     get needLookahead() {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
-    initializeParserState(ruleName: string) {
+
+    initializeParserState() {
         this.rootFlag = false;
         this.parserMode = false;
         this.ruleMap = {};
         this.cstStack = [];
         this.continueMatching = true;
-        this.curRuleName = ruleName;
     }
-    executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
+
+    /*executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
         if (this.parserMode) {
-            this.curRuleName = ruleName;
-        }
-        else {
+            this.setCurRuleName(ruleName)
+        } else {
+            if (rootFlag) {
+                this.setCurRuleName(ruleName)
+                console.log('zhixing 预先设置')
+            }
             targetFun.apply(this);
             if (rootFlag) {
                 for (const ruleObjKey in this.ruleMap) {
                     if (ruleName !== ruleObjKey) {
-                        this.curRuleName = ruleObjKey;
+                        this.setCurRuleName(ruleObjKey)
                         this.ruleMap[ruleObjKey].ruleFun.apply(this);
                     }
                 }
-                this.curRuleName = ruleName;
+                this.setCurRuleName(ruleName)
             }
         }
-    }
+    }*/
+
     alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
         const rootFlag = this.rootFlag;
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
         if (rootFlag) {
-            this.initializeParserState(ruleName);
+            this.initializeParserState();
         }
         this.ruleMap[ruleName] = curRule;
-        this.executeRule(targetFun, rootFlag, ruleName);
-        if (this.tokens.length) {
+
+        //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
+
+        this.alienRuleHandler(rootFlag, ruleName, targetFun, cst);
+    }
+
+    private alienRuleHandler(rootFlag: boolean, ruleName: string, targetFun: any, cst: AlienCst<any>) {
+        if (!this.parserMode) {
             if (rootFlag) {
-                this.parserMode = true;
-                this.continueMatching = true;
-                this.processCst(targetFun, cst);
-                this.curCst = cst;
-                //执行完毕，改为false
-                this.rootFlag = false;
+                this.setCurRuleName(ruleName)
+                console.log('zhixing 预先设置')
             }
-            else if (this.parserMode && this.continueMatching) {
-                this.processCst(targetFun, cst);
-                const parentCst = this.cstStack[this.cstStack.length - 1];
-                parentCst.children.push(this.curCst);
-                this.curCst = parentCst;
+            targetFun.apply(this);
+            if (rootFlag) {
+                for (const ruleObjKey in this.ruleMap) {
+                    if (ruleName !== ruleObjKey) {
+                        this.setCurRuleName(ruleObjKey)
+                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
+                    }
+                }
+            }
+        }
+        if (this.tokens.length) {
+            if (rootFlag || (this.parserMode && this.continueMatching)) {
+                this.setCurRuleName(ruleName)
+                // this.executeRule(targetFun, rootFlag, ruleName);
+                if (rootFlag) {
+                    this.parserMode = true;
+                    this.continueMatching = true;
+                    this.processCst(targetFun, cst);
+                    this.curCst = cst;
+                    //执行完毕，改为false
+                    this.rootFlag = false;
+                } else if (this.parserMode && this.continueMatching) {
+                    this.processCst(targetFun, cst);
+                    const parentCst = this.cstStack[this.cstStack.length - 1];
+                    parentCst.children.push(this.curCst);
+                    this.curCst = parentCst;
+                }
             }
         }
     }
+
     processCst(targetFun: Function, cst: AlienCst<T>) {
         this.curCst = cst;
         this.cstStack.push(this.curCst);
@@ -103,19 +143,27 @@ export default class AlienParser<T = any, E = any> {
         targetFun.apply(this);
         this.cstStack.pop();
     }
+
     consume(tokenName: string) {
         if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return this.consumeToken(tokenName);
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);
+                console.log(this.curRuleName)
+                console.log('加入token：' + tokenName)
             }
         }
     }
-    private consumeToken(tokenName: string) {
+
+    setCurRuleName(ruleName: string) {
+        this.curRuleName = ruleName
+    }
+
+
+    consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
             this.setContinueMatching(false);
@@ -129,12 +177,15 @@ export default class AlienParser<T = any, E = any> {
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);
     }
+
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
+
     setContinueMatching(flag: boolean) {
         this.continueMatching = flag;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
             const tokenLength = this.tokens.length;
@@ -148,9 +199,12 @@ export default class AlienParser<T = any, E = any> {
             let matchFound = false;
             for (const ruleToken of ruleTokens) {
                 let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$');
+                console.log(3333)
+                console.log(this.curRuleName)
                 console.log(ruleTokenStr)
                 console.log(lookStr)
-                console.log(this.curRuleName)
+                // console.log(this.tokens)
+                // console.log(JsonUtil.toJson(this.ruleMap))
                 if (ruleTokenStr === lookStr) {
                     matchFound = true;
                     break;
@@ -171,8 +225,7 @@ export default class AlienParser<T = any, E = any> {
                     }
                 }
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];
             alienParserOrs.forEach(alienParserOr => {
@@ -183,6 +236,7 @@ export default class AlienParser<T = any, E = any> {
             this.curRule.ruleTokens = newRuleTokens;
         }
     }
+
     getCurCst() {
         return this.curCst;
     }

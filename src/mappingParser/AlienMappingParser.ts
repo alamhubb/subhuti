@@ -1,12 +1,14 @@
 import AlienCst from "../alien/AlienCst";
-import AlienParser, { AlienParserOr, AlienRule } from "../alien/AlienParser";
-import { Es6TokenName } from "../es6/Es6Tokens";
+import AlienParser, {AlienParserOr, AlienRule} from "../alien/AlienParser";
+import {Es6TokenName} from "../es6/Es6Tokens";
 import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
 import AlienMatchToken from "../alien/AlienMatchToken";
 import lodash from "../plugins/Lodash";
+
 const mappingTokenMap = {
     const: 'let'
 };
+
 function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
     if (!currentNode || !currentNode.name)
         return;
@@ -18,10 +20,12 @@ function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
     }
     return map;
 }
+
 export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
-    generatorMode = false;
+    _generatorMode = false;
     mappingCst: AlienCst;
     mappingCstMap: Map<string, AlienCst>;
+
     openMappingMode(mappingCst: AlienCst) {
         this.setGeneratorMode(true);
         this.mappingCst = mappingCst;
@@ -29,13 +33,20 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
         // this.initFlag = false;
         // this.initParserMode();
     }
+
+    get generatorMode() {
+        return this._generatorMode
+    }
+
     processCst(ruleName: string, targetFun: Function) {
         const cst = super.processCst(ruleName, targetFun);
         return cst;
     }
+
     setGeneratorMode(generatorMode: boolean) {
-        this.generatorMode = generatorMode;
+        this._generatorMode = generatorMode;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.generatorMode) {
             for (const alienParserOr of alienParserOrs) {
@@ -46,20 +57,24 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
                     break;
                 }
             }
-        }
-        else if (!this.generatorMode) {
+        } else if (!this.generatorMode) {
             return super.or(alienParserOrs);
         }
     }
+
     @AlienRule
     letKeywords() {
         this.consume(Es6TokenName.const);
         return this.getCurCst();
     }
+
+        //const
     generateToken(tokenName: string) {
-        let mappingTokenName = mappingTokenMap[tokenName];
-        if (!mappingTokenName) {
-            mappingTokenName = tokenName;
+        //let
+        const genTokenName = tokenName
+        let childTokenName = mappingTokenMap[tokenName];
+        if (childTokenName) {
+            tokenName = childTokenName;
         }
         const mappingCst = this.mappingCstMap.get(this.curCst.name);
         if (!mappingCst) {
@@ -70,16 +85,24 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
         if (!mappingCst.children.length) {
             return;
         }
-        const findChildIndex = mappingChildren.findIndex(item => item.name === mappingTokenName);
+        const findChildIndex = mappingChildren.findIndex(item => item.name === tokenName);
         if (findChildIndex < 0) {
             return;
         }
         //在父元素中删除
         const childCst = mappingChildren.splice(findChildIndex, 1)[0];
+        if (!childCst) {
+            throw new Error('语法错误')
+        }
         //需要有一个标识，标志这个节点已经处理完毕了
         const cst = new AlienCst();
-        cst.name = childCst.name;
-        cst.value = childCst.value;
+        if (childTokenName) {
+            cst.name = genTokenName;
+            cst.value = genTokenName;
+        } else {
+            cst.name = childCst.name;
+            cst.value = childCst.value;
+        }
         const token = new AlienMatchToken({
             tokenName: cst.name,
             tokenValue: cst.value
@@ -89,15 +112,16 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
+
     consume(tokenName: string): AlienCst<T> {
         if (this.generatorMode) {
             return this.generateToken(tokenName);
-        }
-        else {
+        } else {
             return super.consumeToken(tokenName);
         }
         // return super.consume(tokenName);
     }
 }
+
 const alienMappingParser = new AlienMappingParser();
 export default alienMappingParser;

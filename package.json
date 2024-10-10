@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "test": "tsx test/test1LetJson.ts"
+    "test": "tsx test/test2LetTransConst.ts"
   },
   "keywords": [],
   "author": "",

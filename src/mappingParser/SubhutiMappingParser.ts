@@ -30,8 +30,6 @@ export class SubhutiMappingParser extends Es6Parser {
         this.setGeneratorMode(true);
         this.mappingCst = mappingCst;
         this.mappingCstMap = traverse(this.mappingCst);
-        // this.initFlag = false;
-        // this.initParserMode();
     }
 
     get generatorMode() {

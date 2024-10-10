@@ -34,6 +34,10 @@ export default class AlienParser<T = any, E = any> {
     //为什么需要，因为获取curRule
     curRuleName = null;
 
+    setCurCst(curCst: AlienCst<T>) {
+        this.curCst = curCst
+    }
+
     setTokens(tokens?: AlienMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty')
@@ -133,7 +137,7 @@ export default class AlienParser<T = any, E = any> {
                 this.processCst(ruleName, targetFun);
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(this.curCst);
-                this.curCst = parentCst;
+                this.setCurCst(parentCst)
             }
         }
     }
@@ -194,7 +198,7 @@ export default class AlienParser<T = any, E = any> {
         this.processCst(ruleName, targetFun);
         const parentCst = this.cstStack[this.cstStack.length - 1];
         parentCst.children.push(this.curCst);
-        this.curCst = parentCst;
+        this.setCurCst(parentCst)
         // }
     }
 
@@ -215,7 +219,7 @@ export default class AlienParser<T = any, E = any> {
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
-        this.curCst = cst;
+        this.setCurCst(cst)
         this.cstStack.push(this.curCst);
         // 规则解析
         targetFun.apply(this);
@@ -266,11 +270,10 @@ export default class AlienParser<T = any, E = any> {
 
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
-            const tokenLength = this.tokens.length;
             console.log(777777)
             console.log(this.curRuleName)
-            if (!tokenLength) {
-                throw new Error('语法错误');
+            if (!this.tokens?.length) {
+                throw new Error('token is empty, please set tokens');
                 // return
             }
             const lookaheadLength = Math.min(this.realMaxLookahead, this.tokens.length);

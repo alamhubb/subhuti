@@ -7,7 +7,6 @@ export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
     }
     @AlienRule
     program() {
-        console.log('zhixingle program')
         this.or([
             {
                 alt: () => {

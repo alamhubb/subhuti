@@ -13,13 +13,10 @@ export default class TypescriptGenerator extends AlienGenerator {
             return super.generator(newCst, code);
         }
         else if (alienMappingParser) {
-            console.log(11111)
-            console.log(cst.name)
-            const newCst = alienMappingParser[cst.name]()
-            console.log(6666)
+            const newCst = alienMappingParser[cst.name]();
             // console.log(newCst)
-            if (!newCst){
-                throw new Error('语法错误')
+            if (!newCst) {
+                throw new Error('语法错误');
             }
             // console.log(77777)
             return super.generator(newCst, code);

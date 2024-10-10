@@ -3,67 +3,53 @@ import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "../utils/JsonUtil";
-
 export class AlienParserOr {
     alt: Function;
 }
-
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     return function () {
-        console.log('program AlienRule')
         this.alienRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
     };
 }
-
 export default class AlienParser<T = any, E = any> {
     _tokens: AlienMatchToken[];
     initFlag = true;
     curCst: AlienCst<T>;
     cstStack: AlienCst<T>[] = [];
     _matchSuccess = true;
-    thisClassName: string
-
+    thisClassName: string;
     get matchSuccess() {
         return this._matchSuccess;
     }
-
     setMatchSuccess(flag: boolean) {
         this._matchSuccess = flag;
     }
-
     //为什么需要，因为获取curRule
     curRuleName = null;
-
     setCurCst(curCst: AlienCst<T>) {
         this.curCst = curCst;
-        console.log(88888888)
-        console.log(this.curCst)
     }
-
     get tokens() {
         if (!this._tokens?.length) {
             throw new Error('tokens is empty, please set tokens');
         }
         return this._tokens;
     }
-
     setTokens(tokens?: AlienMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty');
         }
         this._tokens = tokens;
     }
-
     constructor(tokens?: AlienMatchToken[]) {
         if (tokens) {
             this.setTokens(tokens);
         }
-        this.thisClassName = this.constructor.name
+        this.thisClassName = this.constructor.name;
     }
-
     alienRule(targetFun: any, ruleName: string) {
         //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
         //校验模式，且为首次执行
@@ -77,17 +63,14 @@ export default class AlienParser<T = any, E = any> {
             this.cstStack = [];
             // this.parserModeExecRule(ruleName, targetFun);
         }
-        console.log(3333)
         let cst = this.processCst(ruleName, targetFun);
         if (cst) {
-            console.log(cst.name)
-            console.log(4444)
-            console.log(this.curCst)
         }
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
-        } else {
+        }
+        else {
             if (cst) {
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(cst);
@@ -100,39 +83,27 @@ export default class AlienParser<T = any, E = any> {
                     // console.log(cst.name)
                     // console.log('执行完毕')
                 }
-                console.log(555555)
-                console.log(parentCst)
                 this.setCurCst(parentCst);
             }
         }
     }
-
     //初始化时执行，像内添加初始化的program
     //执行时执行，执行每一个具体的时候，parser时执行4次没问题
     //为什么Generate执行了12次呢
     processCst(ruleName: string, targetFun: Function) {
-        console.log(222222)
-        console.trace(ruleName)
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
-        cst.uuid = crypto.randomUUID()
-        console.log(cst.uuid)
         this.setCurCst(cst);
         this.cstStack.push(cst);
         // 规则解析
         targetFun.apply(this);
-        console.log(this.cstStack)
         this.cstStack.pop();
         if (cst.children.length) {
             return cst;
         }
-        console.log(cst)
-        console.log(cst.name)
-        console.log('返回了空')
-        return null
+        return null;
     }
-
     consume(tokenName: string) {
         return this.consumeToken(tokenName);
         /*else if (this.needLookahead) {
@@ -141,38 +112,27 @@ export default class AlienParser<T = any, E = any> {
             }
         }*/
     }
-
     setCurRuleName(ruleName: string) {
         this.curRuleName = ruleName;
     }
-
     consumeToken(tokenName: string) {
-        console.log('tokenName:' + tokenName)
         let popToken = this.tokens[0];
-        console.log(popToken)
         if (popToken.tokenName !== tokenName) {
             // this.setContinueMatching(false);
             return;
         }
-        console.log(this.tokens.map(item => item.tokenName))
         popToken = this.tokens.shift();
-
         const cst = new AlienCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
         this.curCst.tokens.push(popToken);
         this.setMatchSuccess(true);
-        console.log('chenggong jianshao token')
-
-        console.log(JsonUtil.toJson(this.curCst))
         return this.generateCst(cst);
     }
-
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
-
     or(alienParserOrs: AlienParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
@@ -201,18 +161,15 @@ export default class AlienParser<T = any, E = any> {
         for (const alienParserOr of alienParserOrs) {
             const tokens = lodash.cloneDeep(tokensBackup);
             this.setTokens(tokens);
-            console.log('zhixingle fuzhi tokens')
             this.setMatchSuccess(false);
             alienParserOr.alt();
             //如果处理成功则跳出
             if (this.matchSuccess) {
-                console.log('跳出了循环')
                 break;
             }
         }
         return this.getCurCst();
     }
-
     getCurCst() {
         return this.curCst;
     }

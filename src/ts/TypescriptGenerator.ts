@@ -14,6 +14,8 @@ export default class TypescriptGenerator extends AlienGenerator {
         }
         else if (alienMappingParser) {
             const newCst = alienMappingParser.processCst(cst.name, alienMappingParser[cst.name]) as any;
+            console.log(6666)
+            console.log(newCst)
             return super.generator(newCst, code);
         }
         return super.generator(cst, code);

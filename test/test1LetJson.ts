@@ -1,7 +1,5 @@
 import AlienLexer from "../src/alien/AlienLexer";
 import { es6Tokens } from "../src/es6/Es6Tokens";
-import alienMappingParser, { AlienMappingParser } from "../src/mappingParser/AlienMappingParser";
-import { MappingCst, typescriptGenerator } from "../src/ts/TypescriptGenerator";
 import TestUtil from "./TestUtil";
 import Es6Parser from "../src/es6/Es6Parser";
 import JsonUtil from "../src/utils/JsonUtil";

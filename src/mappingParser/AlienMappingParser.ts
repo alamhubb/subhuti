@@ -21,7 +21,7 @@ function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
     return map;
 }
 
-export class AlienMappingParser<T> extends Es6Parser<T> {
+export class AlienMappingParser extends Es6Parser {
     _generatorMode = false;
     mappingCst: AlienCst;
     mappingCstMap: Map<string, AlienCst>;
@@ -113,7 +113,7 @@ export class AlienMappingParser<T> extends Es6Parser<T> {
         return this.generateCst(cst);
     }
 
-    consume(tokenName: string): AlienCst<T> {
+    consume(tokenName: string): AlienCst {
         if (this.generatorMode) {
             return this.generateToken(tokenName);
         } else {

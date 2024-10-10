@@ -1,7 +1,7 @@
 import AlienMatchToken from "./AlienMatchToken";
 export default class AlienCst<T = any> {
     name: string;
-    children?: AlienCst<T>[] = [];
+    children?: AlienCst[] = [];
     tokens?: AlienMatchToken[] = [];
     tokenTypeIdx?: number;
     tokenTypeName?: string;
@@ -9,7 +9,7 @@ export default class AlienCst<T = any> {
     startOffset?: number;
     endOffset?: number;
     extendObject: T;
-    constructor(cst?: AlienCst<T>) {
+    constructor(cst?: AlienCst) {
         if (cst) {
             this.name = cst.name;
             this.children = cst.children;

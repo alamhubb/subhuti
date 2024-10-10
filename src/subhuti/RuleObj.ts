@@ -3,7 +3,7 @@ export default class RuleObj<T = any> {
     ruleTokens: string[][];
     ruleFun: Function;
     extendObj: T;
-    constructor(ruleObj?: RuleObj<T>) {
+    constructor(ruleObj?: RuleObj) {
         if (ruleObj) {
             this.ruleName = ruleObj.ruleName;
             this.ruleTokens = ruleObj.ruleTokens;

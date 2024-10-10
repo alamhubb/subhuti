@@ -14,11 +14,11 @@ export function AlienRule(targetFun: any, context) {
         return this.generateCst(this.curCst);
     };
 }
-export default class AlienParser<T = any, E = any> {
+export default class AlienParser {
     _tokens: AlienMatchToken[];
     initFlag = true;
-    curCst: AlienCst<T>;
-    cstStack: AlienCst<T>[] = [];
+    curCst: AlienCst;
+    cstStack: AlienCst[] = [];
     _matchSuccess = true;
     thisClassName: string;
     get matchSuccess() {
@@ -29,7 +29,7 @@ export default class AlienParser<T = any, E = any> {
     }
     //为什么需要，因为获取curRule
     curRuleName = null;
-    setCurCst(curCst: AlienCst<T>) {
+    setCurCst(curCst: AlienCst) {
         this.curCst = curCst;
     }
     get tokens() {
@@ -121,7 +121,7 @@ export default class AlienParser<T = any, E = any> {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
-    generateCst(cst: AlienCst<T>) {
+    generateCst(cst: AlienCst) {
         return cst;
     }
     or(alienParserOrs: AlienParserOr[]) {

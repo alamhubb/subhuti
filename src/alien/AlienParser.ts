@@ -87,9 +87,7 @@ export default class AlienParser<T = any, E = any> {
         return cst;
     }
     consume(tokenName: string) {
-        if (this.tokens.length) {
             return this.consumeToken(tokenName);
-        }
         /*else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);

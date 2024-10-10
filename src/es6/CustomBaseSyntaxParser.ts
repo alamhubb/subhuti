@@ -26,6 +26,7 @@ export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
     }
     @AlienRule
     letKeywords() {
+        console.log('zhixingle letKeywords')
         this.consume(Es6TokenName.let);
         return this.getCurCst();
     }

@@ -98,8 +98,11 @@ export default class AlienParser<T = any, E = any> {
             this.setCurRuleName(ruleName)
             this.initializeParserState();
         }
+
+        //检查模式的所有情况都执行
         this.setRuleMap(ruleName, targetFun);
         targetFun.apply(this);
+
         if (initFlag) {
             for (const ruleObjKey in this.ruleMap) {
                 if (ruleName !== ruleObjKey) {
@@ -108,14 +111,9 @@ export default class AlienParser<T = any, E = any> {
                 }
             }
             this.setCurRuleName(ruleName)
-            // this.executeRule(targetFun, rootFlag, ruleName);
             this.parserMode = true;
             this.continueMatching = true;
-            let cst = new AlienCst();
-            cst.name = ruleName;
-            cst.children = [];
-            this.processCst(targetFun, cst);
-            this.curCst = cst;
+            this.processCst(ruleName, targetFun);
             //执行完毕，改为false
             this.initFlag = false;
         }
@@ -135,22 +133,25 @@ export default class AlienParser<T = any, E = any> {
 
     private parserModeExecRule(ruleName: string, targetFun: any) {
         // if (this.tokens.length){
-            let cst = new AlienCst();
-            cst.name = ruleName;
-            cst.children = [];
-            //不使用else，方便理解
-            //parser模式
-            //无论是否 parserMode 都必须执行，不能和上面if合并
-            this.setCurRuleName(ruleName)
-            // this.executeRule(targetFun, rootFlag, ruleName);
-            this.processCst(targetFun, cst);
-            const parentCst = this.cstStack[this.cstStack.length - 1];
-            parentCst.children.push(this.curCst);
-            this.curCst = parentCst;
+        let cst = new AlienCst();
+        cst.name = ruleName;
+        cst.children = [];
+        //不使用else，方便理解
+        //parser模式
+        //无论是否 parserMode 都必须执行，不能和上面if合并
+        this.setCurRuleName(ruleName)
+        // this.executeRule(targetFun, rootFlag, ruleName);
+        this.processCst(ruleName, targetFun);
+        const parentCst = this.cstStack[this.cstStack.length - 1];
+        parentCst.children.push(this.curCst);
+        this.curCst = parentCst;
         // }
     }
 
-    processCst(targetFun: Function, cst: AlienCst<T>) {
+    processCst(ruleName: string, targetFun: Function) {
+        let cst = new AlienCst();
+        cst.name = ruleName;
+        cst.children = [];
         this.curCst = cst;
         this.cstStack.push(this.curCst);
         // 规则解析

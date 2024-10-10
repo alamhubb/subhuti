@@ -1,25 +1,41 @@
 import AlienCst from "../alien/AlienCst";
-import AlienParser, { AlienParserOr, AlienRule } from "../alien/AlienParser";
-import { Es6TokenName } from "../es6/Es6Tokens";
+import AlienParser, {AlienParserOr, AlienRule} from "../alien/AlienParser";
+import {Es6TokenName} from "../es6/Es6Tokens";
 import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
+
 const mappingTokenMap = {
     const: 'let'
 };
+
 export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
     generatorMode = false;
     mappingCst: AlienCst;
-    setMappingCst(mappingCst: AlienCst) {
-        this.mappingCst = mappingCst;
+
+    openMappingMode() {
         this.setGeneratorMode(true);
         this.initFlag = false;
         this.initParserMode();
-        // this.setCurRuleName(mappingCst.name);
-        const rootCst = this.processCst(mappingCst.name, this[mappingCst.name]);
-        // this.processCst(ruleName, targetFun);
     }
+
+    count = 0
+
+    processCst(ruleName: string, targetFun: Function) {
+        this.count++
+        console.log(11111111111)
+        console.log(ruleName)
+        console.log(this.count)
+        console.log(this.curCst?.name)
+        console.log(this.cstStack.map(item => item.name))
+        console.log(2222222)
+        const cst = super.processCst(ruleName, targetFun);
+        return cst
+    }
+
+
     setGeneratorMode(generatorMode: boolean) {
         this.generatorMode = generatorMode;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.generatorMode) {
             //你这里要做什么？
@@ -32,20 +48,25 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
                 alienParserOr.alt();
                 // console.log(alienParserOr.alt.name)
             }
-        }
-        else if (!this.generatorMode) {
+        } else if (!this.generatorMode) {
             return super.or(alienParserOrs);
         }
     }
+
     @AlienRule
     letKeywords() {
+        console.log('zhixingle mapping letKeywords')
         this.consume(Es6TokenName.const);
         return this.getCurCst();
     }
+
     generateToken(tokenName: string) {
+        console.log('zhixingle mapping consume:' + tokenName)
         //获取token对应的映射
         const mappingTokenName = mappingTokenMap[tokenName];
         if (mappingTokenName) {
+            //此时应该从token里面读取，还是从children里面读取呢
+            console.log(this.curCst)
         }
         /*let popToken = this._tokens[0];
         if (popToken.tokenName !== tokenName) {
@@ -60,16 +81,15 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);*/
     }
+
     consume(tokenName: string): AlienCst<T> {
         if (this.generatorMode) {
             this.generateToken(tokenName);
-        }
-        else if (this.parserMode && this.continueMatching) {
+        } else if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return super.consumeToken(tokenName);
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);
             }
@@ -77,5 +97,6 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
         // return super.consume(tokenName);
     }
 }
+
 const alienMappingParser = new AlienMappingParser();
 export default alienMappingParser;

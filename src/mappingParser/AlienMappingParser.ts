@@ -62,6 +62,8 @@ export class AlienMappingParser<T> extends CustomBaseSyntaxParser<T> {
 
     generateToken(tokenName: string) {
         console.log('zhixingle mapping consume:' + tokenName)
+        //消耗token，从children里面找，找到就更改继续匹配为false
+
         //获取token对应的映射
         const mappingTokenName = mappingTokenMap[tokenName];
         if (mappingTokenName) {

@@ -5,6 +5,9 @@ import AlienCst from "../alien/AlienCst";
 import alienMappingParser from "../mappingParser/AlienMappingParser";
 
 export default class TypescriptGenerator extends AlienGenerator {
+
+
+
     //默认就是遍历生成
     generator(cst: AlienCst, code = '') {
         if (cst && cst.extendObject && cst.extendObject.alt) {

@@ -3,9 +3,11 @@ import AlienCst from "./AlienCst";
 import RuleObj from "./RuleObj";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "../utils/JsonUtil";
+
 export class AlienParserOr {
     alt: Function;
 }
+
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
@@ -14,12 +16,14 @@ export function AlienRule(targetFun: any, context) {
         return this.generateCst(this.curCst);
     };
 }
+
 export default class AlienParser<T = any, E = any> {
-    tokens: AlienMatchToken[];
+    _tokens: AlienMatchToken[];
     maxLookahead = 1;
     syntaxStack = [];
     initFlag = true;
     curCst: AlienCst<T>;
+    //前瞻是设置值，parser时判断，是否为当前规则
     ruleMap: {
         [key in string]: RuleObj<E>;
     } = {};
@@ -30,92 +34,61 @@ export default class AlienParser<T = any, E = any> {
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
+
     setCurCst(curCst: AlienCst<T>) {
         this.curCst = curCst;
     }
+
+    get tokens() {
+        if (!this._tokens?.length) {
+            throw new Error('tokens is empty, please set tokens')
+        }
+        return this._tokens
+    }
+
     setTokens(tokens?: AlienMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty');
         }
-        this.tokens = tokens;
+        this._tokens = tokens;
     }
+
     get parserMode() {
         return !this.checkMode;
     }
-    /* get checkMode() {
-         return !this.parserMode
-     }*/
+
     constructor(tokens?: AlienMatchToken[]) {
         if (tokens) {
             this.setTokens(tokens);
         }
     }
+
     get realMaxLookahead() {
         return this.maxLookahead + 1;
     }
+
     get curRule() {
-        return this.curRuleName ? this.ruleMap[this.curRuleName] : null;
+        return this.curRuleName ? this.getKeyRule(this.curRuleName) : null;
     }
+
     get needLookahead() {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
-    /*executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
-        if (this.parserMode) {
-            this.setCurRuleName(ruleName)
-        } else {
-            if (rootFlag) {
-                this.setCurRuleName(ruleName)
-                console.log('zhixing 预先设置')
-            }
-            targetFun.apply(this);
-            if (rootFlag) {
-                for (const ruleObjKey in this.ruleMap) {
-                    if (ruleName !== ruleObjKey) {
-                        this.setCurRuleName(ruleObjKey)
-                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                    }
-                }
-                this.setCurRuleName(ruleName)
-            }
-        }
-    }*/
-    alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
+
+    alienRule(targetFun: any, ruleName: string) {
         //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
         //校验模式，且为首次执行
         const initFlag = this.initFlag;
         if (initFlag) {
             //init check mode
-            this.initFlag = false;
-            this.ruleMap = {};
-            this.setCurRuleName(ruleName);
-            //检查模式的所有情况都执行
-            this.setRuleMap(ruleName, targetFun);
-            targetFun.apply(this);
-            for (const ruleObjKey in this.ruleMap) {
-                if (ruleName !== ruleObjKey) {
-                    this.setCurRuleName(ruleObjKey);
-                    this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                }
-            }
-            //init parser
-            this.checkMode = false;
-            this.continueMatching = true;
-            this.cstStack = [];
-            // this.parserModeExecRule(ruleName, targetFun);
-            this.setCurRuleName(ruleName);
-            this.processCst(ruleName, targetFun);
-            //执行完毕，改为true
-            this.initFlag = true;
-            this.checkMode = true;
-        }
-        else {
+            this.initRule(ruleName, targetFun);
+        } else {
             //执行模式
             if (this.checkMode) {
                 //检查模式的所有情况都执行
                 this.setRuleMap(ruleName, targetFun);
                 targetFun.apply(this);
-            }
-            else if (!this.checkMode) {
+            } else if (!this.checkMode) {
                 // this.parserModeExecRule(ruleName, targetFun);
                 this.setCurRuleName(ruleName);
                 this.processCst(ruleName, targetFun);
@@ -125,89 +98,90 @@ export default class AlienParser<T = any, E = any> {
             }
         }
     }
-    alienRule1(targetFun: any, ruleName: string, curRule: RuleObj) {
-        //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
-        //校验模式，且为首次执行
-        const initFlag = this.initFlag;
-        if (initFlag) {
-            //init check mode
-            this.initFlag = false;
-            this.ruleMap = {};
-            this.setCurRuleName(ruleName);
-            //检查模式的所有情况都执行
-            this.setRuleMap(ruleName, targetFun);
-            targetFun.apply(this);
-            for (const ruleObjKey in this.ruleMap) {
-                if (ruleName !== ruleObjKey) {
-                    this.setCurRuleName(ruleObjKey);
-                    this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                }
-            }
-            //init parser mode
-            this.checkMode = false;
-            this.continueMatching = true;
-            this.cstStack = [];
-            // this.parserModeExecRule(ruleName, targetFun);
-            this.setCurRuleName(ruleName);
-            this.processCst(ruleName, targetFun);
-            //执行完毕，改为true
-            this.initFlag = true;
-            this.checkMode = true;
-        }
-        else {
-            //执行模式
-            if (this.checkMode) {
-                //检查模式的所有情况都执行
-                this.setRuleMap(ruleName, targetFun);
-                targetFun.apply(this);
-            }
-            else {
-                this.setCurRuleName(ruleName);
-                this.processCst(ruleName, targetFun);
-            }
-        }
+
+    getKeyRule(key: string) {
+        return this.ruleMap[key]
     }
+
+    setKeyRule(key: string, curRule: RuleObj) {
+        this.ruleMap[key] = curRule
+    }
+
+    private initRule(ruleName: string, targetFun: any) {
+        this.initFlag = false;
+        this.ruleMap = {};
+        this.setCurRuleName(ruleName);
+        //检查模式的所有情况都执行
+        this.setRuleMap(ruleName, targetFun);
+        //check模式执行方法，得到ruleTokens,校验tokens
+        targetFun.apply(this);
+        //校验每一个子函数
+        for (const ruleObjKey in this.ruleMap) {
+            if (ruleName !== ruleObjKey) {
+                this.setCurRuleName(ruleObjKey);
+                const rule = this.getKeyRule(ruleObjKey)
+                rule.ruleFun.apply(this);
+            }
+        }
+        //init parser
+        this.checkMode = false;
+        this.continueMatching = true;
+        this.cstStack = [];
+        // this.parserModeExecRule(ruleName, targetFun);
+        this.setCurRuleName(ruleName);
+        this.processCst(ruleName, targetFun);
+        //执行完毕，改为true
+        this.initFlag = true;
+        this.checkMode = true;
+    }
+
+
     private setRuleMap(ruleName: string, targetFun: any) {
-        if (!this.ruleMap[ruleName]) {
+        if (!this.getKeyRule(ruleName)) {
             const curRule = new RuleObj();
             curRule.ruleName = ruleName;
             curRule.ruleTokens = [[]];
             curRule.ruleFun = targetFun;
-            this.ruleMap[ruleName] = curRule;
+            this.setKeyRule(ruleName, curRule)
         }
     }
+
     processCst(ruleName: string, targetFun: Function) {
         let cst = new AlienCst();
         cst.name = ruleName;
         cst.children = [];
         this.setCurCst(cst);
         this.cstStack.push(this.curCst);
+        console.log(66666)
+        console.log(targetFun.name)
         // 规则解析
         targetFun.apply(this);
         this.cstStack.pop();
     }
+
     consume(tokenName: string) {
         if (this.parserMode && this.continueMatching) {
             if (this.tokens.length) {
                 return this.consumeToken(tokenName);
             }
-        }
-        else if (this.needLookahead) {
+        } else if (this.needLookahead) {
             for (const curTokens of this.curRule.ruleTokens) {
                 curTokens.push(tokenName);
             }
         }
     }
+
     setCurRuleName(ruleName: string) {
         this.curRuleName = ruleName;
     }
+
     consumeToken(tokenName: string) {
-        let popToken = this.tokens[0];
+        let popToken = this._tokens[0];
         if (popToken.tokenName !== tokenName) {
             this.setContinueMatching(false);
             return;
         }
-        popToken = this.tokens.shift();
+        popToken = this._tokens.shift();
         const cst = new AlienCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
@@ -215,20 +189,24 @@ export default class AlienParser<T = any, E = any> {
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);
     }
+
     generateCst(cst: AlienCst<T>) {
         return cst;
     }
+
     setContinueMatching(flag: boolean) {
         this.continueMatching = flag;
     }
+
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
-            if (!this.tokens?.length) {
+            if (!this._tokens?.length) {
                 throw new Error('token is empty, please set tokens');
                 // return
             }
+            // todo 这部分代码，感觉应该拿到前瞻校验的地方，不应该在执行的地方
             const lookaheadLength = Math.min(this.realMaxLookahead, this.tokens.length);
-            const lookTokens = this.tokens.slice(0, lookaheadLength);
+            const lookTokens = this._tokens.slice(0, lookaheadLength);
             const lookStr = lookTokens.map(item => item.tokenName).join('$$');
             const ruleTokens = this.curRule.ruleTokens;
             let matchFound = false;
@@ -244,7 +222,7 @@ export default class AlienParser<T = any, E = any> {
             if (!matchFound) {
                 throw new Error('未找到匹配的规则');
             }
-            const tokensBackup = lodash.cloneDeep(this.tokens);
+            const tokensBackup = lodash.cloneDeep(this._tokens);
             let matchFlag = false;
             for (const alienParserOr of alienParserOrs) {
                 if (!matchFlag) {
@@ -258,8 +236,7 @@ export default class AlienParser<T = any, E = any> {
                 }
             }
             return this.getCurCst();
-        }
-        else if (this.checkMode && this.needLookahead) {
+        } else if (this.checkMode && this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];
             alienParserOrs.forEach(alienParserOr => {
@@ -270,6 +247,7 @@ export default class AlienParser<T = any, E = any> {
             this.curRule.ruleTokens = newRuleTokens;
         }
     }
+
     getCurCst() {
         return this.curCst;
     }

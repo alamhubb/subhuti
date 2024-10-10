@@ -19,6 +19,7 @@ export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
                 }
             }
         ]);
+        //or执行完了，所以执行的identifierEqual
         this.identifierEqual();
         this.assignmentExpression();
         return this.getCurCst();

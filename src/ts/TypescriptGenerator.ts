@@ -26,6 +26,7 @@ export default class TypescriptGenerator extends AlienGenerator<MappingCst> {
             console.log('shetzhi tokens ')
             console.log(cst)
             console.log(cst.tokens)
+            alienMappingParser.setGeneratorMode(true)
             alienMappingParser.setCurCst(cst)
             alienMappingParser[cst.name]()
         }

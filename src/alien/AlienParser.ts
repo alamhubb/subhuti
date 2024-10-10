@@ -4,7 +4,7 @@ import RuleObj from "./RuleObj";
 import lodash from "../plugins/Lodash";
 import JsonUtil from "../utils/JsonUtil";
 
-class AlienParserOr {
+export class AlienParserOr {
     alt: Function;
 }
 
@@ -184,25 +184,6 @@ export default class AlienParser<T = any, E = any> {
         }
     }
 
-    private checkModeExecRule(ruleName: string, targetFun: any) {
-
-    }
-
-    private parserModeExecRule(ruleName: string, targetFun: any) {
-        // if (this.tokens.length){
-        //不使用else，方便理解
-        //parser模式
-        //无论是否 parserMode 都必须执行，不能和上面if合并
-        this.setCurRuleName(ruleName)
-        // this.executeRule(targetFun, rootFlag, ruleName);
-        this.processCst(ruleName, targetFun);
-        const parentCst = this.cstStack[this.cstStack.length - 1];
-        parentCst.children.push(this.curCst);
-        this.setCurCst(parentCst)
-        // }
-    }
-
-
     private setRuleMap(ruleName: string, targetFun: any) {
         if (!this.ruleMap[ruleName]) {
             const curRule = new RuleObj();
@@ -310,6 +291,7 @@ export default class AlienParser<T = any, E = any> {
                     }
                 }
             }
+            return this.getCurCst()
         } else if (this.checkMode && this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];

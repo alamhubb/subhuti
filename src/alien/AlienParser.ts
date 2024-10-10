@@ -34,6 +34,13 @@ export default class AlienParser<T = any, E = any> {
     //为什么需要，因为获取curRule
     curRuleName = null;
 
+    setTokens(tokens?: AlienMatchToken[]) {
+        if (!tokens?.length) {
+            throw Error('tokens is empty')
+        }
+        this.tokens = tokens;
+    }
+
     get parserMode() {
         return !this.checkMode
     }
@@ -43,7 +50,9 @@ export default class AlienParser<T = any, E = any> {
      }*/
 
     constructor(tokens?: AlienMatchToken[]) {
-        this.tokens = tokens;
+        if (tokens) {
+            this.setTokens(tokens)
+        }
     }
 
     get realMaxLookahead() {
@@ -258,6 +267,8 @@ export default class AlienParser<T = any, E = any> {
     or(alienParserOrs: AlienParserOr[]) {
         if (this.parserMode) {
             const tokenLength = this.tokens.length;
+            console.log(777777)
+            console.log(this.curRuleName)
             if (!tokenLength) {
                 throw new Error('语法错误');
                 // return
@@ -287,7 +298,8 @@ export default class AlienParser<T = any, E = any> {
             let matchFlag = false;
             for (const alienParserOr of alienParserOrs) {
                 if (!matchFlag) {
-                    this.tokens = lodash.cloneDeep(tokensBackup);
+                    const tokens = lodash.cloneDeep(tokensBackup);
+                    this.setTokens(tokens)
                     this.setContinueMatching(true);
                     alienParserOr.alt();
                     if (this.continueMatching) {
@@ -295,7 +307,7 @@ export default class AlienParser<T = any, E = any> {
                     }
                 }
             }
-        } else if (this.needLookahead) {
+        } else if (this.checkMode && this.needLookahead) {
             const oldTokens = this.curRule.ruleTokens;
             let newRuleTokens = [];
             alienParserOrs.forEach(alienParserOr => {

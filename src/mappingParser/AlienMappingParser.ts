@@ -1,7 +1,9 @@
 import AlienCst from "../alien/AlienCst";
 import AlienParser, { AlienRule } from "../alien/AlienParser";
-import Es6Parser, { Es6SyntaxName } from "../es6/Es6Parser";
+import Es6Parser from "../es6/Es6Parser";
 import { typescriptGenerator, MappingCst } from "../ts/TypescriptGenerator";
+import {Es6TokenName} from "../es6/Es6Tokens";
+import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
 export function mappingRule(cst: AlienCst<MappingCst>, fun: Function) {
     if (cst) {
         cst.extendObject = {
@@ -9,11 +11,10 @@ export function mappingRule(cst: AlienCst<MappingCst>, fun: Function) {
         };
     }
 }
-export class AlienMappingParser extends Es6Parser<MappingCst> {
+export class AlienMappingParser extends CustomBaseSyntaxParser<MappingCst> {
     @AlienRule
     letKeywords() {
-        const cst = super.letKeywords();
-        mappingRule(cst, typescriptGenerator.constKeywords);
+        this.consume(Es6TokenName.const);
         return this.getCurCst();
     }
 }

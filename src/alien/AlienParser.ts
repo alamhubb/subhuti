@@ -148,6 +148,9 @@ export default class AlienParser<T = any, E = any> {
             let matchFound = false;
             for (const ruleToken of ruleTokens) {
                 let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$');
+                console.log(ruleTokenStr)
+                console.log(lookStr)
+                console.log(this.curRuleName)
                 if (ruleTokenStr === lookStr) {
                     matchFound = true;
                     break;

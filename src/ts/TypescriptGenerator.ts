@@ -1,13 +1,9 @@
-import AlienGenerator, {GeneratorRule} from "../alien/AlienGenerator";
-import {AlienRule} from "../alien/AlienParser";
-import {Es6TokenName} from "../es6/Es6Tokens";
+import AlienGenerator, { GeneratorRule } from "../alien/AlienGenerator";
+import { AlienRule } from "../alien/AlienParser";
+import { Es6TokenName } from "../es6/Es6Tokens";
 import AlienCst from "../alien/AlienCst";
 import alienMappingParser from "../mappingParser/AlienMappingParser";
-
 export default class TypescriptGenerator extends AlienGenerator {
-
-
-
     //默认就是遍历生成
     generator(cst: AlienCst, code = '') {
         if (cst && cst.extendObject && cst.extendObject.alt) {
@@ -15,7 +11,8 @@ export default class TypescriptGenerator extends AlienGenerator {
             //执行，constKeywords
             const newCst = cst.extendObject.alt.call(this, cst);
             return super.generator(newCst, code);
-        } else if (alienMappingParser) {
+        }
+        else if (alienMappingParser) {
             alienMappingParser.processCst(cst.name, alienMappingParser[cst.name]);
         }
         return super.generator(cst, code);

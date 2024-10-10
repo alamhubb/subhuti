@@ -27,15 +27,20 @@ export default class AlienParser<T = any, E = any> {
         [key in string]: RuleObj<E>;
     } = {};
     //是否为parser模式，开始为校验模式
-    parserMode = false;
+    // parserMode = false;
+    checkMode = true
     cstStack: AlienCst<T>[] = [];
     continueMatching = false;
     //为什么需要，因为获取curRule
     curRuleName = null;
 
-    get checkMode() {
-        return !this.parserMode
+    get parserMode() {
+        return !this.checkMode
     }
+
+    /* get checkMode() {
+         return !this.parserMode
+     }*/
 
     constructor(tokens?: AlienMatchToken[]) {
         this.tokens = tokens;
@@ -53,13 +58,6 @@ export default class AlienParser<T = any, E = any> {
         return this.curRule?.ruleTokens.some(item => item.length < this.realMaxLookahead) || false;
     }
 
-    initializeParserState() {
-        this.initFlag = false;
-        this.parserMode = false;
-        this.ruleMap = {};
-        this.cstStack = [];
-        this.continueMatching = true;
-    }
 
     /*executeRule(targetFun: Function, rootFlag: boolean, ruleName: string) {
         if (this.parserMode) {
@@ -85,39 +83,70 @@ export default class AlienParser<T = any, E = any> {
     alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
         //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
         //校验模式，且为首次执行
+        const initFlag = this.initFlag;
         if (this.checkMode) {
-            this.checkModeExecRule(ruleName, targetFun);
-        } else if (!this.checkMode) {
-            this.parserModeExecRule(ruleName, targetFun);
+            if (initFlag) {
+                this.setCurRuleName(ruleName)
+                //init check mode
+                this.initFlag = false;
+                // this.parserMode = false;
+                this.ruleMap = {};
+            }
+
+            //检查模式的所有情况都执行
+            this.setRuleMap(ruleName, targetFun);
+            targetFun.apply(this);
+
+            if (initFlag) {
+                for (const ruleObjKey in this.ruleMap) {
+                    if (ruleName !== ruleObjKey) {
+                        this.setCurRuleName(ruleObjKey)
+                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
+                    }
+                }
+            }
+        }
+
+        if (!this.checkMode || initFlag) {
+            //init parser mode
+            if (initFlag) {
+                this.checkMode = false
+                this.continueMatching = true;
+                this.cstStack = [];
+            }
+            // this.parserModeExecRule(ruleName, targetFun);
+            this.setCurRuleName(ruleName)
+            this.processCst(ruleName, targetFun);
+            if (initFlag) {
+                //执行完毕，改为true
+                this.initFlag = true;
+                this.checkMode = true
+            } else {
+                const parentCst = this.cstStack[this.cstStack.length - 1];
+                parentCst.children.push(this.curCst);
+                this.curCst = parentCst;
+            }
         }
     }
 
     private checkModeExecRule(ruleName: string, targetFun: any) {
-        const initFlag = this.initFlag;
-        if (initFlag) {
-            this.setCurRuleName(ruleName)
-            this.initializeParserState();
-        }
 
-        //检查模式的所有情况都执行
-        this.setRuleMap(ruleName, targetFun);
-        targetFun.apply(this);
-
-        if (initFlag) {
-            for (const ruleObjKey in this.ruleMap) {
-                if (ruleName !== ruleObjKey) {
-                    this.setCurRuleName(ruleObjKey)
-                    this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                }
-            }
-            this.setCurRuleName(ruleName)
-            this.parserMode = true;
-            this.continueMatching = true;
-            this.processCst(ruleName, targetFun);
-            //执行完毕，改为false
-            this.initFlag = false;
-        }
     }
+
+    private parserModeExecRule(ruleName: string, targetFun: any) {
+        // if (this.tokens.length){
+        //不使用else，方便理解
+        //parser模式
+        //无论是否 parserMode 都必须执行，不能和上面if合并
+        this.setCurRuleName(ruleName)
+        // this.executeRule(targetFun, rootFlag, ruleName);
+        this.processCst(ruleName, targetFun);
+        const parentCst = this.cstStack[this.cstStack.length - 1];
+        parentCst.children.push(this.curCst);
+        this.curCst = parentCst;
+        // }
+    }
+
 
     private setRuleMap(ruleName: string, targetFun: any) {
         if (!this.ruleMap[ruleName]) {
@@ -129,23 +158,6 @@ export default class AlienParser<T = any, E = any> {
             curRule.ruleFun = targetFun;
             this.ruleMap[ruleName] = curRule;
         }
-    }
-
-    private parserModeExecRule(ruleName: string, targetFun: any) {
-        // if (this.tokens.length){
-        let cst = new AlienCst();
-        cst.name = ruleName;
-        cst.children = [];
-        //不使用else，方便理解
-        //parser模式
-        //无论是否 parserMode 都必须执行，不能和上面if合并
-        this.setCurRuleName(ruleName)
-        // this.executeRule(targetFun, rootFlag, ruleName);
-        this.processCst(ruleName, targetFun);
-        const parentCst = this.cstStack[this.cstStack.length - 1];
-        parentCst.children.push(this.curCst);
-        this.curCst = parentCst;
-        // }
     }
 
     processCst(ruleName: string, targetFun: Function) {

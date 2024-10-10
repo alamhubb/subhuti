@@ -45,26 +45,6 @@ export default class AlienGenerator<T = any> {
             return this.curCst;
         }
     }
-    append(tokenName: string) {
-        // const findTokenIndex = this.tokens.findIndex(item => item.tokenName === tokenName)
-        // console.log(this.tokens)
-        // console.log(tokenName)
-        // if (findTokenIndex < 0) {
-        //     throw new Error('不存在的token')
-        // }
-        //删除token
-        // const appendToken = this.tokens.splice(findTokenIndex, 1)[1]
-        const appendToken = new AlienMatchToken({
-            tokenName: tokenName,
-            tokenValue: tokenName,
-        });
-        const curCst = new AlienCst();
-        curCst.name = appendToken.tokenName;
-        curCst.value = appendToken.tokenValue;
-        this.curCst.children.push(curCst);
-        this.curCst.tokens.push(appendToken);
-        return this.generateCst(curCst);
-    }
     initializeParserState(ruleName: string, cst: AlienCst) {
         this.rootFlag = false;
         this.tokens = [];

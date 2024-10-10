@@ -1,5 +1,6 @@
-import { AlienCreateToken, AlienCreateTokenGroupType } from "./AlienCreateToken";
-import AlienMatchToken, { createMatchToken } from "./AlienMatchToken";
+import {AlienCreateToken, AlienCreateTokenGroupType} from "./struct/AlienCreateToken";
+import AlienMatchToken, {createMatchToken} from "./struct/AlienMatchToken";
+
 export default class AlienLexer {
     tokens: AlienCreateToken[];
     private tokenMap: Map<string, AlienCreateToken>;

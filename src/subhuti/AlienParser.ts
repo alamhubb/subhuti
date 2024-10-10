@@ -1,8 +1,7 @@
-import AlienMatchToken from "./AlienMatchToken";
-import AlienCst from "./AlienCst";
-import RuleObj from "./RuleObj";
-import lodash from "../plugins/Lodash";
+import AlienMatchToken from "./struct/AlienMatchToken";
+import AlienCst from "./struct/AlienCst";
 import JsonUtil from "../utils/JsonUtil";
+
 export class AlienParserOr {
     alt: Function;
 }
@@ -124,9 +123,9 @@ export default class AlienParser {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
         }
-        const tokensBackup = lodash.cloneDeep(this.tokens);
+        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
         for (const alienParserOr of alienParserOrs) {
-            const tokens = lodash.cloneDeep(tokensBackup);
+            const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             this.setMatchSuccess(false);
             alienParserOr.alt();

@@ -5,19 +5,22 @@ export default class JsonUtil {
         }
         return '';
     }
+
     static toParse(objJson: string): any {
         if (objJson) {
             return JSON.parse(objJson);
         }
         return null;
     }
+
     // 改成any类型
-    static deepClone(object: T): T {
+    static cloneDeep<T>(object: T): T {
         if (object) {
             return JSON.parse(JSON.stringify(object));
         }
         return null;
     }
+
     static log(object: any) {
     }
 }

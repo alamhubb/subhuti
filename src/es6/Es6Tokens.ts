@@ -1,4 +1,5 @@
-import { AlienCreateTokenGroupType, createKeywordToken, createToken } from "../subhuti/AlienCreateToken";
+import {AlienCreateTokenGroupType, createKeywordToken, createToken} from "../subhuti/struct/AlienCreateToken";
+
 export enum Es6TokenName {
     equal = 'equal',
     let = 'let',

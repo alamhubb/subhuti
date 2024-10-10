@@ -1,10 +1,9 @@
-import AlienMatchToken from "./AlienMatchToken";
-export default class AlienCst<T = any> {
+import AlienMatchToken from "./token/AlienMatchToken";
+export default class AlienCst {
     name: string;
     children?: AlienCst[] = [];
     tokens?: AlienMatchToken[] = [];
     value?: string | number;
-    extendObject: T;
     constructor(cst?: AlienCst) {
         if (cst) {
             this.name = cst.name;

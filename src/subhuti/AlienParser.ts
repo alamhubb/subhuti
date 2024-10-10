@@ -6,7 +6,6 @@ export class AlienParserOr {
     alt: Function;
 }
 export function AlienRule(targetFun: any, context) {
-    //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     return function () {
         this.alienRule(targetFun, ruleName);
@@ -26,8 +25,6 @@ export default class AlienParser {
     setMatchSuccess(flag: boolean) {
         this._matchSuccess = flag;
     }
-    //为什么需要，因为获取curRule
-    curRuleName = null;
     setCurCst(curCst: AlienCst) {
         this.curCst = curCst;
     }
@@ -50,11 +47,8 @@ export default class AlienParser {
         this.thisClassName = this.constructor.name;
     }
     alienRule(targetFun: any, ruleName: string) {
-        //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
-        //校验模式，且为首次执行
         const initFlag = this.initFlag;
         if (initFlag) {
-            //init check mode
             this.initFlag = false;
             this.setMatchSuccess(false);
             this.cstStack = [];
@@ -74,9 +68,6 @@ export default class AlienParser {
             }
         }
     }
-    //初始化时执行，像内添加初始化的program
-    //执行时执行，执行每一个具体的时候，parser时执行4次没问题
-    //为什么Generate执行了12次呢
     processCst(ruleName: string, targetFun: Function) {
         let cst = new AlienCst();
         cst.name = ruleName;
@@ -93,14 +84,6 @@ export default class AlienParser {
     }
     consume(tokenName: string) {
         return this.consumeToken(tokenName);
-        /*else if (this.needLookahead) {
-            for (const curTokens of this.curRule.ruleTokens) {
-                curTokens.push(tokenName);
-            }
-        }*/
-    }
-    setCurRuleName(ruleName: string) {
-        this.curRuleName = ruleName;
     }
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
@@ -129,7 +112,7 @@ export default class AlienParser {
             this.setTokens(tokens);
             this.setMatchSuccess(false);
             alienParserOr.alt();
-            //如果处理成功则跳出
+            // 如果处理成功则跳出
             if (this.matchSuccess) {
                 break;
             }

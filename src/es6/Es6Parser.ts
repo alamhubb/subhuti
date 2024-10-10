@@ -20,7 +20,6 @@ export default class Es6Parser extends AlienParser {
                 }
             }
         ]);
-        //or执行完了，所以执行的identifierEqual
         this.identifierEqual();
         this.assignmentExpression();
         return this.getCurCst();

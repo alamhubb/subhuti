@@ -13,7 +13,6 @@ export default class JsonUtil {
         return null;
     }
 
-    // 改成any类型
     static cloneDeep<T>(object: T): T {
         if (object) {
             return JSON.parse(JSON.stringify(object));

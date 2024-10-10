@@ -1,27 +1,27 @@
-import {AlienCreateToken, AlienCreateTokenGroupType} from "./struct/AlienCreateToken";
-import AlienMatchToken, {createMatchToken} from "./struct/AlienMatchToken";
+import {SubhutiCreateToken, SubhutiCreateTokenGroupType} from "./struct/SubhutiCreateToken";
+import SubhutiMatchToken, {createMatchToken} from "./struct/SubhutiMatchToken";
 
-export default class AlienLexer {
-    tokens: AlienCreateToken[];
-    private tokenMap: Map<string, AlienCreateToken>;
+export default class SubhutiLexer {
+    tokens: SubhutiCreateToken[];
+    private tokenMap: Map<string, SubhutiCreateToken>;
     private generateTokenMap() {
-        const tokenMap: Map<string, AlienCreateToken> = new Map();
+        const tokenMap: Map<string, SubhutiCreateToken> = new Map();
         this.tokens.forEach(item => {
             tokenMap.set(item.name, item);
         });
         this.tokenMap = tokenMap;
     }
-    setTokens(tokens: AlienCreateToken[]) {
+    setTokens(tokens: SubhutiCreateToken[]) {
         this.tokens = tokens;
         this.generateTokenMap();
     }
-    constructor(tokens: AlienCreateToken[]) {
+    constructor(tokens: SubhutiCreateToken[]) {
         this.setTokens(tokens);
     }
-    lexer(input: string): AlienMatchToken[] {
-        const resTokens: AlienMatchToken[] = [];
+    lexer(input: string): SubhutiMatchToken[] {
+        const resTokens: SubhutiMatchToken[] = [];
         while (input) {
-            const matchTokens: AlienMatchToken[] = [];
+            const matchTokens: SubhutiMatchToken[] = [];
             //匹配的token数量
             for (const token of this.tokens) {
                 //处理正则
@@ -39,7 +39,7 @@ export default class AlienLexer {
             }
             //获取长度最长的
             let maxLength = 0;
-            const map: Map<number, AlienMatchToken[]> = new Map();
+            const map: Map<number, SubhutiMatchToken[]> = new Map();
             //遍历所有匹配的token
             for (const matchToken of matchTokens) {
                 //获取当前匹配token长度
@@ -53,7 +53,7 @@ export default class AlienLexer {
             }
             //获取最长长度的tokens
             const maxLengthTokens = map.get(maxLength);
-            let resToken: AlienMatchToken;
+            let resToken: SubhutiMatchToken;
             //如果有一个以上
             if (maxLengthTokens.length > 1) {
                 const resTokens = maxLengthTokens.filter(item => this.tokenMap.get(item.tokenName).isKeyword);
@@ -67,7 +67,7 @@ export default class AlienLexer {
             }
             input = input.substring(maxLength);
             const createToken = this.tokenMap.get(resToken.tokenName);
-            if (createToken.group === AlienCreateTokenGroupType.skip) {
+            if (createToken.group === SubhutiCreateTokenGroupType.skip) {
                 continue;
             }
             resTokens.push(resToken);

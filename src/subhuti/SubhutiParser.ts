@@ -1,22 +1,22 @@
-import AlienMatchToken from "./struct/AlienMatchToken";
-import AlienCst from "./struct/AlienCst";
+import SubhutiMatchToken from "./struct/SubhutiMatchToken";
+import SubhutiCst from "./struct/SubhutiCst";
 import JsonUtil from "../utils/JsonUtil";
 
-export class AlienParserOr {
+export class SubhutiParserOr {
     alt: Function;
 }
-export function AlienRule(targetFun: any, context) {
+export function SubhutiRule(targetFun: any, context) {
     const ruleName = targetFun.name;
     return function () {
-        this.alienRule(targetFun, ruleName);
+        this.subhutiRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
     };
 }
-export default class AlienParser {
-    _tokens: AlienMatchToken[];
+export default class SubhutiParser {
+    _tokens: SubhutiMatchToken[];
     initFlag = true;
-    curCst: AlienCst;
-    cstStack: AlienCst[] = [];
+    curCst: SubhutiCst;
+    cstStack: SubhutiCst[] = [];
     _matchSuccess = true;
     thisClassName: string;
     get matchSuccess() {
@@ -25,7 +25,7 @@ export default class AlienParser {
     setMatchSuccess(flag: boolean) {
         this._matchSuccess = flag;
     }
-    setCurCst(curCst: AlienCst) {
+    setCurCst(curCst: SubhutiCst) {
         this.curCst = curCst;
     }
     get tokens() {
@@ -34,19 +34,19 @@ export default class AlienParser {
         }
         return this._tokens;
     }
-    setTokens(tokens?: AlienMatchToken[]) {
+    setTokens(tokens?: SubhutiMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty');
         }
         this._tokens = tokens;
     }
-    constructor(tokens?: AlienMatchToken[]) {
+    constructor(tokens?: SubhutiMatchToken[]) {
         if (tokens) {
             this.setTokens(tokens);
         }
         this.thisClassName = this.constructor.name;
     }
-    alienRule(targetFun: any, ruleName: string) {
+    subhutiRule(targetFun: any, ruleName: string) {
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
@@ -69,7 +69,7 @@ export default class AlienParser {
         }
     }
     processCst(ruleName: string, targetFun: Function) {
-        let cst = new AlienCst();
+        let cst = new SubhutiCst();
         cst.name = ruleName;
         cst.children = [];
         this.setCurCst(cst);
@@ -91,7 +91,7 @@ export default class AlienParser {
             return;
         }
         popToken = this.tokens.shift();
-        const cst = new AlienCst();
+        const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
@@ -99,19 +99,19 @@ export default class AlienParser {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
-    generateCst(cst: AlienCst) {
+    generateCst(cst: SubhutiCst) {
         return cst;
     }
-    or(alienParserOrs: AlienParserOr[]) {
+    or(subhutiParserOrs: SubhutiParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
         }
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-        for (const alienParserOr of alienParserOrs) {
+        for (const subhutiParserOr of subhutiParserOrs) {
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             this.setMatchSuccess(false);
-            alienParserOr.alt();
+            subhutiParserOr.alt();
             // 如果处理成功则跳出
             if (this.matchSuccess) {
                 break;

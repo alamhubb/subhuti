@@ -11,14 +11,8 @@ class AlienParserOr {
 export function AlienRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
-    const curRule = new RuleObj();
-    curRule.ruleName = ruleName;
-    console.log(66666)
-    console.log(ruleName)
-    curRule.ruleTokens = [[]];
-    curRule.ruleFun = targetFun;
     return function () {
-        this.alienRule(targetFun, ruleName, curRule);
+        this.alienRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
     };
 }
@@ -27,7 +21,7 @@ export default class AlienParser<T = any, E = any> {
     tokens: AlienMatchToken[];
     maxLookahead = 1;
     syntaxStack = [];
-    rootFlag = true;
+    initFlag = true;
     curCst: AlienCst<T>;
     ruleMap: {
         [key in string]: RuleObj<E>;
@@ -60,7 +54,7 @@ export default class AlienParser<T = any, E = any> {
     }
 
     initializeParserState() {
-        this.rootFlag = false;
+        this.initFlag = false;
         this.parserMode = false;
         this.ruleMap = {};
         this.cstStack = [];
@@ -89,43 +83,63 @@ export default class AlienParser<T = any, E = any> {
     }*/
 
     alienRule(targetFun: any, ruleName: string, curRule: RuleObj) {
-        const rootFlag = this.rootFlag;
-        let cst = new AlienCst();
-        cst.name = ruleName;
-        cst.children = [];
-        if (rootFlag) {
-            this.initializeParserState();
-        }
-        this.ruleMap[ruleName] = curRule;
-
         //优化注意，非parserMode都需要执行else代码，不能  this.parserMode || rootFlag
-
-        this.alienRuleHandler(rootFlag, ruleName, targetFun, cst);
+        //校验模式，且为首次执行
+        if (this.checkMode) {
+            this.checkModeExecRule(ruleName, targetFun);
+        } else if (!this.checkMode) {
+            this.parserModeExecRule(ruleName, targetFun);
+        }
     }
 
-    private alienRuleHandler(rootFlag: boolean, ruleName: string, targetFun: any, cst: AlienCst<any>) {
-        if (this.checkMode) {
-            if (rootFlag) {
-                this.setCurRuleName(ruleName)
-                targetFun.apply(this);
-                for (const ruleObjKey in this.ruleMap) {
-                    if (ruleName !== ruleObjKey) {
-                        this.setCurRuleName(ruleObjKey)
-                        this.ruleMap[ruleObjKey].ruleFun.apply(this);
-                    }
+    private checkModeExecRule(ruleName: string, targetFun: any) {
+        const initFlag = this.initFlag;
+        if (initFlag) {
+            this.setCurRuleName(ruleName)
+            this.initializeParserState();
+        }
+        this.setRuleMap(ruleName, targetFun);
+        targetFun.apply(this);
+        if (initFlag) {
+            for (const ruleObjKey in this.ruleMap) {
+                if (ruleName !== ruleObjKey) {
+                    this.setCurRuleName(ruleObjKey)
+                    this.ruleMap[ruleObjKey].ruleFun.apply(this);
                 }
-                this.setCurRuleName(ruleName)
-                // this.executeRule(targetFun, rootFlag, ruleName);
-                this.parserMode = true;
-                this.continueMatching = true;
-                this.processCst(targetFun, cst);
-                this.curCst = cst;
-                //执行完毕，改为false
-                this.rootFlag = false;
-            } else {
-                targetFun.apply(this);
             }
-        } else {
+            this.setCurRuleName(ruleName)
+            // this.executeRule(targetFun, rootFlag, ruleName);
+            this.parserMode = true;
+            this.continueMatching = true;
+            let cst = new AlienCst();
+            cst.name = ruleName;
+            cst.children = [];
+            this.processCst(targetFun, cst);
+            this.curCst = cst;
+            //执行完毕，改为false
+            this.initFlag = false;
+        }
+    }
+
+    private setRuleMap(ruleName: string, targetFun: any) {
+        if (!this.ruleMap[ruleName]) {
+            const curRule = new RuleObj();
+            curRule.ruleName = ruleName;
+            console.log(66666)
+            console.log(ruleName)
+            curRule.ruleTokens = [[]];
+            curRule.ruleFun = targetFun;
+            this.ruleMap[ruleName] = curRule;
+        }
+    }
+
+    private parserModeExecRule(ruleName: string, targetFun: any) {
+        // if (this.tokens.length){
+            let cst = new AlienCst();
+            cst.name = ruleName;
+            cst.children = [];
+            //不使用else，方便理解
+            //parser模式
             //无论是否 parserMode 都必须执行，不能和上面if合并
             this.setCurRuleName(ruleName)
             // this.executeRule(targetFun, rootFlag, ruleName);
@@ -133,7 +147,7 @@ export default class AlienParser<T = any, E = any> {
             const parentCst = this.cstStack[this.cstStack.length - 1];
             parentCst.children.push(this.curCst);
             this.curCst = parentCst;
-        }
+        // }
     }
 
     processCst(targetFun: Function, cst: AlienCst<T>) {

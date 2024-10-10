@@ -56,12 +56,9 @@ export default class AlienParser {
         const initFlag = this.initFlag;
         if (initFlag) {
             //init check mode
-            // this.initRule(ruleName, targetFun);
-            //init parser
             this.initFlag = false;
             this.setMatchSuccess(false);
             this.cstStack = [];
-            // this.parserModeExecRule(ruleName, targetFun);
         }
         let cst = this.processCst(ruleName, targetFun);
         if (cst) {
@@ -109,7 +106,6 @@ export default class AlienParser {
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
-            // this.setContinueMatching(false);
             return;
         }
         popToken = this.tokens.shift();
@@ -127,27 +123,7 @@ export default class AlienParser {
     or(alienParserOrs: AlienParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
-            // return
         }
-        // todo 这部分代码，感觉应该拿到前瞻校验的地方，不应该在执行的地方，其实只是一个预校验
-        /*const lookaheadLength = Math.min(this.realMaxLookahead, this.tokens.length);
-        const lookTokens = this._tokens.slice(0, lookaheadLength);
-        const lookStr = lookTokens.map(item => item.tokenName).join('$$');
-        const ruleTokens = this.curRule.ruleTokens;
-        let matchFound = false;
-        for (const ruleToken of ruleTokens) {
-            let ruleTokenStr = ruleToken.slice(0, lookaheadLength).join('$$');
-            // console.log(this.tokens)
-            // console.log(JsonUtil.toJson(this.ruleMap))
-            if (ruleTokenStr === lookStr) {
-                matchFound = true;
-                break;
-            }
-        }
-        if (!matchFound) {
-            throw new Error('未找到匹配的规则');
-        }*/
-        //
         const tokensBackup = lodash.cloneDeep(this.tokens);
         for (const alienParserOr of alienParserOrs) {
             const tokens = lodash.cloneDeep(tokensBackup);

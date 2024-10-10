@@ -14,7 +14,6 @@ export default class TypescriptGenerator extends AlienGenerator {
         }
         else if (alienMappingParser && alienMappingParser.generatorMode) {
             const newCst = alienMappingParser[cst.name]();
-            // console.log(newCst)
             if (!newCst) {
                 throw new Error('语法错误');
             }

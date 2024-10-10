@@ -13,9 +13,6 @@ TestUtil.test({
         const tokens = lexer.lexer(input);
         const parser = new Es6Parser(tokens);
         let res = parser.program();
-        // let res = `{"name":"program","children":[{"name":"letKeywords","children":[{"name":"let","children":[],"tokens":[],"value":"let"}],"tokens":[{"tokenName":"let","tokenValue":"let"}]},{"name":"identifierEqual","children":[{"name":"identifier","children":[],"tokens":[],"value":"a"},{"name":"equal","children":[],"tokens":[],"value":"="}],"tokens":[{"tokenName":"identifier","tokenValue":"a"},{"tokenName":"equal","tokenValue":"="}]},{"name":"assignmentExpression","children":[{"name":"integer","children":[],"tokens":[],"value":"1"}],"tokens":[{"tokenName":"integer","tokenValue":"1"}]}],"tokens":[]}`
-        // res = JsonUtil.toParse(res)
-        // console.log(JsonUtil.toJson(res))
         alienMappingParser.openMappingMode(res)
         return typescriptGenerator.generator(res);
     },

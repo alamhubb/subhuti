@@ -119,7 +119,6 @@ export class AlienMappingParser extends Es6Parser {
         } else {
             return super.consumeToken(tokenName);
         }
-        // return super.consume(tokenName);
     }
 }
 

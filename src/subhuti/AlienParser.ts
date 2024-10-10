@@ -74,15 +74,6 @@ export default class AlienParser<T = any, E = any> {
             if (cst) {
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(cst);
-                if (this.thisClassName !== "Es6Parser") {
-                    //     console.log(this.constructor.name)
-                    // console.log(11111)
-                    // console.log(this.cstStack)
-                    // console.log(parentCst)
-                    // console.log(cst)
-                    // console.log(cst.name)
-                    // console.log('执行完毕')
-                }
                 this.setCurCst(parentCst);
             }
         }

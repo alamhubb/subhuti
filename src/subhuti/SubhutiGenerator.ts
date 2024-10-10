@@ -1,8 +1,8 @@
-import AlienCst from "./AlienCst";
+import SubhutiCst from "./SubhutiCst";
 
-export default class AlienGenerator {
+export default class SubhutiGenerator {
     //默认就是遍历生成
-    generator(cst: AlienCst, code = '') {
+    generator(cst: SubhutiCst, code = '') {
         cst.children.forEach(item => {
             if (item.value) {
                 code += ' ' + item.value;

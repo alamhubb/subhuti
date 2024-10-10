@@ -1,11 +1,11 @@
-import AlienGenerator from "../subhuti/AlienGenerator";
-import { AlienRule } from "../subhuti/AlienParser";
+import SubhutiGenerator from "../subhuti/SubhutiGenerator";
+import { SubhutiRule } from "../subhuti/SubhutiParser";
 import { Es6TokenName } from "../es6/Es6Tokens";
-import AlienCst from "../subhuti/AlienCst";
-import alienMappingParser from "../mappingParser/AlienMappingParser";
-export default class TypescriptGenerator extends AlienGenerator {
+import SubhutiCst from "../subhuti/SubhutiCst";
+import alienMappingParser from "../mappingParser/SubhutiMappingParser";
+export default class TypescriptGenerator extends SubhutiGenerator {
     //默认就是遍历生成
-    generator(cst: AlienCst, code = '') {
+    generator(cst: SubhutiCst, code = '') {
         if (cst && cst.extendObject && cst.extendObject.alt) {
             //具体语法上绑定生成规则
             //执行，constKeywords

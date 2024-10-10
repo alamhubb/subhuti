@@ -1,4 +1,4 @@
-import AlienLexer from "../src/subhuti/AlienLexer";
+import AlienLexer from "../src/subhuti/SubhutiLexer";
 import { es6Tokens } from "../src/es6/Es6Tokens";
 import TestUtil from "./TestUtil";
 import JsonUtil from "../src/utils/JsonUtil";

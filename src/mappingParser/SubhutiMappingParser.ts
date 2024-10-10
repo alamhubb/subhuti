@@ -1,15 +1,15 @@
-import AlienCst from "../subhuti/AlienCst";
-import AlienParser, {AlienParserOr, AlienRule} from "../subhuti/AlienParser";
+import SubhutiCst from "../subhuti/SubhutiCst";
+import SubhutiParser, {SubhutiParserOr, SubhutiRule} from "../subhuti/SubhutiParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import Es6Parser from "../es6/Es6Parser";
-import AlienMatchToken from "../subhuti/AlienMatchToken";
+import SubhutiMatchToken from "../subhuti/SubhutiMatchToken";
 import lodash from "../plugins/Lodash";
 
 const mappingTokenMap = {
     const: 'let'
 };
 
-function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
+function traverse(currentNode: SubhutiCst, map = new Map<string, SubhutiCst>) {
     if (!currentNode || !currentNode.name)
         return;
     // 将当前节点添加到 Map 中
@@ -21,12 +21,12 @@ function traverse(currentNode: AlienCst, map = new Map<string, AlienCst>) {
     return map;
 }
 
-export class AlienMappingParser extends Es6Parser {
+export class SubhutiMappingParser extends Es6Parser {
     _generatorMode = false;
-    mappingCst: AlienCst;
-    mappingCstMap: Map<string, AlienCst>;
+    mappingCst: SubhutiCst;
+    mappingCstMap: Map<string, SubhutiCst>;
 
-    openMappingMode(mappingCst: AlienCst) {
+    openMappingMode(mappingCst: SubhutiCst) {
         this.setGeneratorMode(true);
         this.mappingCst = mappingCst;
         this.mappingCstMap = traverse(this.mappingCst);
@@ -47,7 +47,7 @@ export class AlienMappingParser extends Es6Parser {
         this._generatorMode = generatorMode;
     }
 
-    or(alienParserOrs: AlienParserOr[]) {
+    or(alienParserOrs: SubhutiParserOr[]) {
         if (this.generatorMode) {
             for (const alienParserOr of alienParserOrs) {
                 this.setMatchSuccess(false);
@@ -62,7 +62,7 @@ export class AlienMappingParser extends Es6Parser {
         }
     }
 
-    @AlienRule
+    @SubhutiRule
     letKeywords() {
         this.consume(Es6TokenName.const);
         return this.getCurCst();
@@ -95,7 +95,7 @@ export class AlienMappingParser extends Es6Parser {
             throw new Error('语法错误')
         }
         //需要有一个标识，标志这个节点已经处理完毕了
-        const cst = new AlienCst();
+        const cst = new SubhutiCst();
         if (childTokenName) {
             cst.name = genTokenName;
             cst.value = genTokenName;
@@ -103,7 +103,7 @@ export class AlienMappingParser extends Es6Parser {
             cst.name = childCst.name;
             cst.value = childCst.value;
         }
-        const token = new AlienMatchToken({
+        const token = new SubhutiMatchToken({
             tokenName: cst.name,
             tokenValue: cst.value
         });
@@ -113,7 +113,7 @@ export class AlienMappingParser extends Es6Parser {
         return this.generateCst(cst);
     }
 
-    consume(tokenName: string): AlienCst {
+    consume(tokenName: string): SubhutiCst {
         if (this.generatorMode) {
             return this.generateToken(tokenName);
         } else {
@@ -122,5 +122,5 @@ export class AlienMappingParser extends Es6Parser {
     }
 }
 
-const alienMappingParser = new AlienMappingParser();
-export default alienMappingParser;
+const subhutiMappingParser = new SubhutiMappingParser();
+export default subhutiMappingParser;

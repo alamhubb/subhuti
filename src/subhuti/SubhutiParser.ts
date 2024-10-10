@@ -1,12 +1,10 @@
-import AlienMatchToken from "./AlienMatchToken";
-import AlienCst from "./AlienCst";
-import RuleObj from "./RuleObj";
+import SubhutiMatchToken from "./SubhutiMatchToken";
+import SubhutiCst from "./SubhutiCst";
 import lodash from "../plugins/Lodash";
-import JsonUtil from "../utils/JsonUtil";
-export class AlienParserOr {
+export class SubhutiParserOr {
     alt: Function;
 }
-export function AlienRule(targetFun: any, context) {
+export function SubhutiRule(targetFun: any, context) {
     //不可改变位置，下方会多次执行
     const ruleName = targetFun.name;
     return function () {
@@ -14,11 +12,11 @@ export function AlienRule(targetFun: any, context) {
         return this.generateCst(this.curCst);
     };
 }
-export default class AlienParser {
-    _tokens: AlienMatchToken[];
+export default class SubhutiParser {
+    _tokens: SubhutiMatchToken[];
     initFlag = true;
-    curCst: AlienCst;
-    cstStack: AlienCst[] = [];
+    curCst: SubhutiCst;
+    cstStack: SubhutiCst[] = [];
     _matchSuccess = true;
     thisClassName: string;
     get matchSuccess() {
@@ -29,7 +27,7 @@ export default class AlienParser {
     }
     //为什么需要，因为获取curRule
     curRuleName = null;
-    setCurCst(curCst: AlienCst) {
+    setCurCst(curCst: SubhutiCst) {
         this.curCst = curCst;
     }
     get tokens() {
@@ -38,13 +36,13 @@ export default class AlienParser {
         }
         return this._tokens;
     }
-    setTokens(tokens?: AlienMatchToken[]) {
+    setTokens(tokens?: SubhutiMatchToken[]) {
         if (!tokens?.length) {
             throw Error('tokens is empty');
         }
         this._tokens = tokens;
     }
-    constructor(tokens?: AlienMatchToken[]) {
+    constructor(tokens?: SubhutiMatchToken[]) {
         if (tokens) {
             this.setTokens(tokens);
         }
@@ -79,7 +77,7 @@ export default class AlienParser {
     //执行时执行，执行每一个具体的时候，parser时执行4次没问题
     //为什么Generate执行了12次呢
     processCst(ruleName: string, targetFun: Function) {
-        let cst = new AlienCst();
+        let cst = new SubhutiCst();
         cst.name = ruleName;
         cst.children = [];
         this.setCurCst(cst);
@@ -109,7 +107,7 @@ export default class AlienParser {
             return;
         }
         popToken = this.tokens.shift();
-        const cst = new AlienCst();
+        const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
@@ -117,10 +115,10 @@ export default class AlienParser {
         this.setMatchSuccess(true);
         return this.generateCst(cst);
     }
-    generateCst(cst: AlienCst) {
+    generateCst(cst: SubhutiCst) {
         return cst;
     }
-    or(alienParserOrs: AlienParserOr[]) {
+    or(alienParserOrs: SubhutiParserOr[]) {
         if (!this.tokens?.length) {
             throw new Error('token is empty, please set tokens');
         }

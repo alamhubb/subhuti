@@ -1,11 +1,11 @@
-import AlienMatchToken from "./AlienMatchToken";
-export default class AlienCst<T = any> {
+import SubhutiMatchToken from "./SubhutiMatchToken";
+export default class SubhutiCst<T = any> {
     name: string;
-    children?: AlienCst[] = [];
-    tokens?: AlienMatchToken[] = [];
+    children?: SubhutiCst[] = [];
+    tokens?: SubhutiMatchToken[] = [];
     value?: string | number;
     extendObject: T;
-    constructor(cst?: AlienCst) {
+    constructor(cst?: SubhutiCst) {
         if (cst) {
             this.name = cst.name;
             this.children = cst.children;

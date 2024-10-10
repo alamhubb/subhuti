@@ -1,6 +1,6 @@
-import AlienParser, { AlienRule } from "../alien/AlienParser";
+import AlienParser, { AlienRule } from "../subhuti/AlienParser";
 import { Es6TokenName } from "./Es6Tokens";
-import AlienMatchToken from "../alien/AlienMatchToken";
+import AlienMatchToken from "../subhuti/AlienMatchToken";
 export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
     constructor(tokens?: AlienMatchToken[]) {
         super(tokens);

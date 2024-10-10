@@ -1,8 +1,8 @@
-import AlienCst from "../alien/AlienCst";
-import AlienParser, {AlienParserOr, AlienRule} from "../alien/AlienParser";
+import AlienCst from "../subhuti/AlienCst";
+import AlienParser, {AlienParserOr, AlienRule} from "../subhuti/AlienParser";
 import {Es6TokenName} from "../es6/Es6Tokens";
 import CustomBaseSyntaxParser from "../es6/CustomBaseSyntaxParser";
-import AlienMatchToken from "../alien/AlienMatchToken";
+import AlienMatchToken from "../subhuti/AlienMatchToken";
 import lodash from "../plugins/Lodash";
 
 const mappingTokenMap = {

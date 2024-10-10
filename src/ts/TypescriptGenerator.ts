@@ -1,7 +1,7 @@
-import AlienGenerator, { GeneratorRule } from "../alien/AlienGenerator";
-import { AlienRule } from "../alien/AlienParser";
+import AlienGenerator from "../subhuti/AlienGenerator";
+import { AlienRule } from "../subhuti/AlienParser";
 import { Es6TokenName } from "../es6/Es6Tokens";
-import AlienCst from "../alien/AlienCst";
+import AlienCst from "../subhuti/AlienCst";
 import alienMappingParser from "../mappingParser/AlienMappingParser";
 export default class TypescriptGenerator extends AlienGenerator {
     //默认就是遍历生成

@@ -1,6 +1,6 @@
 import AlienLexer from "../src/subhuti/SubhutiLexer";
 import {es6Tokens} from "../src/es6/Es6Tokens";
-import subhutiMappingParser, {AlienMappingParser} from "../src/mappingParser/SubhutiMappingParser";
+import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
 import {typescriptGenerator} from "../src/ts/TypescriptGenerator";
 import TestUtil from "./TestUtil";
 import Es6Parser from "../src/es6/Es6Parser";

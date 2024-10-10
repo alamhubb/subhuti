@@ -134,6 +134,9 @@ export default class AlienParser<T = any, E = any> {
             this.setKeyRule(ruleName, curRule);
         }
     }
+    //初始化时执行，像内添加初始化的program
+    //执行时执行，执行每一个具体的时候，parser时执行4次没问题
+    //为什么Generate执行了12次呢
     processCst(ruleName: string, targetFun: Function) {
         let cst = new AlienCst();
         cst.name = ruleName;

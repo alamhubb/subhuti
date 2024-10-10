@@ -17,4 +17,4 @@ export default class SubhutiMappingGenerator extends SubhutiGenerator {
         return super.generator(cst, code);
     }
 }
-export const typescriptGenerator = new SubhutiMappingGenerator();
+export const subhutiMappingGenerator = new SubhutiMappingGenerator();

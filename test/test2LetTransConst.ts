@@ -1,7 +1,7 @@
 import AlienLexer from "../src/subhuti/SubhutiLexer";
 import {es6Tokens} from "../src/es6/Es6Tokens";
 import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
-import {typescriptGenerator} from "../src/mappingParser/SubhutiMappingGenerator";
+import {subhutiMappingGenerator} from "../src/mappingParser/SubhutiMappingGenerator";
 import TestUtil from "./TestUtil";
 import Es6Parser from "../src/es6/Es6Parser";
 
@@ -14,6 +14,6 @@ TestUtil.test({
         const parser = new Es6Parser(tokens);
         let res = parser.program();
         subhutiMappingParser.openMappingMode(res)
-        return typescriptGenerator.generator(res);
+        return subhutiMappingGenerator.generator(res);
     },
 });

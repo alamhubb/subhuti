@@ -1,7 +1,7 @@
 import AlienLexer from "../alien/AlienLexer";
 import { es6Tokens } from "../es6/Es6Tokens";
 import { AlienMappingParser } from "../mappingParser/AlienMappingParser";
-import {MappingCst, typescriptGenerator} from "../ts/TypescriptGenerator";
+import { MappingCst, typescriptGenerator } from "../ts/TypescriptGenerator";
 import TestUtil from "./TestUtil";
 import Es6Parser from "../es6/Es6Parser";
 TestUtil.test({

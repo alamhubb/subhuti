@@ -1,13 +1,10 @@
-import AlienParser, {AlienRule} from "../alien/AlienParser";
-import {Es6TokenName} from "./Es6Tokens";
+import AlienParser, { AlienRule } from "../alien/AlienParser";
+import { Es6TokenName } from "./Es6Tokens";
 import AlienMatchToken from "../alien/AlienMatchToken";
-
-
 export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
     constructor(tokens?: AlienMatchToken[]) {
         super(tokens);
     }
-
     @AlienRule
     program() {
         this.or([
@@ -26,19 +23,16 @@ export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
         this.assignmentExpression();
         return this.getCurCst();
     }
-
     @AlienRule
     letKeywords() {
         this.consume(Es6TokenName.let);
         return this.getCurCst();
     }
-
     @AlienRule
     constKeywords() {
         this.consume(Es6TokenName.const);
         return this.getCurCst();
     }
-
     @AlienRule
     assignmentExpression() {
         this.or([
@@ -55,7 +49,6 @@ export default class CustomBaseSyntaxParser<T> extends AlienParser<T> {
         ]);
         return this.getCurCst();
     }
-
     @AlienRule
     identifierEqual() {
         this.consume(Es6TokenName.identifier);

@@ -198,6 +198,7 @@ export default class SubhutiParser {
                 fun();
                 //肯定是continueExec，tokens才会为空
                 //校验可执行没问题，因为肯定是可执行
+                //只有没token才可能是continueExec=true，如果有token，有可能匹配了，也可能没匹配
                 if (!this.tokens.length) {
                     if (this.continueExec) {
                         break;
@@ -291,6 +292,7 @@ export default class SubhutiParser {
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             if (this.continueExec) {
+                //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             }
         }

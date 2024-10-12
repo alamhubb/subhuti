@@ -63,7 +63,6 @@ export default class SubhutiParser {
     setAllowError(allowError: boolean) {
         this._allowError = allowError;
     }
-    index = 0;
     checkMethodCanExec(newTargetFun: any, args: any[]) {
         if (!this.continueExec) {
             if (this.allowError) {
@@ -76,17 +75,6 @@ export default class SubhutiParser {
                 return this.generateCst(this.curCst);
             }
             throw new Error('tokens is empty, please set tokens');
-        }
-        this.index++;
-        if (this.index > 129) {
-            // console.trace(1111)
-            // console.log('执行方法：' + (args[0]?.name || newTargetFun.name))
-            // console.log(JsonUtil.toJson(this.curCst))
-            // console.log(this.continueExec)
-            // console.log(this.ruleExecErrorStack)
-            // console.log(this._tokens.length)
-            // console.trace(this.allowError)
-            // throw new Error('cuowule ')
         }
         return newTargetFun.apply(this, args);
     }
@@ -218,15 +206,6 @@ export default class SubhutiParser {
         this.checkContinueExec();
         this.setAllowError(true);
         this.allowErrorStack.push(true);
-        //many 第一次必须为true吗
-        /*if (this.count > 0) {
-            console.log('执行了 many')
-            throw new Error('cuowule')
-        }*/
-        this.count++;
-        // console.log(1111111)
-        // console.log(this.continueExec)
-        // this.setContinueExec(true)
         while (this.continueExec) {
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
             if (!this.tokens.length) {
@@ -236,8 +215,6 @@ export default class SubhutiParser {
             //If the match fails, the tokens are reset.
             if (!this.continueExec) {
                 this.setTokens(tokensBackup);
-                // console.log(222222)
-                // this.setContinueExec(true)
             }
         }
         //因为允许空
@@ -249,7 +226,6 @@ export default class SubhutiParser {
     generateCst(cst: SubhutiCst) {
         return cst;
     }
-    count = 0;
     //随便调用，就是重复校验
     checkContinueExec() {
         //continueExec should be true, because CheckMethodCanExec makes a judgment

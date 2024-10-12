@@ -1,9 +1,8 @@
 import path from 'path';
 import ts from 'typescript';
 import fs from 'fs';
-import {dirname} from "node:path";
-import {fileURLToPath} from "node:url";
-
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 // 删除 console.log 的 Transformer
 function removeConsoleLogTransformer<T extends ts.Node>(context: ts.TransformationContext) {
     return (rootNode: T): T => {
@@ -19,17 +18,14 @@ function removeConsoleLogTransformer<T extends ts.Node>(context: ts.Transformati
             }
             return ts.visitEachChild(node, visit, context);
         }
-
         return ts.visitNode(rootNode, visit) as T;
     };
 }
-
 // 获取 __dirname 的值
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const srcDir = path.resolve(__dirname);
 recursiveReadDirectory(srcDir);
-
 function recursiveReadDirectory(srcDir: string): void {
     // 读取目录中的所有文件和子目录
     fs.readdir(srcDir, (fileErr, files) => {
@@ -43,7 +39,8 @@ function recursiveReadDirectory(srcDir: string): void {
                     throw statErr;
                 if (entryStat.isDirectory()) {
                     recursiveReadDirectory(filePath);
-                } else {
+                }
+                else {
                     if (['.js', '.ts'].includes(path.extname(file))) {
                         delConsole(filePath);
                     }
@@ -53,7 +50,6 @@ function recursiveReadDirectory(srcDir: string): void {
         }
     });
 }
-
 function delConsole(filePath: string) {
     fs.readFile(filePath, 'utf8', (err, code) => {
         if (err)
@@ -63,7 +59,7 @@ function delConsole(filePath: string) {
         // 使用 Transformer 删除 console.log
         const result = ts.transform(sourceFile, [removeConsoleLogTransformer]);
         // 打印出最终的代码，保留空格和换行符
-        const printer = ts.createPrinter({newLine: ts.NewLineKind.CarriageReturnLineFeed});
+        const printer = ts.createPrinter({ newLine: ts.NewLineKind.CarriageReturnLineFeed });
         const transformedSourceFile = result.transformed[0].getSourceFile();
         const newCode = printer.printFile(transformedSourceFile);
         fs.writeFile(filePath, newCode, (err) => {

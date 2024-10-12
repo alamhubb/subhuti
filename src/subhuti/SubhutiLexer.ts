@@ -1,11 +1,9 @@
-import {SubhutiCreateToken, SubhutiCreateTokenGroupType} from "./struct/SubhutiCreateToken";
-import SubhutiMatchToken, {createMatchToken} from "./struct/SubhutiMatchToken";
-import {Es5TokensName} from "../es5/Es5Tokens";
-
+import { SubhutiCreateToken, SubhutiCreateTokenGroupType } from "./struct/SubhutiCreateToken";
+import SubhutiMatchToken, { createMatchToken } from "./struct/SubhutiMatchToken";
+import { Es5TokensName } from "../es5/Es5Tokens";
 export default class SubhutiLexer {
     tokens: SubhutiCreateToken[];
     private tokenMap: Map<string, SubhutiCreateToken>;
-
     private generateTokenMap() {
         const tokenMap: Map<string, SubhutiCreateToken> = new Map();
         this.tokens.forEach(item => {
@@ -13,16 +11,13 @@ export default class SubhutiLexer {
         });
         this.tokenMap = tokenMap;
     }
-
     setTokens(tokens: SubhutiCreateToken[]) {
         this.tokens = tokens;
         this.generateTokenMap();
     }
-
     constructor(tokens: SubhutiCreateToken[]) {
         this.setTokens(tokens);
     }
-
     lexer(input: string): SubhutiMatchToken[] {
         const resTokens: SubhutiMatchToken[] = []; // 初始化结果token数组
         while (input) { // 当输入字符串不为空时循环
@@ -36,7 +31,7 @@ export default class SubhutiLexer {
                 // 存在匹配结果，
                 if (matchRes) {
                     // 则加入到匹配的token列表中
-                    matchTokens.push(createMatchToken({tokenName: token.name, tokenValue: matchRes[0]})); // 创建匹配token并加入列表
+                    matchTokens.push(createMatchToken({ tokenName: token.name, tokenValue: matchRes[0] })); // 创建匹配token并加入列表
                 }
             }
             if (!matchTokens.length) { // 如果没有匹配到任何token

@@ -1,6 +1,5 @@
-import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../subhuti/struct/SubhutiCreateToken";
-import {Es6TokenName} from "../es6/Es6Tokens";
-
+import { createKeywordToken, createToken, SubhutiCreateTokenGroupType } from "../subhuti/struct/SubhutiCreateToken";
+import { Es6TokenName } from "../es6/Es6Tokens";
 export const Es5TokensName = {
     // Keywords
     VarTok: 'VarTok',
@@ -33,12 +32,10 @@ export const Es5TokensName = {
     NullTok: 'NullTok',
     TrueTok: 'TrueTok',
     FalseTok: 'FalseTok',
-
     // Identifiers
     Identifier: 'Identifier',
     SetTok: 'SetTok',
     GetTok: 'GetTok',
-
     // Punctuators
     LCurly: 'LCurly',
     RCurly: 'RCurly',
@@ -49,7 +46,6 @@ export const Es5TokensName = {
     Dot: 'Dot',
     Semicolon: 'Semicolon',
     Comma: 'Comma',
-
     // Operators
     PlusPlus: 'PlusPlus',
     MinusMinus: 'MinusMinus',
@@ -90,15 +86,12 @@ export const Es5TokensName = {
     VerticalBarEq: 'VerticalBarEq',
     CircumflexEq: 'CircumflexEq',
     SlashEq: 'SlashEq',
-
     // Literals
     NumericLiteral: 'NumericLiteral',
     StringLiteral: 'StringLiteral',
     RegularExpressionLiteral: 'RegularExpressionLiteral',
     Whitespace: 'Whitespace'
-
 };
-
 export const es5TokensObj = {
     // Keywords
     VarTok: createKeywordToken({ name: Es5TokensName.VarTok, pattern: /var/ }),
@@ -131,12 +124,10 @@ export const es5TokensObj = {
     NullTok: createKeywordToken({ name: Es5TokensName.NullTok, pattern: /null/ }),
     TrueTok: createKeywordToken({ name: Es5TokensName.TrueTok, pattern: /true/ }),
     FalseTok: createKeywordToken({ name: Es5TokensName.FalseTok, pattern: /false/ }),
-
     // Identifiers
     Identifier: createToken({ name: Es5TokensName.Identifier, pattern: /[A-Za-z_$][A-Za-z0-9_$]*/ }),
     SetTok: createKeywordToken({ name: Es5TokensName.SetTok, pattern: /set/ }),
     GetTok: createKeywordToken({ name: Es5TokensName.GetTok, pattern: /get/ }),
-
     // Punctuators
     LCurly: createToken({ name: Es5TokensName.LCurly, pattern: /\{/ }),
     RCurly: createToken({ name: Es5TokensName.RCurly, pattern: /\}/ }),
@@ -147,7 +138,6 @@ export const es5TokensObj = {
     Dot: createToken({ name: Es5TokensName.Dot, pattern: /\./ }),
     Semicolon: createToken({ name: Es5TokensName.Semicolon, pattern: /;/ }),
     Comma: createToken({ name: Es5TokensName.Comma, pattern: /,/ }),
-
     // Operators
     PlusPlus: createToken({ name: Es5TokensName.PlusPlus, pattern: /\+\+/ }),
     MinusMinus: createToken({ name: Es5TokensName.MinusMinus, pattern: /--/ }),
@@ -188,7 +178,6 @@ export const es5TokensObj = {
     VerticalBarEq: createToken({ name: Es5TokensName.VerticalBarEq, pattern: /\|=/ }),
     CircumflexEq: createToken({ name: Es5TokensName.CircumflexEq, pattern: /\^=/ }),
     SlashEq: createToken({ name: Es5TokensName.SlashEq, pattern: /\/=/ }),
-
     // Literals
     NumericLiteral: createToken({ name: Es5TokensName.NumericLiteral, pattern: /-?\d+(\.\d+)?/ }),
     StringLiteral: createToken({ name: Es5TokensName.StringLiteral, pattern: /(['"])(?:\\.|[^\\])*?\1/ }),
@@ -202,5 +191,4 @@ export const es5TokensObj = {
         group: SubhutiCreateTokenGroupType.skip
     }),
 };
-
-export const es5Tokens = Object.values(es5TokensObj)
+export const es5Tokens = Object.values(es5TokensObj);

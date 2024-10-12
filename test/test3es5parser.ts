@@ -5,6 +5,8 @@ import {es5Tokens, es5TokensObj} from "../src/es5/Es5Tokens";
 import {Es5Parser} from "../src/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
 
+// let input = 'var a = '
+// let input = 'var a = 1'
 let input = 'var a = 1+2'
 //
 // const newPattern = new RegExp('^(' + es5TokensObj.NumericLiteral.pattern.source + ')');
@@ -21,6 +23,7 @@ try {
     console.log(parser.ruleExecErrorStack)
     console.log(JsonUtil.toJson(res))
 } catch (err) {
+    console.log(err)
 // 过滤只显示某个特定文件的错误信息
     const filteredStack = filterStack(err.stack, "Es5Parser");
 }
@@ -28,7 +31,8 @@ try {
 function filterStack(stack, fileName) {
     console.log(1111)            // 重新组合为字符串
     let str = stack
-    const array = str.split('\n').filter((item, index) => item.includes('Es5Parser.ts') || index < 3)
+    const array = str.split('\n').filter((item, index) => (item.includes('Es5Parser.ts') || index < 5))
+    // const array = str.split('\n')
     console.log(array.join('\n'))
     // console.log(str.split("at _"))            // 重新组合为字符串
     console.log(2222)            // 重新组合为字符串

@@ -1,13 +1,11 @@
 import SubhutiCst from "../subhuti/struct/SubhutiCst";
-import SubhutiParser, {SubhutiParserOr, SubhutiRule} from "../subhuti/SubhutiParser";
-import {Es6TokenName} from "../es6/Es6Tokens";
+import SubhutiParser, { SubhutiParserOr, SubhutiRule } from "../subhuti/SubhutiParser";
+import { Es6TokenName } from "../es6/Es6Tokens";
 import Es6Parser from "../es6/Es6Parser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
-
 const mappingTokenMap = {
     const: 'let'
 };
-
 function traverse(currentNode: SubhutiCst, map = new Map<string, SubhutiCst>) {
     if (!currentNode || !currentNode.name)
         return;
@@ -19,30 +17,24 @@ function traverse(currentNode: SubhutiCst, map = new Map<string, SubhutiCst>) {
     }
     return map;
 }
-
 export class SubhutiMappingParser extends Es6Parser {
     _generatorMode = false;
     mappingCst: SubhutiCst;
     mappingCstMap: Map<string, SubhutiCst>;
-
     openMappingMode(mappingCst: SubhutiCst) {
         this.mappingCst = mappingCst;
         this.mappingCstMap = traverse(this.mappingCst);
     }
-
     get generatorMode() {
-        return this._generatorMode
+        return this._generatorMode;
     }
-
     processCst(ruleName: string, targetFun: Function) {
         const cst = super.processCst(ruleName, targetFun);
         return cst;
     }
-
     setGeneratorMode(generatorMode: boolean) {
         this._generatorMode = generatorMode;
     }
-
     or(alienParserOrs: SubhutiParserOr[]) {
         if (this.generatorMode) {
             for (const alienParserOr of alienParserOrs) {
@@ -53,18 +45,17 @@ export class SubhutiMappingParser extends Es6Parser {
                     break;
                 }
             }
-        } else if (!this.generatorMode) {
+        }
+        else if (!this.generatorMode) {
             return super.or(alienParserOrs);
         }
     }
-
     @SubhutiRule
     letKeywords() {
         this.consume(Es6TokenName.const);
         return this.getCurCst();
     }
-
-    generateToken(tokenName: string) { // 定义生成token的方法，接收token名称作为参数
+    generateToken(tokenName: string) {
         // let
         const genTokenName = tokenName; // 保存原始token名称
         let childTokenName = mappingTokenMap[tokenName]; // 从映射表中获取子token名称
@@ -94,11 +85,12 @@ export class SubhutiMappingParser extends Es6Parser {
         if (childTokenName) { // 如果存在子token名称
             cst.name = genTokenName; // 设置CST节点名称为原始token名称
             cst.value = genTokenName; // 设置CST节点值为原始token名称
-        } else {
+        }
+        else {
             cst.name = childCst.name; // 设置CST节点名称为子节点名称
             cst.value = childCst.value; // 设置CST节点值为子节点值
         }
-        const token = new SubhutiMatchToken({ // 创建一个新的匹配token
+        const token = new SubhutiMatchToken({
             tokenName: cst.name, // 设置token名称为CST节点名称
             tokenValue: cst.value // 设置token值为CST节点值
         });
@@ -107,15 +99,14 @@ export class SubhutiMappingParser extends Es6Parser {
         this.setContinueMatch(true); // 设置匹配成功标志为true
         return this.generateCst(cst); // 生成并返回CST
     }
-
     consume(tokenName: string): SubhutiCst {
         if (this.generatorMode) {
             return this.generateToken(tokenName);
-        } else {
+        }
+        else {
             return super.consumeToken(tokenName);
         }
     }
 }
-
 const subhutiMappingParser = new SubhutiMappingParser();
 export default subhutiMappingParser;

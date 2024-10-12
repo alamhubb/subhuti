@@ -196,13 +196,11 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     postfixExpression() {
         this.memberCallNewExpression();
-        this.OPTION({
-            DEF: () => {
-                this.or([
-                    {alt: () => this.plusPlus()},
-                    {alt: () => this.MinusMinus()},
-                ]);
-            },
+        this.OPTION(() => {
+            this.or([
+                {alt: () => this.plusPlus()},
+                {alt: () => this.MinusMinus()},
+            ]);
         });
     }
 
@@ -850,8 +848,8 @@ export class Es5Parser extends SubhutiParser {
 
     @SubhutiRule
     program() {
-        // this.sourceElements();
-        this.or([
+        this.sourceElements();
+        /*this.or([
             {
                 alt: () => {
                     this.consume(es5TokensObj.Comma);
@@ -864,7 +862,7 @@ export class Es5Parser extends SubhutiParser {
                     this.consume(es5TokensObj.Identifier);
                 },
             },
-        ])
+        ])*/
         return this.getCurCst()
     }
 
@@ -872,7 +870,6 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     sourceElements() {
         this.MANY(() => {
-            console.log('执行了 many')
             this.or([
                 {
                     alt: () => this.functionDeclaration(),

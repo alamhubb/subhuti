@@ -53,19 +53,16 @@ export default class SubhutiParser {
         return this.curCst;
     }
 
+    ////校验可执行没问题，因为肯定是可执行
     get tokens() {
-        this.checkContinueExec();
+        this.checkTokens();
         return this._tokens;
     }
 
     setTokens(tokens?: SubhutiMatchToken[]) {
         this._tokens = tokens;
-        if (!this.tokens.length) {
-            if (!this.allowError) {
-                throw new Error('tokens is empty, please set tokens');
-            }
-        }
-        // this.checkTokens();
+        //这考虑的是什么情况，option、many，都有可能token处理完了，执行option、many，设置token时，需要为可匹配状态
+        this.checkTokens();
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -85,18 +82,30 @@ export default class SubhutiParser {
         this._allowError = allowError;
     }
 
-    //随便调用，就是重复校验
+    //随便调用，就是重复校验，这个暂时确认不需要动了
     checkContinueExec() {
         //continueExec should be true, because CheckMethodCanExec makes a judgment
         if (!this.continueExec) {
             throw new Error('syntax error');
         }
-        this.checkTokens()
-    }
-
-    checkTokens() {
         if (!this.tokens.length) {
             throw new Error('tokens is empty, please set tokens');
+        }
+        // this.checkTokens()
+    }
+
+    //设置token时，需要为可匹配状态
+    checkTokens() {
+        //如果可以匹配，
+        if (!this._tokens.length) {
+            if (!this.allowError) {
+                throw new Error('tokens is empty, please set tokens');
+            }
+        }
+        if (!this.continueExec) {
+            if (!this.allowError) {
+                throw new Error('匹配失败');
+            }
         }
     }
 
@@ -107,13 +116,13 @@ export default class SubhutiParser {
                 return this.generateCst(this.curCst);
             }
             throw new Error('匹配失败');
-        }
-        else if (this.continueExec) {
+        } else if (this.continueExec) {
             //如果可以匹配，
             if (!this.tokens.length) {
-                if (!this.allowError) {
-                    throw new Error('tokens is empty, please set tokens');
+                if (this.allowError) {
+                    return this.generateCst(this.curCst);
                 }
+                throw new Error('tokens is empty, please set tokens');
             }
         }
         return newTargetFun.apply(this, args);
@@ -172,26 +181,35 @@ export default class SubhutiParser {
                 this.allowErrorStack.push(true);
                 const tokensBackup = JsonUtil.cloneDeep(this.tokens);
                 fun();
-                //因为允许空
+                //必须放这里，会循环push，所以需要循环pop
                 this.allowErrorStack.pop();
                 //If the match fails, the tokens are reset.
                 if (!this.continueExec) {
                     this.setContinueExec(true);
                     this.setTokens(tokensBackup);
                     break;
-                }
-                if (!this.tokens.length) {
-                    break;
+                } else if (this.continueExec) {
+                    //校验可执行没问题，因为肯定是可执行
+                    if (!this.tokens.length) {
+                        break;
+                    }
                 }
             } else {
                 fun();
+                //肯定是continueExec，tokens才会为空
+                //校验可执行没问题，因为肯定是可执行
                 if (!this.tokens.length) {
-                    break;
+                    if (this.continueExec) {
+                        break;
+                    } else if (!this.continueExec) {
+                        throw new Error('不可能的情况')
+                    }
                 }
             }
             index++
         }
         if (index > 0) {
+            //只有index>0 了才需要重置回去状态，放循环里多余，没必要
             this.setAllowError(!!this.allowErrorStack.length);
         }
         return this.getCurCst();
@@ -268,10 +286,12 @@ export default class SubhutiParser {
             this.setTokens(tokens);
             subhutiParserOr.alt();
             // If the processing is successful, then exit the loop
+            // 执行成功，则完成任务，做多一次，则必须跳出
             if (this.continueExec) {
                 break;
             }
         }
+        //必须放这里，如果放 if (this.continueExec) { 下面，可能不被触发
         this.allowErrorStack.pop();
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();
@@ -291,12 +311,15 @@ export default class SubhutiParser {
                 this.setContinueExec(true);
                 this.setTokens(tokensBackup);
                 break
-            }
-            if (!this.tokens.length) {
-                break;
+            } else if (this.continueExec) {
+                //校验可执行没问题，因为肯定是可执行
+                //如果上一次把token处理空了，应该跳出，否则会再次进入
+                if (!this.tokens.length) {
+                    break;
+                }
             }
         }
-        //因为允许空
+        //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题
         this.allowErrorStack.pop();
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();

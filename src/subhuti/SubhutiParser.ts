@@ -147,22 +147,25 @@ export default class SubhutiParser {
                 this.setAllowError(true);
                 this.allowErrorStack.push(true);
                 const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-                if (!this.tokens.length) {
-                    break;
-                }
                 fun();
+                //因为允许空
+                this.allowErrorStack.pop();
                 //If the match fails, the tokens are reset.
                 if (!this.continueExec) {
                     this.setTokens(tokensBackup);
+                    break;
                 }
-                //因为允许空
-                this.allowErrorStack.pop();
-                this.setContinueExec(true);
-                this.setAllowError(!!this.allowErrorStack.length);
+                if (!this.tokens.length) {
+                    break;
+                }
             } else {
                 fun();
             }
             index++
+        }
+        if (index > 0) {
+            this.setContinueExec(true);
+            this.setAllowError(!!this.allowErrorStack.length);
         }
         return this.getCurCst();
     }
@@ -252,13 +255,14 @@ export default class SubhutiParser {
         this.allowErrorStack.push(true);
         while (this.continueExec) {
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-            if (!this.tokens.length) {
-                break;
-            }
             fun();
             //If the match fails, the tokens are reset.
             if (!this.continueExec) {
                 this.setTokens(tokensBackup);
+                break
+            }
+            if (!this.tokens.length) {
+                break;
             }
         }
         //因为允许空

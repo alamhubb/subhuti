@@ -104,6 +104,7 @@ export default class SubhutiParser {
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
+            this.allowErrorStack = []
             // this.setMatchSuccess(false);
             this.cstStack = [];
         }
@@ -174,6 +175,8 @@ export default class SubhutiParser {
         return this.generateCst(cst);
     }
 
+    allowErrorStack = []
+
     @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     or(subhutiParserOrs: SubhutiParserOr[]) {
@@ -182,6 +185,7 @@ export default class SubhutiParser {
 
         const funLength = subhutiParserOrs.length
 
+        this.allowErrorStack.push(true)
         let index = 0
         for (const subhutiParserOr of subhutiParserOrs) {
             index++
@@ -189,7 +193,7 @@ export default class SubhutiParser {
             // if (index === funLength) {
             //     this.setAllowError(false)
             // } else {
-                this.setAllowError(true)
+            this.setAllowError(true)
             // }
             console.log(333333)
             this.setContinueExec(true)
@@ -201,7 +205,9 @@ export default class SubhutiParser {
                 break;
             }
         }
-        this.setAllowError(false)
+
+        this.allowErrorStack.pop()
+        this.setAllowError(!!this.allowErrorStack.length)
         return this.getCurCst();
     }
 

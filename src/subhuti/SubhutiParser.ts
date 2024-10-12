@@ -86,7 +86,7 @@ export default class SubhutiParser {
             }
             throw new Error('匹配失败');
         }
-        if (!this._tokens?.length) {
+        if (!this.tokens.length) {
             if (this.allowError) {
                 return this.generateCst(this.curCst);
             }
@@ -152,6 +152,7 @@ export default class SubhutiParser {
                 this.allowErrorStack.pop();
                 //If the match fails, the tokens are reset.
                 if (!this.continueExec) {
+                    this.setContinueExec(true);
                     this.setTokens(tokensBackup);
                     break;
                 }
@@ -164,7 +165,6 @@ export default class SubhutiParser {
             index++
         }
         if (index > 0) {
-            this.setContinueExec(true);
             this.setAllowError(!!this.allowErrorStack.length);
         }
         return this.getCurCst();
@@ -180,11 +180,11 @@ export default class SubhutiParser {
         fun();
         //If the match fails, the tokens are reset.
         if (!this.continueExec) {
+            this.setContinueExec(true);
             this.setTokens(tokensBackup);
         }
         //因为允许空
         this.allowErrorStack.pop();
-        this.setContinueExec(true);
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();
     }
@@ -258,6 +258,7 @@ export default class SubhutiParser {
             fun();
             //If the match fails, the tokens are reset.
             if (!this.continueExec) {
+                this.setContinueExec(true);
                 this.setTokens(tokensBackup);
                 break
             }
@@ -267,7 +268,6 @@ export default class SubhutiParser {
         }
         //因为允许空
         this.allowErrorStack.pop();
-        this.setContinueExec(true);
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();
     }
@@ -285,7 +285,7 @@ export default class SubhutiParser {
     }
 
     checkTokens() {
-        if (!this._tokens?.length) {
+        if (!this.tokens.length) {
             if (!this.allowError) {
                 throw new Error('tokens is empty, please set tokens');
             }

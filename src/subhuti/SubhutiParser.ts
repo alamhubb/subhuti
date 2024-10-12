@@ -27,6 +27,7 @@ export default class SubhutiParser {
         this._matchSuccess = flag;
     }
     setCurCst(curCst: SubhutiCst) {
+        console.trace(curCst.name)
         this.curCst = curCst;
     }
     getCurCst() {

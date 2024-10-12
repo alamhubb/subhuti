@@ -31,11 +31,6 @@ export default class SubhutiLexer {
             for (const token of this.tokens) { // 遍历所有token
                 // 处理正则
                 const newPattern = new RegExp('^(' + token.pattern.source + ')'); // 创建新的正则表达式
-                if (token.name === Es5TokensName.NumericLiteral){
-                    console.log(token.pattern.source)
-                    console.log(newPattern.source)
-                }
-
                 // token正则匹配
                 const matchRes = input.match(newPattern); // 尝试匹配输入字符串
                 // 存在匹配结果，

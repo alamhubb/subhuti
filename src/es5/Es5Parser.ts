@@ -858,6 +858,7 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     sourceElements() {
         this.MANY(() => {
+            console.log('执行了 many')
             this.or([
                 {
                     alt: () => this.functionDeclaration(),

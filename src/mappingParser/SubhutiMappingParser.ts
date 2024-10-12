@@ -47,10 +47,10 @@ export class SubhutiMappingParser extends Es6Parser {
     or(alienParserOrs: SubhutiParserOr[]) {
         if (this.generatorMode) {
             for (const alienParserOr of alienParserOrs) {
-                this.setMatchSuccess(false);
+                this.setContinueMatch(false);
                 alienParserOr.alt();
                 //如果处理成功则跳出
-                if (this.matchSuccess) {
+                if (this.continueMatch) {
                     break;
                 }
             }
@@ -105,7 +105,7 @@ export class SubhutiMappingParser extends Es6Parser {
         });
         this.curCst.children.push(cst); // 将CST节点添加到当前CST的子节点中
         this.curCst.tokens.push(token); // 将token添加到当前CST的tokens中
-        this.setMatchSuccess(true); // 设置匹配成功标志为true
+        this.setContinueMatch(true); // 设置匹配成功标志为true
         return this.generateCst(cst); // 生成并返回CST
     }
 

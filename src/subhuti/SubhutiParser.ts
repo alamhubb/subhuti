@@ -107,6 +107,7 @@ export default class SubhutiParser {
             this.allowErrorStack = []
             // this.setMatchSuccess(false);
             this.cstStack = [];
+            this.ruleExecErrorStack = []
         }
         let cst = this.processCst(ruleName, targetFun);
         if (initFlag) {
@@ -128,9 +129,11 @@ export default class SubhutiParser {
         cst.children = [];
         this.setCurCst(cst);
         this.cstStack.push(cst);
+        this.ruleExecErrorStack.push(ruleName)
         // 规则解析
         targetFun.apply(this);
         this.cstStack.pop();
+        this.ruleExecErrorStack.pop()
         if (cst.children.length) {
             return cst;
         }
@@ -176,6 +179,7 @@ export default class SubhutiParser {
     }
 
     allowErrorStack = []
+    ruleExecErrorStack = []
 
     @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则

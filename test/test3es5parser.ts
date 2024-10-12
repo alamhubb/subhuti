@@ -19,7 +19,7 @@ const tokens = lexer.lexer(input);
 const parser = new Es5Parser(tokens);
 try {
     let res = parser.program();
-
+    console.log(parser.ruleExecErrorStack)
     console.log(res)
 } catch (err) {
 // 过滤只显示某个特定文件的错误信息

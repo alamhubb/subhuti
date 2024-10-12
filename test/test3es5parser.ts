@@ -4,10 +4,15 @@ import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
 import {es5Tokens, es5TokensObj} from "../src/es5/Es5Tokens";
 import {Es5Parser} from "../src/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
+import SubhutiGenerator from "../src/subhuti/SubhutiGenerator";
 
 // let input = 'var a = '
 // let input = 'var a = 1'
-let input = 'var a = 1+2'
+let input = `function GetQueryString(name)
+{
+　　var reg = 123;
+　　var r = window.location.search.substr(1).match(reg);
+   return null;}`
 //
 // const newPattern = new RegExp('^(' + es5TokensObj.NumericLiteral.pattern.source + ')');
 // const res = newPattern.test(input)
@@ -20,8 +25,9 @@ const tokens = lexer.lexer(input);
 const parser = new Es5Parser(tokens);
 try {
     let res = parser.program();
-    console.log(parser.ruleExecErrorStack)
-    console.log(JsonUtil.toJson(res))
+    const gen = new SubhutiGenerator()
+    const resc = gen.generator(res)
+    console.log(resc)
 } catch (err) {
     console.log(err)
 // 过滤只显示某个特定文件的错误信息

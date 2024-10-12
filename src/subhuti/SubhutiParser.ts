@@ -1,6 +1,7 @@
 import SubhutiMatchToken from "./struct/SubhutiMatchToken";
 import SubhutiCst from "./struct/SubhutiCst";
 import JsonUtil from "../utils/JsonUtil";
+import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
 
 export class SubhutiParserOr {
     alt: Function;
@@ -82,8 +83,8 @@ export default class SubhutiParser {
         }
         return null;
     }
-    consume(tokenName: string) {
-        return this.consumeToken(tokenName);
+    consume(tokenName: SubhutiCreateToken) {
+        return this.consumeToken(tokenName.name);
     }
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {

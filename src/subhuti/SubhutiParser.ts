@@ -160,7 +160,6 @@ export default class SubhutiParser {
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
-        console.log(tokenName)
         if (popToken.tokenName !== tokenName) {
             this.setContinueExec(false);
             // this.setAllowError(false)
@@ -169,6 +168,9 @@ export default class SubhutiParser {
             }
             throw new Error('匹配失败')
         }
+        console.log('peipei 成功：' + tokenName)
+        console.log('peipei 成功：' + popToken.tokenName)
+        console.log('peipei 成功：' + popToken.tokenValue)
         popToken = this.tokens.shift();
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;

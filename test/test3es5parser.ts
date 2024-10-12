@@ -5,14 +5,13 @@ import {es5Tokens, es5TokensObj} from "../src/es5/Es5Tokens";
 import {Es5Parser} from "../src/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
 
-let input = '1+2'
+let input = 'let a = 1+2'
 //
 // const newPattern = new RegExp('^(' + es5TokensObj.NumericLiteral.pattern.source + ')');
 // const res = newPattern.test(input)
 //
 // console.log(res)
 Error.stackTraceLimit = 70
-
 const lexer = new SubhutiLexer(es5Tokens);
 const tokens = lexer.lexer(input);
 // console.log(tokens)
@@ -20,7 +19,7 @@ const parser = new Es5Parser(tokens);
 try {
     let res = parser.program();
     console.log(parser.ruleExecErrorStack)
-    console.log(res)
+    console.log(JsonUtil.toJson(res))
 } catch (err) {
 // 过滤只显示某个特定文件的错误信息
     const filteredStack = filterStack(err.stack, "Es5Parser");

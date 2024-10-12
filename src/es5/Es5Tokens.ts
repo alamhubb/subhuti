@@ -1,4 +1,5 @@
-import {createKeywordToken, createToken} from "../subhuti/struct/SubhutiCreateToken";
+import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../subhuti/struct/SubhutiCreateToken";
+import {Es6TokenName} from "../es6/Es6Tokens";
 
 export const Es5TokensName = {
     // Keywords
@@ -93,7 +94,9 @@ export const Es5TokensName = {
     // Literals
     NumericLiteral: 'NumericLiteral',
     StringLiteral: 'StringLiteral',
-    RegularExpressionLiteral: 'RegularExpressionLiteral'
+    RegularExpressionLiteral: 'RegularExpressionLiteral',
+    Whitespace: 'Whitespace'
+
 };
 
 export const es5TokensObj = {
@@ -192,7 +195,12 @@ export const es5TokensObj = {
     RegularExpressionLiteral: createToken({
         name: Es5TokensName.RegularExpressionLiteral,
         pattern: /\/(?:\\.|[^\\\/])+\/[gimuy]*/
-    })
+    }),
+    Whitespace: createKeywordToken({
+        name: Es5TokensName.Whitespace,
+        pattern: /\s+/,
+        group: SubhutiCreateTokenGroupType.skip
+    }),
 };
 
 export const es5Tokens = Object.values(es5TokensObj)

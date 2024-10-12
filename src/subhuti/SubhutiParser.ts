@@ -227,8 +227,11 @@ export default class SubhutiParser {
         if (!this.continueExec) {
             this.setContinueExec(true);
             this.setTokens(tokensBackup);
+        } else if (this.continueExec) {
+            //防御性编程，肯定没问题的代码，因为这里是setAllowError(true)
+            this.checkTokens()
         }
-        //因为允许空
+        //push了，需要pop
         this.allowErrorStack.pop();
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();
@@ -291,7 +294,7 @@ export default class SubhutiParser {
                 break;
             }
         }
-        //必须放这里，如果放 if (this.continueExec) { 下面，可能不被触发
+        //必须放这里，如果放 if (this.continueExec) { 下面，可能不被触发，因为有可能所有or都不满足
         this.allowErrorStack.pop();
         this.setAllowError(!!this.allowErrorStack.length);
         return this.getCurCst();

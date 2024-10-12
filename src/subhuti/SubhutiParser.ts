@@ -22,20 +22,27 @@ export function SubhutiRule(targetFun: any, context) {
     };
 }
 
+function CheckMethodCanExec(newTargetFun: any) {
+    return function (...args: any[]) {
+        return this.checkMethodCanExec(newTargetFun, args);
+    };
+}
+
+
 export default class SubhutiParser {
     _tokens: SubhutiMatchToken[];
     initFlag = true;
     curCst: SubhutiCst;
     cstStack: SubhutiCst[] = [];
-    _continueMatch = true;
+    _continueExec = true;
     thisClassName: string;
 
-    get continueMatch() {
-        return this._continueMatch;
+    get continueExec() {
+        return this._continueExec;
     }
 
-    setContinueMatch(flag: boolean) {
-        this._continueMatch = flag;
+    setContinueExec(flag: boolean) {
+        this._continueExec = flag;
     }
 
     setCurCst(curCst: SubhutiCst) {
@@ -78,7 +85,20 @@ export default class SubhutiParser {
         this._allowError = allowError
     }
 
+    checkMethodCanExec(newTargetFun: any, args: any[]) {
+        if (!this.continueExec) {
+            console.log('执行了不继续匹配')
+            if (this.allowError) {
+                return this.generateCst(this.curCst);
+            }
+            throw new Error('匹配失败')
+        }
+
+        return newTargetFun.apply(this, args)
+    }
+
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
+    @CheckMethodCanExec
     subhutiRule(targetFun: any, ruleName: string) {
         const initFlag = this.initFlag;
         if (initFlag) {
@@ -86,7 +106,7 @@ export default class SubhutiParser {
             // this.setMatchSuccess(false);
             this.cstStack = [];
         }
-        this.setContinueMatch(true)
+        this.setContinueExec(true)
         let cst = this.processCst(ruleName, targetFun);
         if (initFlag) {
             //执行完毕，改为true
@@ -116,26 +136,29 @@ export default class SubhutiParser {
         return null;
     }
 
+    @CheckMethodCanExec
     //匹配1次或者N次
     AT_LEAST_ONE(tokenName: any) {
     }
 
-
+    @CheckMethodCanExec
     //匹配0次或者1次
-    OPTION(tokenName: any) {
-        return this.consumeToken(tokenName.name);
+    OPTION(fun: Function) {
+        fun()
     }
 
+    @CheckMethodCanExec
     consume(tokenName: SubhutiCreateToken) {
         return this.consumeToken(tokenName.name);
     }
+
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         console.log(tokenName)
         if (popToken.tokenName !== tokenName) {
-            this.setContinueMatch(false);
+            this.setContinueExec(false);
             if (this.allowError) {
                 return
             }
@@ -147,20 +170,31 @@ export default class SubhutiParser {
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
         this.curCst.tokens.push(popToken);
-        this.setContinueMatch(true);
         return this.generateCst(cst);
     }
 
+    @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     or(subhutiParserOrs: SubhutiParserOr[]) {
-        this.setAllowError(true)
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+
+        const funLength = subhutiParserOrs.length
+
+        let index = 0
         for (const subhutiParserOr of subhutiParserOrs) {
+            index++
+            //If it is the last round of the for loop, an error will be reported if it fails.
+            if (index === funLength) {
+                this.setAllowError(false)
+            } else {
+                this.setAllowError(true)
+            }
+            this.setContinueExec(true)
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             subhutiParserOr.alt();
             // 如果处理成功则跳出
-            if (this.continueMatch) {
+            if (this.continueExec) {
                 break;
             }
         }
@@ -171,6 +205,7 @@ export default class SubhutiParser {
 
     count = 0
 
+    @CheckMethodCanExec
     //匹配0次或者N次
     MANY(fun: Function) {
         this.setAllowError(true)
@@ -179,15 +214,15 @@ export default class SubhutiParser {
             throw new Error('cuowule')
         }
         this.count++
-        console.log(this.continueMatch)
-        this.setContinueMatch(true)
+        console.log(this.continueExec)
+        this.setContinueExec(true)
         // while (this.matchSuccess) {
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
         fun()
         //If the match fails, the tokens are reset.
-        if (!this.continueMatch) {
+        if (!this.continueExec) {
             this.setTokens(tokensBackup);
-            this.setContinueMatch(true)
+            this.setContinueExec(true)
             return this.getCurCst();
         }
         // }

@@ -850,7 +850,21 @@ export class Es5Parser extends SubhutiParser {
 
     @SubhutiRule
     program() {
-        this.sourceElements();
+        // this.sourceElements();
+        this.or([
+            {
+                alt: () => {
+                    this.consume(es5TokensObj.Comma);
+                    this.consume(es5TokensObj.Identifier);
+                },
+            },
+            {
+                alt: () => {
+                    this.consume(es5TokensObj.Comma);
+                    this.consume(es5TokensObj.Identifier);
+                },
+            },
+        ])
         return this.getCurCst()
     }
 

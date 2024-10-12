@@ -3,9 +3,10 @@ export enum SubhutiCreateTokenGroupType {
 }
 export class SubhutiCreateToken {
     name: string;
-    pattern: RegExp;
+    pattern?: RegExp;
     isKeyword?: boolean;
     group?: string;
+    categories?: any;
     constructor(osvToken: SubhutiCreateToken) {
         this.name = osvToken.name;
         this.pattern = osvToken.pattern;

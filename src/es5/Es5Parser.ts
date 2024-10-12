@@ -1,88 +1,47 @@
 import SubhutiParser from "../subhuti/SubhutiParser";
-import {es6TokenObj} from "./Es5Tokens";
+import {es6TokObj} from "./Es5Tokens";
 
-export class ECMAScript5Parser extends SubhutiParser {
-    set orgText(newText) {
-        this._orgText = newText;
-    }
-
-    constructor() {
-        super(t, {
-            maxLookahead: 2,
-        });
-
-        this.consume = super.consume;
-        this.consume = super.consume;
-
-        this._orgText = "";
-
-        this.c1 = undefined;
-        this.c2 = undefined;
-        this.c3 = undefined;
-        this.c4 = undefined;
-        this.c5 = undefined;
-
-        this.performSelfAnalysis();
-
-
-// Link: https://www.ecma-international.org/ecma-262/5.1/#sec-7.8
-        export const AbsLiteral = createToken({ name: "AbsLiteral" });
-
-        export const NullTok = createToken({
-            name: "NullTok",
-            categories: [AbsLiteral],
-        });
-
-        export const AbsBooleanLiteral = createToken({
-            name: "AbsBooleanLiteral",
-            categories: AbsLiteral,
-        });
-
-        export const NumericLiteral = createToken({
-            name: "NumericLiteral",
-            categories: AbsLiteral,
-        });
-
-        export const StringLiteral = createToken({
-            name: "StringLiteral",
-            categories: AbsLiteral,
-        });
-
-        export const RegularExpressionLiteral = createToken({
-            name: "RegularExpressionLiteral",
-            categories: AbsLiteral,
-        });
-    }
-
+export class Es5Parser extends SubhutiParser {
     primaryExpression() {
         this.or(
-            this.c5 ||
-            (this.c5 = [
-                { ALT: () => this.consume(es6TokenObj.ThisToken) },
-                { ALT: () => this.consume(es6TokenObj.Identifier) },
-                { ALT: () => this.consume(es6TokenObj.AbsLiteral) },
-                { ALT: () => this.arrayLiteral() },
-                { ALT: () => this.objectLiteral() },
-                { ALT: () => this.parenthesisExpression() },
-            ]),
+            [
+                {alt: () => this.consume(es6TokObj.ThisTok)},
+                {alt: () => this.consume(es6TokObj.Identifier)},
+                {alt: () => this.AbsLiteral()},
+                {alt: () => this.array()},
+                {alt: () => this.object()},
+                {alt: () => this.parenthesisExpression()},
+            ]
         );
     }
 
-    parenthesisExpression() {
-        this.consume(es6TokenObj.LParen);
-        this.expression();
-        this.consume(es6TokenObj.RParen);
+    AbsLiteral() {
+        this.or([
+            {alt: () => this.consume(es6TokObj.NullTok)},
+            {alt: () => this.consume(es6TokObj.TrueTok)},
+            {alt: () => this.consume(es6TokObj.FalseTok)},
+            {alt: () => this.consume(es6TokObj.NumericLiteral)},
+            {alt: () => this.consume(es6TokObj.StringLiteral)},
+            {alt: () => this.consume(es6TokObj.RegularExpressionLiteral)},
+        ]);
+
     }
 
-    arrayLiteral() {
-        this.consume(es6TokenObj.LBracket);
+    parenthesisExpression() {
+        this.consume(es6TokObj.LParen);
+        this.expression();
+        this.consume(es6TokObj.RParen);
+    }
+
+    array() {
+        this.consume(es6TokObj.LBracket);
         this.MANY(() => {
             this.or([
-                { ALT: () => this.elementList() },
-                { ALT: () => this.elision() },
+                {alt: () => this.elementList()},
+                {alt: () => this.elision()},
             ]);
         });
-        this.consume(es6TokenObj.RBracket);
+        this.consume(es6TokObj.RBracket);
     }
 
     elementList() {
@@ -95,66 +54,66 @@ export class ECMAScript5Parser extends SubhutiParser {
 
     elision() {
         this.AT_LEAST_ONE(() => {
-            this.consume(es6TokenObj.Comma);
+            this.consume(es6TokObj.Comma);
         });
     }
 
-    objectLiteral() {
-        this.consume(es6TokenObj.LCurly);
+    object() {
+        this.consume(es6TokObj.LCurly);
         this.OPTION(() => {
             this.propertyAssignment();
             this.MANY(() => {
-                this.consume(es6TokenObj.Comma);
+                this.consume(es6TokObj.Comma);
                 this.propertyAssignment();
             });
-            this.OPTION2(() => {
-                this.consume(es6TokenObj.Comma);
+            this.OPTION(() => {
+                this.consume(es6TokObj.Comma);
             });
         });
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     propertyAssignment() {
         this.or([
-            { ALT: () => this.regularPropertyAssignment() },
-            { ALT: () => this.getPropertyAssignment() },
-            { ALT: () => this.setPropertyAssignment() },
+            {alt: () => this.regularPropertyAssignment()},
+            {alt: () => this.getPropertyAssignment()},
+            {alt: () => this.setPropertyAssignment()},
         ]);
     }
 
     regularPropertyAssignment() {
         this.propertyName();
-        this.consume(es6TokenObj.Colon);
+        this.consume(es6TokObj.Colon);
         this.assignmentExpression();
     }
 
     getPropertyAssignment() {
-        this.consume(es6TokenObj.GetToken);
+        this.consume(es6TokObj.GetTok);
         this.propertyName();
-        this.consume(es6TokenObj.LParen);
-        this.consume(es6TokenObj.RParen);
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.LParen);
+        this.consume(es6TokObj.RParen);
+        this.consume(es6TokObj.LCurly);
         this.sourceElements();
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     setPropertyAssignment() {
-        this.consume(es6TokenObj.SetToken);
+        this.consume(es6TokObj.SetTok);
         this.propertyName();
-        this.consume(es6TokenObj.LParen);
-        this.consume(es6TokenObj.Identifier);
-        this.consume(es6TokenObj.RParen);
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.LParen);
+        this.consume(es6TokObj.Identifier);
+        this.consume(es6TokObj.RParen);
+        this.consume(es6TokObj.LCurly);
         this.sourceElements();
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     propertyName() {
         this.or([
-            { ALT: () => this.consume(es6TokenObj.IdentifierName) },
-            { ALT: () => this.consume(es6TokenObj.IdentifierName) },
-            { ALT: () => this.consume(es6TokenObj.StringLiteral) },
-            { ALT: () => this.consume(es6TokenObj.NumericLiteral) },
+            {alt: () => this.consume(es6TokObj.Identifier)},
+            {alt: () => this.consume(es6TokObj.Identifier)},
+            {alt: () => this.consume(es6TokObj.StringLiteral)},
+            {alt: () => this.consume(es6TokObj.NumericLiteral)},
         ]);
 
 
@@ -162,78 +121,85 @@ export class ECMAScript5Parser extends SubhutiParser {
 
     memberCallNewExpression() {
         this.MANY(() => {
-            this.consume(es6TokenObj.NewToken);
+            this.consume(es6TokObj.NewTok);
         });
 
         this.or([
-            { ALT: () => this.primaryExpression() },
-            { ALT: () => this.functionExpression() },
+            {alt: () => this.primaryExpression()},
+            {alt: () => this.functionExpression()},
         ]);
 
-        this.MANY2(() => {
-            this.or2([
-                { ALT: () => this.boxMemberExpression() },
-                { ALT: () => this.dotMemberExpression() },
-                { ALT: () => this.arguments() },
+        this.MANY(() => {
+            this.or([
+                {alt: () => this.boxMemberExpression()},
+                {alt: () => this.dotMemberExpression()},
+                {alt: () => this.arguments()},
             ]);
         });
     }
 
     boxMemberExpression() {
-        this.consume(es6TokenObj.LBracket);
+        this.consume(es6TokObj.LBracket);
         this.expression();
-        this.consume(es6TokenObj.RBracket);
+        this.consume(es6TokObj.RBracket);
     }
 
     dotMemberExpression() {
-        this.consume(es6TokenObj.Dot);
-        this.consume(es6TokenObj.IdentifierName);
+        this.consume(es6TokObj.Dot);
+        this.consume(es6TokObj.Identifier);
     }
 
     arguments() {
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.LParen);
         this.OPTION(() => {
             this.assignmentExpression();
             this.MANY(() => {
-                this.consume(es6TokenObj.Comma);
+                this.consume(es6TokObj.Comma);
                 this.assignmentExpression();
             });
         });
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
     }
 
     postfixExpression() {
         this.memberCallNewExpression();
         this.OPTION({
-            GATE: this.noLineTerminatorHere,
             DEF: () => {
                 this.or([
-                    { ALT: () => this.consume(es6TokenObj.PlusPlus) },
-                    { ALT: () => this.consume(es6TokenObj.MinusMinus) },
+                    {alt: () => this.plusPlus()},
+                    {alt: () => this.MinusMinus()},
                 ]);
             },
         });
     }
 
+    plusPlus() {
+        this.consume(es6TokObj.Plus)
+        this.consume(es6TokObj.Plus)
+    }
+
+    MinusMinus() {
+        this.consume(es6TokObj.Minus)
+        this.consume(es6TokObj.Minus)
+    }
+
     unaryExpression() {
         this.or([
-            { ALT: () => this.postfixExpression() },
+            {alt: () => this.postfixExpression()},
             {
-                ALT: () => {
-                    this.or2(
-                        this.c1 ||
-                        (this.c1 = [
-                            { ALT: () => this.consume(es6TokenObj.DeleteToken) },
-                            { ALT: () => this.consume(es6TokenObj.VoidToken) },
-                            { ALT: () => this.consume(es6TokenObj.TypeOfToken) },
-                            { ALT: () => this.consume(es6TokenObj.PlusPlus) },
-                            { ALT: () => this.consume(es6TokenObj.MinusMinus) },
-                            { ALT: () => this.consume(es6TokenObj.Plus) },
-                            { ALT: () => this.consume(es6TokenObj.Minus) },
-                            { ALT: () => this.consume(es6TokenObj.Tilde) },
-                            { ALT: () => this.consume(es6TokenObj.Exclamation) },
-                        ]),
-                    );
+                alt: () => {
+                    this.or([
+                        {alt: () => this.consume(es6TokObj.DeleteTok)},
+                        {alt: () => this.consume(es6TokObj.VoidTok)},
+                        {alt: () => this.consume(es6TokObj.TypeOfTok)},
+                        {alt: () => this.plusPlus()},
+                        {alt: () => this.MinusMinus()},
+                        {alt: () => this.consume(es6TokObj.Plus)},
+                        {alt: () => this.consume(es6TokObj.Minus)},
+                        {alt: () => this.consume(es6TokObj.Tilde)},
+                        {alt: () => this.consume(es6TokObj.Exclamation)},
+                    ])
+
                     this.unaryExpression();
                 },
             },
@@ -244,46 +210,110 @@ export class ECMAScript5Parser extends SubhutiParser {
         this.unaryExpression();
         this.MANY(() => {
             this.or(
-                this.c3 ||
-                (this.c3 = [
-                    { ALT: () => this.consume(es6TokenObj.AbsAssignmentOperator) },
-                    { ALT: () => this.consume(es6TokenObj.VerticalBarVerticalBar) },
-                    { ALT: () => this.consume(es6TokenObj.AmpersandAmpersand) },
-                    { ALT: () => this.consume(es6TokenObj.VerticalBar) },
-                    { ALT: () => this.consume(es6TokenObj.Circumflex) },
-                    { ALT: () => this.consume(es6TokenObj.Ampersand) },
-                    { ALT: () => this.consume(es6TokenObj.AbsEqualityOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsRelationalOperator) },
-                    { ALT: () => this.consume(es6TokenObj.InstanceOfToken) },
-                    { ALT: () => this.consume(es6TokenObj.InToken) },
-                    { ALT: () => this.consume(es6TokenObj.AbsShiftOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsMultiplicativeOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsAdditiveOperator) },
-                ]),
-            );
+                [
+                    {alt: () => this.AbsAssignmentOperator()},
+                    {alt: () => this.consume(es6TokObj.VerticalBarVerticalBar)},
+                    {alt: () => this.consume(es6TokObj.AmpersandAmpersand)},
+                    {alt: () => this.consume(es6TokObj.VerticalBar)},
+                    {alt: () => this.consume(es6TokObj.Circumflex)},
+                    {alt: () => this.consume(es6TokObj.Ampersand)},
+                    {alt: () => this.AbsEqualityOperator()},
+                    {alt: () => this.AbsRelationalOperator()},
+                    {alt: () => this.consume(es6TokObj.InstanceOfTok)},
+                    {alt: () => this.consume(es6TokObj.InTok)},
+                    {alt: () => this.AbsShiftOperator()},
+                    {alt: () => this.AbsMultiplicativeOperator()},
+                    {alt: () => this.AbsAdditiveOperator()},
+                ])
             this.unaryExpression();
         });
+    }
+
+
+    AbsAssignmentOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.Eq)},
+                {alt: () => this.consume(es6TokObj.PlusEq)},
+                {alt: () => this.consume(es6TokObj.AmpersandAmpersand)},
+                {alt: () => this.consume(es6TokObj.VerticalBar)},
+                {alt: () => this.consume(es6TokObj.Circumflex)},
+                {alt: () => this.consume(es6TokObj.Ampersand)},
+                {alt: () => this.AbsEqualityOperator()},
+                {alt: () => this.AbsRelationalOperator()},
+                {alt: () => this.consume(es6TokObj.InstanceOfTok)},
+                {alt: () => this.consume(es6TokObj.InTok)},
+                {alt: () => this.AbsShiftOperator()},
+                {alt: () => this.AbsMultiplicativeOperator()},
+                {alt: () => this.AbsAdditiveOperator()},
+            ])
+    }
+
+    AbsEqualityOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.EqEq)},
+                {alt: () => this.consume(es6TokObj.NotEq)},
+                {alt: () => this.consume(es6TokObj.EqEq)},
+                {alt: () => this.consume(es6TokObj.NotEqEq)},
+            ])
+    }
+
+
+    AbsRelationalOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.Less)},
+                {alt: () => this.consume(es6TokObj.Greater)},
+                {alt: () => this.consume(es6TokObj.LessEq)},
+                {alt: () => this.consume(es6TokObj.GreaterEq)},
+            ])
+    }
+
+    AbsShiftOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.LessLess)},
+                {alt: () => this.consume(es6TokObj.MoreMore)},
+                {alt: () => this.consume(es6TokObj.MoreMoreMore)},
+            ])
+    }
+
+    AbsMultiplicativeOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.Asterisk)},
+                {alt: () => this.consume(es6TokObj.Slash)},
+                {alt: () => this.consume(es6TokObj.Percent)},
+            ])
+    }
+
+    AbsAdditiveOperator(){
+        this.or(
+            [
+                {alt: () => this.consume(es6TokObj.Plus)},
+                {alt: () => this.consume(es6TokObj.Minus)},
+            ])
     }
 
     binaryExpressionNoIn() {
         this.unaryExpression();
         this.MANY(() => {
             this.or(
-                this.c4 ||
-                (this.c4 = [
-                    { ALT: () => this.consume(es6TokenObj.AbsAssignmentOperator) },
-                    { ALT: () => this.consume(es6TokenObj.VerticalBarVerticalBar) },
-                    { ALT: () => this.consume(es6TokenObj.AmpersandAmpersand) },
-                    { ALT: () => this.consume(es6TokenObj.VerticalBar) },
-                    { ALT: () => this.consume(es6TokenObj.Circumflex) },
-                    { ALT: () => this.consume(es6TokenObj.Ampersand) },
-                    { ALT: () => this.consume(es6TokenObj.AbsEqualityOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsRelationalOperator) },
-                    { ALT: () => this.consume(es6TokenObj.InstanceOfToken) },
-                    { ALT: () => this.consume(es6TokenObj.AbsShiftOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsMultiplicativeOperator) },
-                    { ALT: () => this.consume(es6TokenObj.AbsAdditiveOperator) },
-                ]),
+                [
+                    {alt: () => this.AbsAssignmentOperator()},
+                    {alt: () => this.consume(es6TokObj.VerticalBarVerticalBar)},
+                    {alt: () => this.consume(es6TokObj.AmpersandAmpersand)},
+                    {alt: () => this.consume(es6TokObj.VerticalBar)},
+                    {alt: () => this.consume(es6TokObj.Circumflex)},
+                    {alt: () => this.consume(es6TokObj.Ampersand)},
+                    {alt: () => this.AbsEqualityOperator()},
+                    {alt: () => this.AbsRelationalOperator()},
+                    {alt: () => this.consume(es6TokObj.InstanceOfTok)},
+                    {alt: () => this.AbsShiftOperator()},
+                    {alt: () => this.AbsMultiplicativeOperator()},
+                    {alt: () => this.AbsAdditiveOperator()},
+                ]
             );
             this.unaryExpression();
         });
@@ -292,9 +322,9 @@ export class ECMAScript5Parser extends SubhutiParser {
     assignmentExpression() {
         this.binaryExpression();
         this.OPTION(() => {
-            this.consume(es6TokenObj.Question);
+            this.consume(es6TokObj.Question);
             this.assignmentExpression();
-            this.consume(es6TokenObj.Colon);
+            this.consume(es6TokObj.Colon);
             this.assignmentExpression();
         });
     }
@@ -302,9 +332,9 @@ export class ECMAScript5Parser extends SubhutiParser {
     assignmentExpressionNoIn() {
         this.binaryExpressionNoIn();
         this.OPTION(() => {
-            this.consume(es6TokenObj.Question);
+            this.consume(es6TokObj.Question);
             this.assignmentExpression();
-            this.consume(es6TokenObj.Colon);
+            this.consume(es6TokObj.Colon);
             this.assignmentExpressionNoIn();
         });
     }
@@ -312,7 +342,7 @@ export class ECMAScript5Parser extends SubhutiParser {
     expression() {
         this.assignmentExpression();
         this.MANY(() => {
-            this.consume(es6TokenObj.Comma);
+            this.consume(es6TokObj.Comma);
             this.assignmentExpression();
         });
     }
@@ -320,43 +350,42 @@ export class ECMAScript5Parser extends SubhutiParser {
     expressionNoIn() {
         this.assignmentExpressionNoIn();
         this.MANY(() => {
-            this.consume(es6TokenObj.Comma);
+            this.consume(es6TokObj.Comma);
             this.assignmentExpressionNoIn();
         });
     }
 
     statement() {
         this.or(
-            this.c2 ||
-            (this.c2 = [
-                { ALT: () => this.block() },
-                { ALT: () => this.variableStatement() },
-                { ALT: () => this.emptyStatement() },
-                { ALT: () => this.labelledStatement() },
+            [
+                {alt: () => this.block()},
+                {alt: () => this.variableStatement()},
+                {alt: () => this.emptyStatement()},
+                {alt: () => this.labelledStatement()},
                 {
-                    ALT: () => this.expressionStatement(),
-                    IGNorE_AMBIGUITIES: true,
+                    alt: () => this.expressionStatement(),
+
                 },
-                { ALT: () => this.ifStatement() },
-                { ALT: () => this.iterationStatement() },
-                { ALT: () => this.continueStatement() },
-                { ALT: () => this.breakStatement() },
-                { ALT: () => this.returnStatement() },
-                { ALT: () => this.withStatement() },
-                { ALT: () => this.switchStatement() },
-                { ALT: () => this.throwStatement() },
-                { ALT: () => this.tryStatement() },
-                { ALT: () => this.debuggerStatement() },
-            ]),
+                {alt: () => this.ifStatement()},
+                {alt: () => this.iterationStatement()},
+                {alt: () => this.continueStatement()},
+                {alt: () => this.breakStatement()},
+                {alt: () => this.returnStatement()},
+                {alt: () => this.withStatement()},
+                {alt: () => this.switchStatement()},
+                {alt: () => this.throwStatement()},
+                {alt: () => this.tryStatement()},
+                {alt: () => this.debuggerStatement()},
+            ]
         );
     }
 
     block() {
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.LCurly);
         this.OPTION(() => {
             this.statementList();
         });
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     statementList() {
@@ -366,15 +395,15 @@ export class ECMAScript5Parser extends SubhutiParser {
     }
 
     variableStatement() {
-        this.consume(es6TokenObj.VarToken);
+        this.consume(es6TokObj.VarTok);
         this.variableDeclarationList();
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     variableDeclarationList() {
         this.variableDeclaration();
         this.MANY(() => {
-            this.consume(es6TokenObj.Comma);
+            this.consume(es6TokObj.Comma);
             this.variableDeclaration();
         });
     }
@@ -383,7 +412,7 @@ export class ECMAScript5Parser extends SubhutiParser {
         let numOfVars = 1;
         this.variableDeclarationNoIn();
         this.MANY(() => {
-            this.consume(es6TokenObj.Comma);
+            this.consume(es6TokObj.Comma);
             this.variableDeclarationNoIn();
             numOfVars++;
         });
@@ -391,122 +420,121 @@ export class ECMAScript5Parser extends SubhutiParser {
     }
 
     variableDeclaration() {
-        this.consume(es6TokenObj.Identifier);
+        this.consume(es6TokObj.Identifier);
         this.OPTION(() => {
             this.initialiser();
         });
     }
 
     variableDeclarationNoIn() {
-        this.consume(es6TokenObj.Identifier);
+        this.consume(es6TokObj.Identifier);
         this.OPTION(() => {
             this.initialiserNoIn();
         });
     }
 
     initialiser() {
-        this.consume(es6TokenObj.Eq);
+        this.consume(es6TokObj.Eq);
         this.assignmentExpression();
     }
 
     initialiserNoIn() {
-        this.consume(es6TokenObj.Eq);
+        this.consume(es6TokObj.Eq);
         this.assignmentExpressionNoIn();
     }
 
     emptyStatement() {
-        this.consume(es6TokenObj.Semicolon, DISABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     expressionStatement() {
         this.expression();
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     ifStatement() {
-        this.consume(es6TokenObj.IfToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.IfTok);
+        this.consume(es6TokObj.LParen);
         this.expression();
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
         this.statement();
         this.OPTION(() => {
-            this.consume(es6TokenObj.ElseToken);
+            this.consume(es6TokObj.ElseTok);
             this.statement();
         });
     }
 
     iterationStatement() {
         this.or([
-            { ALT: () => this.doIteration() },
-            { ALT: () => this.whileIteration() },
-            { ALT: () => this.forIteration() },
+            {alt: () => this.doIteration()},
+            {alt: () => this.whileIteration()},
+            {alt: () => this.forIteration()},
         ]);
     }
 
     doIteration() {
-        this.consume(es6TokenObj.DoToken);
+        this.consume(es6TokObj.DoTok);
         this.statement();
-        this.consume(es6TokenObj.WhileToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.WhileTok);
+        this.consume(es6TokObj.LParen);
         this.expression();
-        this.consume(es6TokenObj.RParen);
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.RParen);
+        this.consume(es6TokObj.Semicolon);
     }
 
     whileIteration() {
-        this.consume(es6TokenObj.WhileToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.WhileTok);
+        this.consume(es6TokObj.LParen);
         this.expression();
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
         this.statement();
     }
 
     forIteration() {
         let inPossible = false;
 
-        this.consume(es6TokenObj.ForToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.ForTok);
+        this.consume(es6TokObj.LParen);
         this.or([
             {
-                ALT: () => {
-                    this.consume(es6TokenObj.VarToken);
+                alt: () => {
+                    this.consume(es6TokObj.VarTok);
                     const numOfVars = this.variableDeclarationListNoIn();
                     inPossible = numOfVars === 1;
                     this.forHeaderParts(inPossible);
                 },
             },
             {
-                ALT: () => {
-                    this.OPTION(() => {
-                        const headerExp = this.expressionNoIn();
-                        inPossible = this.canInComeAfterExp(headerExp);
-                    });
+                alt: () => {
+                    // this.OPTION(() => {
+                    //     const headerExp = this.expressionNoIn();
+                    //     inPossible = this.canInComeAfterExp(headerExp);
+                    // });
                     this.forHeaderParts(inPossible);
                 },
             },
         ]);
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
         this.statement();
     }
 
     forHeaderParts(inPossible) {
         this.or([
             {
-                ALT: () => {
-                    this.consume(es6TokenObj.Semicolon, DISABLE_SEMICOLON_INSERTION);
+                alt: () => {
+                    this.consume(es6TokObj.Semicolon);
                     this.OPTION(() => {
                         this.expression();
                     });
-                    this.consume(es6TokenObj.Semicolon, DISABLE_SEMICOLON_INSERTION);
-                    this.OPTION2(() => {
+                    this.consume(es6TokObj.Semicolon);
+                    this.OPTION(() => {
                         this.expression();
                     });
                 },
             },
             {
-                GATE: () => inPossible,
-                ALT: () => {
-                    this.consume(es6TokenObj.InToken);
+                alt: () => {
+                    this.consume(es6TokObj.InTok);
                     this.expression();
                 },
             },
@@ -514,66 +542,63 @@ export class ECMAScript5Parser extends SubhutiParser {
     }
 
     continueStatement() {
-        this.consume(es6TokenObj.ContinueToken);
+        this.consume(es6TokObj.ContinueTok);
         this.OPTION({
-            GATE: this.noLineTerminatorHere,
             DEF: () => {
-                this.consume(es6TokenObj.Identifier);
+                this.consume(es6TokObj.Identifier);
             },
         });
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     breakStatement() {
-        this.consume(es6TokenObj.BreakToken);
+        this.consume(es6TokObj.BreakTok);
         this.OPTION({
-            GATE: this.noLineTerminatorHere,
             DEF: () => {
-                this.consume(es6TokenObj.Identifier);
+                this.consume(es6TokObj.Identifier);
             },
         });
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     returnStatement() {
-        this.consume(es6TokenObj.ReturnToken);
+        this.consume(es6TokObj.ReturnTok);
         this.OPTION({
-            GATE: this.noLineTerminatorHere,
             DEF: () => {
                 this.expression();
             },
         });
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     withStatement() {
-        this.consume(es6TokenObj.WithToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.WithTok);
+        this.consume(es6TokObj.LParen);
         this.expression();
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
         this.statement();
     }
 
     switchStatement() {
-        this.consume(es6TokenObj.SwitchToken);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.SwitchTok);
+        this.consume(es6TokObj.LParen);
         this.expression();
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.RParen);
         this.caseBlock();
     }
 
     caseBlock() {
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.LCurly);
         this.OPTION(() => {
             this.caseClauses();
         });
-        this.OPTION2(() => {
+        this.OPTION(() => {
             this.defaultClause();
         });
-        this.OPTION3(() => {
+        this.OPTION(() => {
             this.caseClauses();
         });
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     caseClauses() {
@@ -583,111 +608,111 @@ export class ECMAScript5Parser extends SubhutiParser {
     }
 
     caseClause() {
-        this.consume(es6TokenObj.CaseToken);
+        this.consume(es6TokObj.CaseTok);
         this.expression();
-        this.consume(es6TokenObj.Colon);
+        this.consume(es6TokObj.Colon);
         this.OPTION(() => {
             this.statementList();
         });
     }
 
     defaultClause() {
-        this.consume(es6TokenObj.DefaultToken);
-        this.consume(es6TokenObj.Colon);
+        this.consume(es6TokObj.DefaultTok);
+        this.consume(es6TokObj.Colon);
         this.OPTION(() => {
             this.statementList();
         });
     }
 
     labelledStatement() {
-        this.consume(es6TokenObj.Identifier);
-        this.consume(es6TokenObj.Colon);
+        this.consume(es6TokObj.Identifier);
+        this.consume(es6TokObj.Colon);
         this.OPTION(() => {
             this.statement();
         });
     }
 
     throwStatement() {
-        this.consume(es6TokenObj.ThrowToken);
-        if (this.lineTerminatorHere()) {
+        this.consume(es6TokObj.ThrowTok);
+        /*if (this.lineTerminatorHere()) {
             this.SAVE_ERRor(
                 new MismatchedTokenenException(
                     "Line Terminator not allowed before Expression in Throw Statement",
                 ),
             );
-        }
+        }*/
         this.expression();
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.Semicolon);
     }
 
     tryStatement() {
-        this.consume(es6TokenObj.TryToken);
+        this.consume(es6TokObj.TryTok);
         this.block();
 
         this.or([
             {
-                ALT: () => {
+                alt: () => {
                     this.catch();
                     this.OPTION(() => {
                         this.finally();
                     });
                 },
             },
-            { ALT: () => this.finally() },
+            {alt: () => this.finally()},
         ]);
     }
 
     catch() {
-        this.consume(es6TokenObj.CatchToken);
-        this.consume(es6TokenObj.LParen);
-        this.consume(es6TokenObj.Identifier);
-        this.consume(es6TokenObj.RParen);
+        this.consume(es6TokObj.CatchTok);
+        this.consume(es6TokObj.LParen);
+        this.consume(es6TokObj.Identifier);
+        this.consume(es6TokObj.RParen);
         this.block();
     }
 
     finally() {
-        this.consume(es6TokenObj.FinallyToken);
+        this.consume(es6TokObj.FinallyTok);
         this.block();
     }
 
     debuggerStatement() {
-        this.consume(es6TokenObj.DebuggerToken);
-        this.consume(es6TokenObj.Semicolon, ENABLE_SEMICOLON_INSERTION);
+        this.consume(es6TokObj.DebuggerTok);
+        this.consume(es6TokObj.Semicolon);
     }
 
     functionDeclaration() {
-        this.consume(es6TokenObj.FunctionToken);
-        this.consume(es6TokenObj.Identifier);
-        this.consume(es6TokenObj.LParen);
+        this.consume(es6TokObj.FunctionTok);
+        this.consume(es6TokObj.Identifier);
+        this.consume(es6TokObj.LParen);
         this.OPTION(() => {
             this.formalParameterList();
         });
-        this.consume(es6TokenObj.RParen);
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.RParen);
+        this.consume(es6TokObj.LCurly);
         this.sourceElements();
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     functionExpression() {
-        this.consume(es6TokenObj.FunctionToken);
-        this.OPTION1(() => {
-            this.consume(es6TokenObj.Identifier);
+        this.consume(es6TokObj.FunctionTok);
+        this.OPTION(() => {
+            this.consume(es6TokObj.Identifier);
         });
-        this.consume(es6TokenObj.LParen);
-        this.OPTION2(() => {
+        this.consume(es6TokObj.LParen);
+        this.OPTION(() => {
             this.formalParameterList();
         });
-        this.consume(es6TokenObj.RParen);
-        this.consume(es6TokenObj.LCurly);
+        this.consume(es6TokObj.RParen);
+        this.consume(es6TokObj.LCurly);
         this.sourceElements();
-        this.consume(es6TokenObj.RCurly);
+        this.consume(es6TokObj.RCurly);
     }
 
     formalParameterList() {
-        this.consume(es6TokenObj.Identifier);
+        this.consume(es6TokObj.Identifier);
         this.MANY(() => {
-            this.consume(es6TokenObj.Comma);
-            this.consume(es6TokenObj.Identifier);
+            this.consume(es6TokObj.Comma);
+            this.consume(es6TokObj.Identifier);
         });
     }
 
@@ -699,19 +724,11 @@ export class ECMAScript5Parser extends SubhutiParser {
         this.MANY(() => {
             this.or([
                 {
-                    ALT: () => this.functionDeclaration(),
-                    IGNorE_AMBIGUITIES: true,
+                    alt: () => this.functionDeclaration(),
+
                 },
-                { ALT: () => this.statement() },
+                {alt: () => this.statement()},
             ]);
         });
     }
 }
-
-const insertedSemiColon = {
-    tokenTypeIdx: es6TokenObj.Semicolon.tokenTypeIdx,
-    image: ";",
-    startOffset: NaN,
-    endOffset: NaN,
-    automaticallyInserted: true,
-};

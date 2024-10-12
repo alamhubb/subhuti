@@ -83,6 +83,13 @@ export default class SubhutiParser {
         }
         return null;
     }
+    AT_LEAST_ONE(tokenName: any) {
+    }
+    MANY(tokenName: any) {
+    }
+    OPTION(tokenName: any) {
+        return this.consumeToken(tokenName.name);
+    }
     consume(tokenName: SubhutiCreateToken) {
         return this.consumeToken(tokenName.name);
     }

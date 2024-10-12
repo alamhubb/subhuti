@@ -83,10 +83,13 @@ export default class SubhutiParser {
         }
         return null;
     }
+    //匹配1次或者N次
     AT_LEAST_ONE(tokenName: any) {
     }
+    //匹配0次或者N次
     MANY(tokenName: any) {
     }
+    //匹配0次或者1次
     OPTION(tokenName: any) {
         return this.consumeToken(tokenName.name);
     }

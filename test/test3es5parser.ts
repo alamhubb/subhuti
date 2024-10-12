@@ -5,7 +5,7 @@ import {es5Tokens, es5TokensObj} from "../src/es5/Es5Tokens";
 import {Es5Parser} from "../src/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
 
-let input = 'let a = 1+2'
+let input = 'var a = 1+2'
 //
 // const newPattern = new RegExp('^(' + es5TokensObj.NumericLiteral.pattern.source + ')');
 // const res = newPattern.test(input)

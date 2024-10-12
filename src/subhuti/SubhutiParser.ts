@@ -29,6 +29,7 @@ function CheckMethodCanExec(newTargetFun: any) {
 }
 
 export default class SubhutiParser {
+
     _tokens: SubhutiMatchToken[];
     initFlag = true;
     curCst: SubhutiCst;
@@ -59,7 +60,12 @@ export default class SubhutiParser {
 
     setTokens(tokens?: SubhutiMatchToken[]) {
         this._tokens = tokens;
-        this.checkTokens();
+        if (!this.tokens.length) {
+            if (!this.allowError) {
+                throw new Error('tokens is empty, please set tokens');
+            }
+        }
+        // this.checkTokens();
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -79,18 +85,36 @@ export default class SubhutiParser {
         this._allowError = allowError;
     }
 
+    //随便调用，就是重复校验
+    checkContinueExec() {
+        //continueExec should be true, because CheckMethodCanExec makes a judgment
+        if (!this.continueExec) {
+            throw new Error('syntax error');
+        }
+        this.checkTokens()
+    }
+
+    checkTokens() {
+        if (!this.tokens.length) {
+            throw new Error('tokens is empty, please set tokens');
+        }
+    }
+
     checkMethodCanExec(newTargetFun: any, args: any[]) {
+        //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
         if (!this.continueExec) {
             if (this.allowError) {
                 return this.generateCst(this.curCst);
             }
             throw new Error('匹配失败');
         }
-        if (!this.tokens.length) {
-            if (this.allowError) {
-                return this.generateCst(this.curCst);
+        else if (this.continueExec) {
+            //如果可以匹配，
+            if (!this.tokens.length) {
+                if (!this.allowError) {
+                    throw new Error('tokens is empty, please set tokens');
+                }
             }
-            throw new Error('tokens is empty, please set tokens');
         }
         return newTargetFun.apply(this, args);
     }
@@ -161,6 +185,9 @@ export default class SubhutiParser {
                 }
             } else {
                 fun();
+                if (!this.tokens.length) {
+                    break;
+                }
             }
             index++
         }
@@ -191,13 +218,16 @@ export default class SubhutiParser {
 
     @CheckMethodCanExec
     consume(tokenName: SubhutiCreateToken) {
+        this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
+        //容错代码
         if (!popToken) {
+            //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
             throw new Error('syntax error');
         }
         if (popToken.tokenName !== tokenName) {
@@ -274,21 +304,5 @@ export default class SubhutiParser {
 
     generateCst(cst: SubhutiCst) {
         return cst;
-    }
-
-    //随便调用，就是重复校验
-    checkContinueExec() {
-        //continueExec should be true, because CheckMethodCanExec makes a judgment
-        if (!this.continueExec) {
-            throw new Error('syntax error');
-        }
-    }
-
-    checkTokens() {
-        if (!this.tokens.length) {
-            if (!this.allowError) {
-                throw new Error('tokens is empty, please set tokens');
-            }
-        }
     }
 }

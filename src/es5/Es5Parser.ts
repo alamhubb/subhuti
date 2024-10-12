@@ -638,11 +638,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     continueStatement() {
         this.consume(es5TokensObj.ContinueTok);
-        this.OPTION({
-            DEF: () => {
+        this.OPTION(() => {
                 this.consume(es5TokensObj.Identifier);
             },
-        });
+        );
         this.consume(es5TokensObj.Semicolon);
     }
 
@@ -650,11 +649,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     breakStatement() {
         this.consume(es5TokensObj.BreakTok);
-        this.OPTION({
-            DEF: () => {
+        this.OPTION(() => {
                 this.consume(es5TokensObj.Identifier);
             },
-        });
+        );
         this.consume(es5TokensObj.Semicolon);
     }
 
@@ -662,11 +660,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     returnStatement() {
         this.consume(es5TokensObj.ReturnTok);
-        this.OPTION({
-            DEF: () => {
+        this.OPTION(() => {
                 this.expression();
             },
-        });
+        );
         this.consume(es5TokensObj.Semicolon);
     }
 

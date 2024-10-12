@@ -98,7 +98,6 @@ export default class SubhutiParser {
             if (cst) {
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(cst);
-                // console.trace(`往${parentCst.name}--push---${cst.name}`)
                 this.setCurCst(parentCst);
             }
         }
@@ -153,11 +152,7 @@ export default class SubhutiParser {
             throw new Error('syntax error');
         }
         if (popToken.tokenName !== tokenName) {
-            if ([43, 44, 45].includes(this.index)) {
-                console.trace(popToken.tokenName);
-            }
             this.setContinueExec(false);
-            // this.setAllowError(false)
             if (this.allowError) {
                 return;
             }

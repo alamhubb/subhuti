@@ -1,6 +1,6 @@
 import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
-import {Es6TokenName} from "./Es6Tokens";
+import {Es6TokenName, es6TokensObj} from "./Es6Tokens";
 
 export default class Es6Parser extends SubhutiParser { // 定义一个ES6解析器类，继承自SubhutiParser
     constructor(tokens?: SubhutiMatchToken[]) { // 构造函数，接收可选的token数组
@@ -28,13 +28,13 @@ export default class Es6Parser extends SubhutiParser { // 定义一个ES6解析�
 
     @SubhutiRule // 定义一个解析规则
     letKeywords() { // 定义letKeywords规则
-        this.consume(Es6TokenName.let); // 消耗let关键字token
+        this.consume(es6TokensObj.let); // 消耗let关键字token
         return this.getCurCst(); // 返回当前CST
     }
 
     @SubhutiRule // 定义一个解析规则
     constKeywords() { // 定义constKeywords规则
-        this.consume(Es6TokenName.const); // 消耗const关键字token
+        this.consume(es6TokensObj.const); // 消耗const关键字token
         return this.getCurCst(); // 返回当前CST
     }
 
@@ -43,12 +43,12 @@ export default class Es6Parser extends SubhutiParser { // 定义一个ES6解析�
         this.or([ // 定义一个选择规则
             {
                 alt: () => { // 选择分支1
-                    this.consume(Es6TokenName.integer); // 消耗整数token
+                    this.consume(es6TokensObj.integer); // 消耗整数token
                 }
             },
             {
                 alt: () => { // 选择分支2
-                    this.consume(Es6TokenName.string); // 消耗字符串token
+                    this.consume(es6TokensObj.string); // 消耗字符串token
                 }
             }
         ]);
@@ -57,8 +57,8 @@ export default class Es6Parser extends SubhutiParser { // 定义一个ES6解析�
 
     @SubhutiRule // 定义一个解析规则
     identifierEqual() { // 定义identifierEqual规则
-        this.consume(Es6TokenName.identifier); // 消耗标识符token
-        this.consume(Es6TokenName.equal); // 消耗等号token
+        this.consume(es6TokensObj.identifier); // 消耗标识符token
+        this.consume(es6TokensObj.equal); // 消耗等号token
         return this.getCurCst(); // 返回当前CST
     }
 }

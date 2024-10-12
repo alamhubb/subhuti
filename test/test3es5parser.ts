@@ -13,6 +13,7 @@ let input = '1+2'
 
 const lexer = new SubhutiLexer(es5Tokens);
 const tokens = lexer.lexer(input);
-console.log(tokens)
-// const parser = new Es5Parser(tokens);
-// let res = parser.program();
+// console.log(tokens)
+const parser = new Es5Parser(tokens);
+let res = parser.program();
+console.log(res)

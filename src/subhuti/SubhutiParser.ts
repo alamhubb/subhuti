@@ -29,6 +29,9 @@ export default class SubhutiParser {
     setCurCst(curCst: SubhutiCst) {
         this.curCst = curCst;
     }
+    getCurCst() {
+        return this.curCst;
+    }
     get tokens() {
         if (!this._tokens?.length) {
             throw new Error('tokens is empty, please set tokens');
@@ -131,8 +134,5 @@ export default class SubhutiParser {
     }
     generateCst(cst: SubhutiCst) {
         return cst;
-    }
-    getCurCst() {
-        return this.curCst;
     }
 }

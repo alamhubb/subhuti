@@ -198,26 +198,11 @@ export class Es5Parser extends SubhutiParser {
         this.memberCallNewExpression();
         this.OPTION(() => {
             this.or([
-                {alt: () => this.plusPlus()},
-                {alt: () => this.MinusMinus()},
+                {alt: () => this.consume(es5TokensObj.PlusPlus)},
+                {alt: () => this.consume(es5TokensObj.MinusMinus)},
             ]);
         });
     }
-
-
-    @SubhutiRule
-    plusPlus() {
-        this.consume(es5TokensObj.Plus)
-        this.consume(es5TokensObj.Plus)
-    }
-
-
-    @SubhutiRule
-    MinusMinus() {
-        this.consume(es5TokensObj.Minus)
-        this.consume(es5TokensObj.Minus)
-    }
-
 
     @SubhutiRule
     unaryExpression() {
@@ -229,8 +214,8 @@ export class Es5Parser extends SubhutiParser {
                         {alt: () => this.consume(es5TokensObj.DeleteTok)},
                         {alt: () => this.consume(es5TokensObj.VoidTok)},
                         {alt: () => this.consume(es5TokensObj.TypeOfTok)},
-                        {alt: () => this.plusPlus()},
-                        {alt: () => this.MinusMinus()},
+                        {alt: () => this.consume(es5TokensObj.PlusPlus)},
+                        {alt: () => this.consume(es5TokensObj.MinusMinus)},
                         {alt: () => this.consume(es5TokensObj.Plus)},
                         {alt: () => this.consume(es5TokensObj.Minus)},
                         {alt: () => this.consume(es5TokensObj.Tilde)},

@@ -117,6 +117,8 @@ export default class SubhutiParser {
             if (cst) {
                 const parentCst = this.cstStack[this.cstStack.length - 1];
                 parentCst.children.push(cst);
+                console.log(this.continueExec)
+                console.log(`往${parentCst.name}--push---${cst.name}`)
                 this.setCurCst(parentCst);
             }
         }
@@ -134,7 +136,7 @@ export default class SubhutiParser {
         targetFun.apply(this);
         this.cstStack.pop();
         this.ruleExecErrorStack.pop()
-        if (cst.children.length) {
+        if (this.continueExec) {
             return cst;
         }
         return null;
@@ -161,6 +163,11 @@ export default class SubhutiParser {
     consumeToken(tokenName: string) {
         let popToken = this.tokens[0];
         if (popToken.tokenName !== tokenName) {
+            if (tokenName === 'Minus') {
+                console.log(8888888)
+                console.log(this.tokens)
+                console.log(popToken.tokenName)
+            }
             this.setContinueExec(false);
             // this.setAllowError(false)
             if (this.allowError) {
@@ -187,11 +194,9 @@ export default class SubhutiParser {
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     or(subhutiParserOrs: SubhutiParserOr[]) {
         this.checkContinueExec()
-        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-
-        const funLength = subhutiParserOrs.length
-
         this.allowErrorStack.push(true)
+
+        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
         let index = 0
         for (const subhutiParserOr of subhutiParserOrs) {
             index++
@@ -232,6 +237,7 @@ export default class SubhutiParser {
     MANY(fun: Function) {
         this.checkContinueExec()
         this.setAllowError(true)
+        this.allowErrorStack.push(true)
 
         //many 第一次必须为true吗
 
@@ -243,18 +249,19 @@ export default class SubhutiParser {
         // console.log(1111111)
         // console.log(this.continueExec)
         // this.setContinueExec(true)
-        // while (this.matchSuccess) {
-        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-        fun()
-        //If the match fails, the tokens are reset.
-        if (!this.continueExec) {
-            this.setTokens(tokensBackup);
-            // console.log(222222)
-            // this.setContinueExec(true)
-            return this.getCurCst();
+        while (this.continueExec) {
+            const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+            fun()
+            //If the match fails, the tokens are reset.
+            if (!this.continueExec) {
+                this.setTokens(tokensBackup);
+                // console.log(222222)
+                // this.setContinueExec(true)
+            }
         }
-        // }
-        this.setAllowError(false)
+        //因为允许空
+        this.setContinueExec(true)
+        this.setAllowError(!!this.allowErrorStack.length)
         return this.getCurCst();
     }
 

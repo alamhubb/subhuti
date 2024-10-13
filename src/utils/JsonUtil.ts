@@ -5,18 +5,22 @@ export default class JsonUtil {
         }
         return '';
     }
+
     static toParse(objJson: string): any {
         if (objJson) {
             return JSON.parse(objJson);
         }
         return null;
     }
+
     static cloneDeep<T>(object: T): T {
         if (object) {
             return JSON.parse(JSON.stringify(object));
         }
         return null;
     }
+
     static log(object: any) {
+        console.log(JsonUtil.toJson(object))
     }
 }

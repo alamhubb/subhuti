@@ -1,5 +1,7 @@
 import {createToken} from "../subhuti/struct/SubhutiCreateToken";
 import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
+import SubhutiLexer from "../subhuti/SubhutiLexer";
+import JsonUtil from "../utils/JsonUtil";
 
 //第一行代码，1.定义token，print函数token
 export const hwPrint = createToken({name: 'print', pattern: /print/, isKeyword: true})
@@ -7,7 +9,7 @@ export const hwPrint = createToken({name: 'print', pattern: /print/, isKeyword: 
 export const hwCodeToken = createToken({name: 'code', pattern: /[\s\S]*/})
 
 //3.定义一个编程语法，名为helloWorld语法
-export default class HelloWorldGrammarParser extends SubhutiParser {
+class HelloWorldGrammarParser extends SubhutiParser {
     //4.定义根语法，消耗一个print token，
     @SubhutiRule
     program() {
@@ -52,3 +54,17 @@ export default class HelloWorldGrammarParser extends SubhutiParser {
         return code.trim();
     }
 }
+
+//18. 获取hw语法代码
+const code = 'print hello world'
+//19. 创建lexer
+const hwLexer = new SubhutiLexer([hwPrint, hwCodeToken])
+//20. 解析代码，得到tokens
+const tokens = hwLexer.lexer(code)
+//21. 创建parser
+const parser = new HelloWorldGrammarParser(tokens)
+//解析语法树
+const cst = parser.program()
+JsonUtil.log(cst)
+//执行程序
+parser.exec()

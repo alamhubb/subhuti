@@ -1,7 +1,5 @@
 import {createToken} from "../subhuti/struct/SubhutiCreateToken";
 import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
-import SubhutiGenerator from "../subhuti/SubhutiGenerator";
-import SubhutiCst from "../subhuti/struct/SubhutiCst";
 
 //第一行代码，定义token
 export const hwPrint = createToken({name: 'print', pattern: /print/, isKeyword: true})
@@ -37,8 +35,4 @@ export default class HelloWorldGrammarParser extends SubhutiParser {
         }
         return code.trim();
     }
-}
-
-export class HelloWorldGenerator extends SubhutiGenerator {
-
 }

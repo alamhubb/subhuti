@@ -135,7 +135,7 @@ export default class SubhutiParser {
         if (initFlag) {
             this.initFlag = false;
             this.allowErrorStack = [];
-            // this.setMatchSuccess(false);
+            this.setContinueExec(true);
             this.cstStack = [];
             this.ruleExecErrorStack = [];
         }
@@ -277,13 +277,14 @@ export default class SubhutiParser {
         this.checkContinueExec();
         this.allowErrorStack.push(true);
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+        const funLength = subhutiParserOrs.length
         let index = 0;
         for (const subhutiParserOr of subhutiParserOrs) {
             index++;
             //If it is the last round of the for loop, an error will be reported if it fails.
-            // if (index === funLength) {
-            //     this.setAllowError(false)
-            // } else {
+            if (index === funLength) {
+                this.setAllowError(!!this.allowErrorStack.length)
+            }
             this.setAllowError(true);
             this.setContinueExec(true);
             const tokens = JsonUtil.cloneDeep(tokensBackup);

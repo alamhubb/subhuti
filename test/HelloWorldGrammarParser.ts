@@ -1,7 +1,7 @@
-import {createToken} from "../subhuti/struct/SubhutiCreateToken";
-import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
-import SubhutiLexer from "../subhuti/SubhutiLexer";
-import JsonUtil from "../utils/JsonUtil";
+import {createToken} from "../src/subhuti/struct/SubhutiCreateToken";
+import SubhutiParser, {SubhutiRule} from "../src/subhuti/SubhutiParser";
+import SubhutiLexer from "../src/subhuti/SubhutiLexer";
+import JsonUtil from "../src/utils/JsonUtil";
 
 //第一行代码，1.定义token，print函数token，匹配print字符串
 export const hwPrint = createToken({name: 'print', pattern: /print/, isKeyword: true})

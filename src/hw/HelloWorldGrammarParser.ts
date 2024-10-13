@@ -3,9 +3,9 @@ import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiLexer from "../subhuti/SubhutiLexer";
 import JsonUtil from "../utils/JsonUtil";
 
-//第一行代码，1.定义token，print函数token
+//第一行代码，1.定义token，print函数token，匹配print字符串
 export const hwPrint = createToken({name: 'print', pattern: /print/, isKeyword: true})
-//2，定义code，token
+//2，定义code，读取任何内容
 export const hwCodeToken = createToken({name: 'code', pattern: /[\s\S]*/})
 
 //3.定义一个编程语法，名为helloWorld语法

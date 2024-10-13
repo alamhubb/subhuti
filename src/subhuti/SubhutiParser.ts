@@ -16,16 +16,25 @@ enum LogicType {
 
 export function SubhutiRule(targetFun: any, context) {
     const ruleName = targetFun.name;
-    return function () {
+    // 创建一个新的函数并显式指定函数的名称
+    const wrappedFunction = function () {
         this.subhutiRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
     };
+    // 为新函数显式设置名称
+    Object.defineProperty(wrappedFunction, 'name', {value: ruleName});
+    return wrappedFunction
 }
 
 function CheckMethodCanExec(newTargetFun: any) {
-    return function (...args: any[]) {
+    const ruleName = newTargetFun.name;
+    // 创建一个新的函数并显式指定函数的名称
+    const wrappedFunction = function (...args: any[]) {
         return this.checkMethodCanExec(newTargetFun, args);
-    };
+    }
+    // 为新函数显式设置名称
+    Object.defineProperty(wrappedFunction, 'name', {value: ruleName});
+    return wrappedFunction
 }
 
 export default class SubhutiParser {
@@ -333,5 +342,18 @@ export default class SubhutiParser {
 
     generateCst(cst: SubhutiCst) {
         return cst;
+    }
+
+    //默认就是遍历生成
+    exec(cst: SubhutiCst = this.getCurCst(), code = '') {
+        //自己决定自己的code 是什么
+        if (cst.value) {
+            code += ' ' + cst.value;
+        } else {
+            cst.children.forEach(item => {
+                code += ' ' + this.exec(item, code);
+            })
+        }
+        return code.trim();
     }
 }

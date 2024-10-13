@@ -1,7 +1,9 @@
 import { SubhutiCreateToken, SubhutiCreateTokenGroupType } from "./struct/SubhutiCreateToken";
 import SubhutiMatchToken, { createMatchToken } from "./struct/SubhutiMatchToken";
-import { Es5TokensName } from "../es5/Es5Tokens";
 export default class SubhutiLexer {
+    constructor(tokens: SubhutiCreateToken[]) {
+        this.setTokens(tokens);
+    }
     tokens: SubhutiCreateToken[];
     private tokenMap: Map<string, SubhutiCreateToken>;
     private generateTokenMap() {
@@ -14,9 +16,6 @@ export default class SubhutiLexer {
     setTokens(tokens: SubhutiCreateToken[]) {
         this.tokens = tokens;
         this.generateTokenMap();
-    }
-    constructor(tokens: SubhutiCreateToken[]) {
-        this.setTokens(tokens);
     }
     lexer(input: string): SubhutiMatchToken[] {
         const resTokens: SubhutiMatchToken[] = []; // 初始化结果token数组

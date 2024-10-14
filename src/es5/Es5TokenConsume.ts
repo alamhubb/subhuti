@@ -1,13 +1,13 @@
 import {es5TokensObj} from "./Es5Tokens";
-import {Es5Parser} from "./Es5Parser";
 import {SubhutiCreateToken} from "../subhuti/struct/SubhutiCreateToken";
+import SubhutiParser from "../subhuti/SubhutiParser";
 
 //想让他单例，那他就不能有属性。不能有状态。，有状态对象做不了多例
 export default class Es5TokenConsumer {
 
-    instance: Es5Parser
+    instance: SubhutiParser
 
-    constructor(instance: Es5Parser) {
+    constructor(instance: SubhutiParser) {
         this.instance = instance;
     }
 

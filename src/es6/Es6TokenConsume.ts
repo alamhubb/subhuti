@@ -15,4 +15,8 @@ export default class Es6TokenConsumer extends Es5TokenConsumer {
     FromTok() {
         return this.consume(es6TokensObj.FromTok);
     }
+
+    ExportTok() {
+        return this.consume(es6TokensObj.ExportTok);
+    }
 }

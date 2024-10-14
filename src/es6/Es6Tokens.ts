@@ -6,13 +6,15 @@ export const Es6TokenName = {
     ImportTok: 'ImportTok',
     AsTok: 'AsTok',
     FromTok: 'FromTok',
+    ExportTok: 'ExportTok',
 }
 
 export const es6TokensObj = {
     ...es5TokensObj,
     ImportTok: createKeywordToken({name: Es6TokenName.ImportTok, pattern: /import/}),
     AsTok: createKeywordToken({name: Es6TokenName.AsTok, pattern: /as/}),
-    FromTok: createKeywordToken({name: Es6TokenName.FromTok, pattern: /FromTok/}),
+    FromTok: createKeywordToken({name: Es6TokenName.FromTok, pattern: /from/}),
+    ExportTok: createKeywordToken({name: Es6TokenName.ExportTok, pattern: /export/}),
     // let: createKeywordToken({name: Es6TokenName.let, pattern: /let/}),
     // const: createKeywordToken({name: Es6TokenName.const, pattern: /const/}),
     // whitespace: createKeywordToken({

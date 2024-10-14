@@ -1,13 +1,12 @@
 import {Es5Parser} from "../es5/Es5Parser";
-import {es6TokensObj} from "./Es6Tokens";
 import {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 import Es6TokenConsumer from "./Es6TokenConsume";
 
-export default class Es6Parser extends Es5Parser {
+export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> extends Es5Parser<T> {
     constructor(tokens?: SubhutiMatchToken[]) {
         super(tokens)
-        this.tokenConsumer = new Es6TokenConsumer(this)
+        this.tokenConsumer = new Es6TokenConsumer(this) as T
         this.thisClassName = this.constructor.name;
     }
 
@@ -17,23 +16,23 @@ export default class Es6Parser extends Es5Parser {
         this.or([
             {
                 alt: () => {
-                    this.consume(es6TokensObj.ImportTok);
+                    this.tokenConsumer.ImportTok();
                     this.importClause();
                     this.fromClause();
-                    this.consume(es6TokensObj.Semicolon);
+                    this.tokenConsumer.Semicolon();
                 }
             },
             {
                 alt: () => {
-                    this.consume(es6TokensObj.ImportTok);
+                    this.tokenConsumer.ImportTok();
                     this.moduleSpecifier();
-                    this.consume(es6TokensObj.Semicolon);
+                    this.tokenConsumer.Semicolon();
                 }
             },
         ]);
     }
 
-// Import Clause
+    // Import Clause
     @SubhutiRule
     importClause() {
         this.or([
@@ -43,76 +42,76 @@ export default class Es6Parser extends Es5Parser {
             {
                 alt: () => {
                     this.importedDefaultBinding();
-                    this.consume(es6TokensObj.Comma);
+                    this.tokenConsumer.Comma();
                     this.namespaceImport();
                 }
             },
             {
                 alt: () => {
                     this.importedDefaultBinding();
-                    this.consume(es6TokensObj.Comma);
+                    this.tokenConsumer.Comma();
                     this.namedImports();
                 }
             },
         ]);
     }
 
-// Imported Default Binding
+    // Imported Default Binding
     @SubhutiRule
     importedDefaultBinding() {
         this.importedBinding();
     }
 
-// Namespace Import
+    // Namespace Import
     @SubhutiRule
     namespaceImport() {
-        this.consume(es6TokensObj.Asterisk);
-        this.consume(es6TokensObj.AsTok);
+        this.tokenConsumer.Asterisk();
+        this.tokenConsumer.AsTok();
         this.importedBinding();
     }
 
-// Named Imports
+    // Named Imports
     @SubhutiRule
     namedImports() {
-        this.consume(es6TokensObj.LBrace);
+        this.tokenConsumer.LBrace();
         this.option(() => this.importsList());
-        this.option(() => this.consume(es6TokensObj.Comma));
-        this.consume(es6TokensObj.RBrace);
+        this.option(() => this.tokenConsumer.Comma());
+        this.tokenConsumer.RBrace();
     }
 
-// From Clause
+    // From Clause
     @SubhutiRule
     fromClause() {
-        this.consume(es6TokensObj.FromTok);
+        this.tokenConsumer.FromTok();
         this.moduleSpecifier();
     }
 
-// Imports List
+    // Imports List
     @SubhutiRule
     importsList() {
         this.importSpecifier();
         this.MANY(() => {
-            this.consume(es6TokensObj.Comma);
+            this.tokenConsumer.Comma();
             this.importSpecifier();
         });
     }
 
-// Import Specifier
+    // Import Specifier
     @SubhutiRule
     importSpecifier() {
         this.or([
             {alt: () => this.importedBinding()},
             {
                 alt: () => {
-                    this.tokenConsumer.IdentifierName()
-                    this.consume(es6TokensObj.AsTok);
+                    this.tokenConsumer.IdentifierName();
+                    this.tokenConsumer.AsTok();
                     this.importedBinding();
                 }
             },
         ]);
     }
 
-// Module Specifier
+    // Module Specifier
     @SubhutiRule
     moduleSpecifier() {
         this.stringLiteral();
@@ -123,10 +122,10 @@ export default class Es6Parser extends Es5Parser {
         this.bindingIdentifier();
     }
 
-// Imported Binding
+    // Imported Binding
     @SubhutiRule
     bindingIdentifier() {
-        this.tokenConsumer.IdentifierName()
+        this.tokenConsumer.IdentifierName();
     }
 
     @SubhutiRule

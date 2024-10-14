@@ -41,8 +41,7 @@ function CheckMethodCanExec(newTargetFun: any, context) {
 }
 
 
-export default class SubhutiParser<T> {
-
+export default class SubhutiParser<T extends SubhutiTokenConsumer> {
     tokenConsumer: T
     _tokens: SubhutiMatchToken[];
     initFlag = true;

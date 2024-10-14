@@ -38,6 +38,9 @@ function CheckMethodCanExec(newTargetFun: any, context) {
     return wrappedFunction
 }
 
+
+
+
 export default class SubhutiParser {
 
     _tokens: SubhutiMatchToken[];
@@ -46,6 +49,14 @@ export default class SubhutiParser {
     cstStack: SubhutiCst[] = [];
     _continueExec = true;
     thisClassName: string;
+
+
+    constructor(tokens?: SubhutiMatchToken[]) {
+        if (tokens) {
+            this.setTokens(tokens);
+        }
+        this.thisClassName = this.constructor.name;
+    }
 
     get continueExec() {
         return this._continueExec;
@@ -75,12 +86,6 @@ export default class SubhutiParser {
         this.checkTokens();
     }
 
-    constructor(tokens?: SubhutiMatchToken[]) {
-        if (tokens) {
-            this.setTokens(tokens);
-        }
-        this.thisClassName = this.constructor.name;
-    }
 
     get allowError() {
         return this._allowError;

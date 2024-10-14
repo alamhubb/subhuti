@@ -1,5 +1,5 @@
-import SubhutiParser, { SubhutiRule } from "../subhuti/SubhutiParser";
-import { es5TokensObj } from "./Es5Tokens";
+import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
+import {es5TokensObj} from "./Es5Tokens";
 
 export class Es5Parser extends SubhutiParser {
 
@@ -7,12 +7,12 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     primaryExpression() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.ThisTok) },
-            { alt: () => this.consume(es5TokensObj.Identifier) },
-            { alt: () => this.AbsLiteral() },
-            { alt: () => this.array() },
-            { alt: () => this.object() },
-            { alt: () => this.parenthesisExpression() },
+            {alt: () => this.consume(es5TokensObj.ThisTok)},
+            {alt: () => this.consume(es5TokensObj.IdentifierName)},
+            {alt: () => this.AbsLiteral()},
+            {alt: () => this.array()},
+            {alt: () => this.object()},
+            {alt: () => this.parenthesisExpression()},
         ]);
     }
 
@@ -20,12 +20,12 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsLiteral() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.NullTok) },
-            { alt: () => this.consume(es5TokensObj.TrueTok) },
-            { alt: () => this.consume(es5TokensObj.FalseTok) },
-            { alt: () => this.consume(es5TokensObj.NumericLiteral) },
-            { alt: () => this.consume(es5TokensObj.StringLiteral) },
-            { alt: () => this.consume(es5TokensObj.RegularExpressionLiteral) },
+            {alt: () => this.consume(es5TokensObj.NullTok)},
+            {alt: () => this.consume(es5TokensObj.TrueTok)},
+            {alt: () => this.consume(es5TokensObj.FalseTok)},
+            {alt: () => this.consume(es5TokensObj.NumericLiteral)},
+            {alt: () => this.consume(es5TokensObj.StringLiteral)},
+            {alt: () => this.consume(es5TokensObj.RegularExpressionLiteral)},
         ]);
     }
 
@@ -43,8 +43,8 @@ export class Es5Parser extends SubhutiParser {
         this.consume(es5TokensObj.LBracket);
         this.MANY(() => {
             this.or([
-                { alt: () => this.elementList() },
-                { alt: () => this.elision() },
+                {alt: () => this.elementList()},
+                {alt: () => this.elision()},
             ]);
         });
         this.consume(es5TokensObj.RBracket);
@@ -71,27 +71,27 @@ export class Es5Parser extends SubhutiParser {
     // 11.1.5 对象初始化器
     @SubhutiRule
     object() {
-        this.consume(es5TokensObj.LCurly);
-        this.OPTION(() => {
+        this.consume(es5TokensObj.LBrace);
+        this.option(() => {
             this.propertyAssignment();
             this.MANY(() => {
                 this.consume(es5TokensObj.Comma);
                 this.propertyAssignment();
             });
-            this.OPTION(() => {
+            this.option(() => {
                 this.consume(es5TokensObj.Comma);
             });
         });
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 11.1.5 属性赋值
     @SubhutiRule
     propertyAssignment() {
         this.or([
-            { alt: () => this.regularPropertyAssignment() },
-            { alt: () => this.getPropertyAssignment() },
-            { alt: () => this.setPropertyAssignment() },
+            {alt: () => this.regularPropertyAssignment()},
+            {alt: () => this.getPropertyAssignment()},
+            {alt: () => this.setPropertyAssignment()},
         ]);
     }
 
@@ -110,9 +110,9 @@ export class Es5Parser extends SubhutiParser {
         this.propertyName();
         this.consume(es5TokensObj.LParen);
         this.consume(es5TokensObj.RParen);
-        this.consume(es5TokensObj.LCurly);
+        this.consume(es5TokensObj.LBrace);
         this.sourceElements();
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 11.1.5 setter 属性赋值
@@ -121,21 +121,21 @@ export class Es5Parser extends SubhutiParser {
         this.consume(es5TokensObj.SetTok);
         this.propertyName();
         this.consume(es5TokensObj.LParen);
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
         this.consume(es5TokensObj.RParen);
-        this.consume(es5TokensObj.LCurly);
+        this.consume(es5TokensObj.LBrace);
         this.sourceElements();
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 11.1.5 属性名称
     @SubhutiRule
     propertyName() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.Identifier) },
-            { alt: () => this.consume(es5TokensObj.Identifier) },
-            { alt: () => this.consume(es5TokensObj.StringLiteral) },
-            { alt: () => this.consume(es5TokensObj.NumericLiteral) },
+            {alt: () => this.consume(es5TokensObj.IdentifierName)},
+            {alt: () => this.consume(es5TokensObj.IdentifierName)},
+            {alt: () => this.consume(es5TokensObj.StringLiteral)},
+            {alt: () => this.consume(es5TokensObj.NumericLiteral)},
         ]);
     }
 
@@ -146,14 +146,14 @@ export class Es5Parser extends SubhutiParser {
             this.consume(es5TokensObj.NewTok);
         });
         this.or([
-            { alt: () => this.primaryExpression() },
-            { alt: () => this.functionExpression() },
+            {alt: () => this.primaryExpression()},
+            {alt: () => this.functionExpression()},
         ]);
         this.MANY(() => {
             this.or([
-                { alt: () => this.boxMemberExpression() },
-                { alt: () => this.dotMemberExpression() },
-                { alt: () => this.arguments() },
+                {alt: () => this.boxMemberExpression()},
+                {alt: () => this.dotMemberExpression()},
+                {alt: () => this.arguments()},
             ]);
         });
     }
@@ -170,14 +170,14 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     dotMemberExpression() {
         this.consume(es5TokensObj.Dot);
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
     }
 
     // 11.2.3 函数调用
     @SubhutiRule
     arguments() {
         this.consume(es5TokensObj.LParen);
-        this.OPTION(() => {
+        this.option(() => {
             this.assignmentExpression();
             this.MANY(() => {
                 this.consume(es5TokensObj.Comma);
@@ -191,10 +191,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     postfixExpression() {
         this.memberCallNewExpression();
-        this.OPTION(() => {
+        this.option(() => {
             this.or([
-                { alt: () => this.consume(es5TokensObj.PlusPlus) },
-                { alt: () => this.consume(es5TokensObj.MinusMinus) },
+                {alt: () => this.consume(es5TokensObj.PlusPlus)},
+                {alt: () => this.consume(es5TokensObj.MinusMinus)},
             ]);
         });
     }
@@ -203,19 +203,19 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     unaryExpression() {
         this.or([
-            { alt: () => this.postfixExpression() },
+            {alt: () => this.postfixExpression()},
             {
                 alt: () => {
                     this.or([
-                        { alt: () => this.consume(es5TokensObj.DeleteTok) },
-                        { alt: () => this.consume(es5TokensObj.VoidTok) },
-                        { alt: () => this.consume(es5TokensObj.TypeOfTok) },
-                        { alt: () => this.consume(es5TokensObj.PlusPlus) },
-                        { alt: () => this.consume(es5TokensObj.MinusMinus) },
-                        { alt: () => this.consume(es5TokensObj.Plus) },
-                        { alt: () => this.consume(es5TokensObj.Minus) },
-                        { alt: () => this.consume(es5TokensObj.Tilde) },
-                        { alt: () => this.consume(es5TokensObj.Exclamation) },
+                        {alt: () => this.consume(es5TokensObj.DeleteTok)},
+                        {alt: () => this.consume(es5TokensObj.VoidTok)},
+                        {alt: () => this.consume(es5TokensObj.TypeOfTok)},
+                        {alt: () => this.consume(es5TokensObj.PlusPlus)},
+                        {alt: () => this.consume(es5TokensObj.MinusMinus)},
+                        {alt: () => this.consume(es5TokensObj.Plus)},
+                        {alt: () => this.consume(es5TokensObj.Minus)},
+                        {alt: () => this.consume(es5TokensObj.Tilde)},
+                        {alt: () => this.consume(es5TokensObj.Exclamation)},
                     ]);
                     this.unaryExpression();
                 },
@@ -229,19 +229,19 @@ export class Es5Parser extends SubhutiParser {
         this.unaryExpression();
         this.MANY(() => {
             this.or([
-                { alt: () => this.AbsAssignmentOperator() },
-                { alt: () => this.consume(es5TokensObj.VerticalBarVerticalBar) },
-                { alt: () => this.consume(es5TokensObj.AmpersandAmpersand) },
-                { alt: () => this.consume(es5TokensObj.VerticalBar) },
-                { alt: () => this.consume(es5TokensObj.Circumflex) },
-                { alt: () => this.consume(es5TokensObj.Ampersand) },
-                { alt: () => this.AbsEqualityOperator() },
-                { alt: () => this.AbsRelationalOperator() },
-                { alt: () => this.consume(es5TokensObj.InstanceOfTok) },
-                { alt: () => this.consume(es5TokensObj.InTok) },
-                { alt: () => this.AbsShiftOperator() },
-                { alt: () => this.AbsMultiplicativeOperator() },
-                { alt: () => this.AbsAdditiveOperator() },
+                {alt: () => this.AbsAssignmentOperator()},
+                {alt: () => this.consume(es5TokensObj.VerticalBarVerticalBar)},
+                {alt: () => this.consume(es5TokensObj.AmpersandAmpersand)},
+                {alt: () => this.consume(es5TokensObj.VerticalBar)},
+                {alt: () => this.consume(es5TokensObj.Circumflex)},
+                {alt: () => this.consume(es5TokensObj.Ampersand)},
+                {alt: () => this.AbsEqualityOperator()},
+                {alt: () => this.AbsRelationalOperator()},
+                {alt: () => this.consume(es5TokensObj.InstanceOfTok)},
+                {alt: () => this.consume(es5TokensObj.InTok)},
+                {alt: () => this.AbsShiftOperator()},
+                {alt: () => this.AbsMultiplicativeOperator()},
+                {alt: () => this.AbsAdditiveOperator()},
             ]);
             this.unaryExpression();
         });
@@ -251,19 +251,19 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsAssignmentOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.Eq) },
-            { alt: () => this.consume(es5TokensObj.PlusEq) },
-            { alt: () => this.consume(es5TokensObj.AmpersandAmpersand) },
-            { alt: () => this.consume(es5TokensObj.VerticalBar) },
-            { alt: () => this.consume(es5TokensObj.Circumflex) },
-            { alt: () => this.consume(es5TokensObj.Ampersand) },
-            { alt: () => this.AbsEqualityOperator() },
-            { alt: () => this.AbsRelationalOperator() },
-            { alt: () => this.consume(es5TokensObj.InstanceOfTok) },
-            { alt: () => this.consume(es5TokensObj.InTok) },
-            { alt: () => this.AbsShiftOperator() },
-            { alt: () => this.AbsMultiplicativeOperator() },
-            { alt: () => this.AbsAdditiveOperator() },
+            {alt: () => this.consume(es5TokensObj.Eq)},
+            {alt: () => this.consume(es5TokensObj.PlusEq)},
+            {alt: () => this.consume(es5TokensObj.AmpersandAmpersand)},
+            {alt: () => this.consume(es5TokensObj.VerticalBar)},
+            {alt: () => this.consume(es5TokensObj.Circumflex)},
+            {alt: () => this.consume(es5TokensObj.Ampersand)},
+            {alt: () => this.AbsEqualityOperator()},
+            {alt: () => this.AbsRelationalOperator()},
+            {alt: () => this.consume(es5TokensObj.InstanceOfTok)},
+            {alt: () => this.consume(es5TokensObj.InTok)},
+            {alt: () => this.AbsShiftOperator()},
+            {alt: () => this.AbsMultiplicativeOperator()},
+            {alt: () => this.AbsAdditiveOperator()},
         ]);
     }
 
@@ -271,10 +271,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsEqualityOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.EqEq) },
-            { alt: () => this.consume(es5TokensObj.NotEq) },
-            { alt: () => this.consume(es5TokensObj.EqEq) },
-            { alt: () => this.consume(es5TokensObj.NotEqEq) },
+            {alt: () => this.consume(es5TokensObj.EqEq)},
+            {alt: () => this.consume(es5TokensObj.NotEq)},
+            {alt: () => this.consume(es5TokensObj.EqEq)},
+            {alt: () => this.consume(es5TokensObj.NotEqEq)},
         ]);
     }
 
@@ -282,10 +282,10 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsRelationalOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.Less) },
-            { alt: () => this.consume(es5TokensObj.Greater) },
-            { alt: () => this.consume(es5TokensObj.LessEq) },
-            { alt: () => this.consume(es5TokensObj.GreaterEq) },
+            {alt: () => this.consume(es5TokensObj.Less)},
+            {alt: () => this.consume(es5TokensObj.Greater)},
+            {alt: () => this.consume(es5TokensObj.LessEq)},
+            {alt: () => this.consume(es5TokensObj.GreaterEq)},
         ]);
     }
 
@@ -293,9 +293,9 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsShiftOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.LessLess) },
-            { alt: () => this.consume(es5TokensObj.MoreMore) },
-            { alt: () => this.consume(es5TokensObj.MoreMoreMore) },
+            {alt: () => this.consume(es5TokensObj.LessLess)},
+            {alt: () => this.consume(es5TokensObj.MoreMore)},
+            {alt: () => this.consume(es5TokensObj.MoreMoreMore)},
         ]);
     }
 
@@ -303,9 +303,9 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsMultiplicativeOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.Asterisk) },
-            { alt: () => this.consume(es5TokensObj.Slash) },
-            { alt: () => this.consume(es5TokensObj.Percent) },
+            {alt: () => this.consume(es5TokensObj.Asterisk)},
+            {alt: () => this.consume(es5TokensObj.Slash)},
+            {alt: () => this.consume(es5TokensObj.Percent)},
         ]);
     }
 
@@ -313,27 +313,28 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     AbsAdditiveOperator() {
         this.or([
-            { alt: () => this.consume(es5TokensObj.Plus) },
-            { alt: () => this.consume(es5TokensObj.Minus) },
+            {alt: () => this.consume(es5TokensObj.Plus)},
+            {alt: () => this.consume(es5TokensObj.Minus)},
         ]);
     }
+
     @SubhutiRule
     binaryExpressionNoIn() {
         this.unaryExpression();
         this.MANY(() => {
             this.or([
-                { alt: () => this.AbsAssignmentOperator() },
-                { alt: () => this.consume(es5TokensObj.VerticalBarVerticalBar) },
-                { alt: () => this.consume(es5TokensObj.AmpersandAmpersand) },
-                { alt: () => this.consume(es5TokensObj.VerticalBar) },
-                { alt: () => this.consume(es5TokensObj.Circumflex) },
-                { alt: () => this.consume(es5TokensObj.Ampersand) },
-                { alt: () => this.AbsEqualityOperator() },
-                { alt: () => this.AbsRelationalOperator() },
-                { alt: () => this.consume(es5TokensObj.InstanceOfTok) },
-                { alt: () => this.AbsShiftOperator() },
-                { alt: () => this.AbsMultiplicativeOperator() },
-                { alt: () => this.AbsAdditiveOperator() },
+                {alt: () => this.AbsAssignmentOperator()},
+                {alt: () => this.consume(es5TokensObj.VerticalBarVerticalBar)},
+                {alt: () => this.consume(es5TokensObj.AmpersandAmpersand)},
+                {alt: () => this.consume(es5TokensObj.VerticalBar)},
+                {alt: () => this.consume(es5TokensObj.Circumflex)},
+                {alt: () => this.consume(es5TokensObj.Ampersand)},
+                {alt: () => this.AbsEqualityOperator()},
+                {alt: () => this.AbsRelationalOperator()},
+                {alt: () => this.consume(es5TokensObj.InstanceOfTok)},
+                {alt: () => this.AbsShiftOperator()},
+                {alt: () => this.AbsMultiplicativeOperator()},
+                {alt: () => this.AbsAdditiveOperator()},
             ]);
             this.unaryExpression();
         });
@@ -343,7 +344,7 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     assignmentExpression() {
         this.binaryExpression();
-        this.OPTION(() => {
+        this.option(() => {
             this.consume(es5TokensObj.Question);
             this.assignmentExpression();
             this.consume(es5TokensObj.Colon);
@@ -354,7 +355,7 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     assignmentExpressionNoIn() {
         this.binaryExpressionNoIn();
-        this.OPTION(() => {
+        this.option(() => {
             this.consume(es5TokensObj.Question);
             this.assignmentExpression();
             this.consume(es5TokensObj.Colon);
@@ -371,6 +372,7 @@ export class Es5Parser extends SubhutiParser {
             this.assignmentExpression();
         });
     }
+
     @SubhutiRule
     expressionNoIn() {
         this.assignmentExpressionNoIn();
@@ -384,32 +386,32 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     statement() {
         this.or([
-            { alt: () => this.block() },
-            { alt: () => this.variableStatement() },
-            { alt: () => this.emptyStatement() },
-            { alt: () => this.labelledStatement() },
-            { alt: () => this.expressionStatement() },
-            { alt: () => this.ifStatement() },
-            { alt: () => this.iterationStatement() },
-            { alt: () => this.continueStatement() },
-            { alt: () => this.breakStatement() },
-            { alt: () => this.returnStatement() },
-            { alt: () => this.withStatement() },
-            { alt: () => this.switchStatement() },
-            { alt: () => this.throwStatement() },
-            { alt: () => this.tryStatement() },
-            { alt: () => this.debuggerStatement() },
+            {alt: () => this.block()},
+            {alt: () => this.variableStatement()},
+            {alt: () => this.emptyStatement()},
+            {alt: () => this.labelledStatement()},
+            {alt: () => this.expressionStatement()},
+            {alt: () => this.ifStatement()},
+            {alt: () => this.iterationStatement()},
+            {alt: () => this.continueStatement()},
+            {alt: () => this.breakStatement()},
+            {alt: () => this.returnStatement()},
+            {alt: () => this.withStatement()},
+            {alt: () => this.switchStatement()},
+            {alt: () => this.throwStatement()},
+            {alt: () => this.tryStatement()},
+            {alt: () => this.debuggerStatement()},
         ]);
     }
 
     // 12.1 语句块
     @SubhutiRule
     block() {
-        this.consume(es5TokensObj.LCurly);
-        this.OPTION(() => {
+        this.consume(es5TokensObj.LBrace);
+        this.option(() => {
             this.statementList();
         });
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 12.1 语句列表
@@ -453,16 +455,16 @@ export class Es5Parser extends SubhutiParser {
     // 12.2 变量声明
     @SubhutiRule
     variableDeclaration() {
-        this.consume(es5TokensObj.Identifier);
-        this.OPTION(() => {
+        this.consume(es5TokensObj.IdentifierName);
+        this.option(() => {
             this.initialiser();
         });
     }
 
     @SubhutiRule
     variableDeclarationNoIn() {
-        this.consume(es5TokensObj.Identifier);
-        this.OPTION(() => {
+        this.consume(es5TokensObj.IdentifierName);
+        this.option(() => {
             this.initialiserNoIn();
         });
     }
@@ -501,7 +503,7 @@ export class Es5Parser extends SubhutiParser {
         this.expression();
         this.consume(es5TokensObj.RParen);
         this.statement();
-        this.OPTION(() => {
+        this.option(() => {
             this.consume(es5TokensObj.ElseTok);
             this.statement();
         });
@@ -511,9 +513,9 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     iterationStatement() {
         this.or([
-            { alt: () => this.doIteration() },
-            { alt: () => this.whileIteration() },
-            { alt: () => this.forIteration() },
+            {alt: () => this.doIteration()},
+            {alt: () => this.whileIteration()},
+            {alt: () => this.forIteration()},
         ]);
     }
 
@@ -571,11 +573,11 @@ export class Es5Parser extends SubhutiParser {
             {
                 alt: () => {
                     this.consume(es5TokensObj.Semicolon);
-                    this.OPTION(() => {
+                    this.option(() => {
                         this.expression();
                     });
                     this.consume(es5TokensObj.Semicolon);
-                    this.OPTION(() => {
+                    this.option(() => {
                         this.expression();
                     });
                 },
@@ -593,8 +595,8 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     continueStatement() {
         this.consume(es5TokensObj.ContinueTok);
-        this.OPTION(() => {
-            this.consume(es5TokensObj.Identifier);
+        this.option(() => {
+            this.consume(es5TokensObj.IdentifierName);
         });
         this.consume(es5TokensObj.Semicolon);
     }
@@ -603,8 +605,8 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     breakStatement() {
         this.consume(es5TokensObj.BreakTok);
-        this.OPTION(() => {
-            this.consume(es5TokensObj.Identifier);
+        this.option(() => {
+            this.consume(es5TokensObj.IdentifierName);
         });
         this.consume(es5TokensObj.Semicolon);
     }
@@ -613,7 +615,7 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     returnStatement() {
         this.consume(es5TokensObj.ReturnTok);
-        this.OPTION(() => {
+        this.option(() => {
             this.expression();
         });
         this.consume(es5TokensObj.Semicolon);
@@ -642,17 +644,17 @@ export class Es5Parser extends SubhutiParser {
     // 12.11 case 块
     @SubhutiRule
     caseBlock() {
-        this.consume(es5TokensObj.LCurly);
-        this.OPTION(() => {
+        this.consume(es5TokensObj.LBrace);
+        this.option(() => {
             this.caseClauses();
         });
-        this.OPTION(() => {
+        this.option(() => {
             this.defaultClause();
         });
-        this.OPTION(() => {
+        this.option(() => {
             this.caseClauses();
         });
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 12.11 case 子句列表
@@ -669,7 +671,7 @@ export class Es5Parser extends SubhutiParser {
         this.consume(es5TokensObj.CaseTok);
         this.expression();
         this.consume(es5TokensObj.Colon);
-        this.OPTION(() => {
+        this.option(() => {
             this.statementList();
         });
     }
@@ -679,7 +681,7 @@ export class Es5Parser extends SubhutiParser {
     defaultClause() {
         this.consume(es5TokensObj.DefaultTok);
         this.consume(es5TokensObj.Colon);
-        this.OPTION(() => {
+        this.option(() => {
             this.statementList();
         });
     }
@@ -687,9 +689,9 @@ export class Es5Parser extends SubhutiParser {
     // 12.12 标记语句
     @SubhutiRule
     labelledStatement() {
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
         this.consume(es5TokensObj.Colon);
-        this.OPTION(() => {
+        this.option(() => {
             this.statement();
         });
     }
@@ -711,12 +713,12 @@ export class Es5Parser extends SubhutiParser {
             {
                 alt: () => {
                     this.catch();
-                    this.OPTION(() => {
+                    this.option(() => {
                         this.finally();
                     });
                 },
             },
-            { alt: () => this.finally() },
+            {alt: () => this.finally()},
         ]);
     }
 
@@ -725,7 +727,7 @@ export class Es5Parser extends SubhutiParser {
     catch() {
         this.consume(es5TokensObj.CatchTok);
         this.consume(es5TokensObj.LParen);
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
         this.consume(es5TokensObj.RParen);
         this.block();
     }
@@ -748,41 +750,41 @@ export class Es5Parser extends SubhutiParser {
     @SubhutiRule
     functionDeclaration() {
         this.consume(es5TokensObj.FunctionTok);
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
         this.consume(es5TokensObj.LParen);
-        this.OPTION(() => {
+        this.option(() => {
             this.formalParameterList();
         });
         this.consume(es5TokensObj.RParen);
-        this.consume(es5TokensObj.LCurly);
+        this.consume(es5TokensObj.LBrace);
         this.sourceElements();
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 13 函数表达式
     @SubhutiRule
     functionExpression() {
         this.consume(es5TokensObj.FunctionTok);
-        this.OPTION(() => {
-            this.consume(es5TokensObj.Identifier);
+        this.option(() => {
+            this.consume(es5TokensObj.IdentifierName);
         });
         this.consume(es5TokensObj.LParen);
-        this.OPTION(() => {
+        this.option(() => {
             this.formalParameterList();
         });
         this.consume(es5TokensObj.RParen);
-        this.consume(es5TokensObj.LCurly);
+        this.consume(es5TokensObj.LBrace);
         this.sourceElements();
-        this.consume(es5TokensObj.RCurly);
+        this.consume(es5TokensObj.RBrace);
     }
 
     // 13 形式参数列表
     @SubhutiRule
     formalParameterList() {
-        this.consume(es5TokensObj.Identifier);
+        this.consume(es5TokensObj.IdentifierName);
         this.MANY(() => {
             this.consume(es5TokensObj.Comma);
-            this.consume(es5TokensObj.Identifier);
+            this.consume(es5TokensObj.IdentifierName);
         });
     }
 
@@ -801,8 +803,18 @@ export class Es5Parser extends SubhutiParser {
                 {
                     alt: () => this.functionDeclaration(),
                 },
-                { alt: () => this.statement() },
+                {alt: () => this.statement()},
             ]);
         });
+    }
+
+    @SubhutiRule
+    identifierName() {
+        this.consume(es5TokensObj.IdentifierName)
+    }
+
+    @SubhutiRule
+    stringLiteral() {
+        this.consume(es5TokensObj.StringLiteral)
     }
 }

@@ -26,11 +26,12 @@ export function SubhutiRule(targetFun: any, context) {
     return wrappedFunction
 }
 
-function CheckMethodCanExec(newTargetFun: any) {
+function CheckMethodCanExec(newTargetFun: any, context) {
     const ruleName = newTargetFun.name;
     // 创建一个新的函数并显式指定函数的名称
     const wrappedFunction = function (...args: any[]) {
-        return this.checkMethodCanExec(newTargetFun, args);
+        this.checkMethodCanExec(newTargetFun, args);
+        return this.generateCst(this.curCst);
     }
     // 为新函数显式设置名称
     Object.defineProperty(wrappedFunction, 'name', {value: ruleName});
@@ -227,7 +228,7 @@ export default class SubhutiParser {
 
     @CheckMethodCanExec
     //匹配0次或者1次
-    OPTION(fun: Function) {
+    option(fun: Function) {
         this.checkContinueExec();
         this.setAllowError(true);
         this.allowErrorStack.push(true);

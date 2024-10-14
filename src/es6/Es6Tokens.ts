@@ -1,11 +1,18 @@
-import {Es5TokensName} from "../es5/Es5Tokens";
+import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens";
+import {createKeywordToken} from "../subhuti/struct/SubhutiCreateToken";
 
 export const Es6TokenName = {
-    ...Es5TokensName
+    ...Es5TokensName,
+    ImportTok: 'ImportTok',
+    AsTok: 'AsTok',
+    FromTok: 'FromTok',
 }
 
 export const es6TokensObj = {
-    // equal: createKeywordToken({name: Es6TokenName.equal, pattern: /=/}),
+    ...es5TokensObj,
+    ImportTok: createKeywordToken({name: Es6TokenName.ImportTok, pattern: /import/}),
+    AsTok: createKeywordToken({name: Es6TokenName.AsTok, pattern: /as/}),
+    FromTok: createKeywordToken({name: Es6TokenName.FromTok, pattern: /FromTok/}),
     // let: createKeywordToken({name: Es6TokenName.let, pattern: /let/}),
     // const: createKeywordToken({name: Es6TokenName.const, pattern: /const/}),
     // whitespace: createKeywordToken({

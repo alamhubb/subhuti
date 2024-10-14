@@ -2,6 +2,8 @@ import SubhutiMatchToken from "./struct/SubhutiMatchToken";
 import SubhutiCst from "./struct/SubhutiCst";
 import JsonUtil from "../utils/JsonUtil";
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
+import Es5TokenConsumer from "../es5/Es5TokenConsume";
+import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
 
 export class SubhutiParserOr {
     alt: Function;
@@ -39,10 +41,9 @@ function CheckMethodCanExec(newTargetFun: any, context) {
 }
 
 
+export default class SubhutiParser<T> {
 
-
-export default class SubhutiParser {
-
+    tokenConsumer: T
     _tokens: SubhutiMatchToken[];
     initFlag = true;
     curCst: SubhutiCst;

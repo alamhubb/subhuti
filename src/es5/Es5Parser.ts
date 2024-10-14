@@ -2,10 +2,7 @@ import SubhutiParser, {SubhutiRule} from "../subhuti/SubhutiParser";
 import Es5TokenConsumer from "./Es5TokenConsume";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 
-export class Es5Parser extends SubhutiParser {
-
-    tokenConsumer:Es5TokenConsumer
-
+export class Es5Parser extends SubhutiParser<Es5TokenConsumer> {
     constructor(tokens?: SubhutiMatchToken[]) {
         super(tokens)
         this.tokenConsumer = new Es5TokenConsumer(this)

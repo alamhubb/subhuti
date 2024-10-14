@@ -1,8 +1,16 @@
 import {Es5Parser} from "../es5/Es5Parser";
 import {es6TokensObj} from "./Es6Tokens";
 import {SubhutiRule} from "../subhuti/SubhutiParser";
+import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
+import Es6TokenConsumer from "./Es6TokenConsume";
 
 export default class Es6Parser extends Es5Parser {
+    constructor(tokens?: SubhutiMatchToken[]) {
+        super(tokens)
+        this.tokenConsumer = new Es6TokenConsumer(this)
+        this.thisClassName = this.constructor.name;
+    }
+
     // Import Declaration
     @SubhutiRule
     importDeclaration() {
@@ -96,7 +104,7 @@ export default class Es6Parser extends Es5Parser {
             {alt: () => this.importedBinding()},
             {
                 alt: () => {
-                    this.identifierName();
+                    this.tokenConsumer.IdentifierName()
                     this.consume(es6TokensObj.AsTok);
                     this.importedBinding();
                 }
@@ -118,7 +126,7 @@ export default class Es6Parser extends Es5Parser {
 // Imported Binding
     @SubhutiRule
     bindingIdentifier() {
-        this.identifierName()
+        this.tokenConsumer.IdentifierName()
     }
 
     @SubhutiRule

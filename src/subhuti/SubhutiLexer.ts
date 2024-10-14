@@ -42,10 +42,33 @@ export default class SubhutiLexer {
             if (!matchTokens.length) { // 如果没有匹配到任何token
                 throw new Error('无法匹配token:' + input); // 抛出错误
             }
-            if (matchTokens.length > 1) {
-                throw new Error('两个都匹配了')
+            //获取长度最长的
+            let maxLength = 0
+            const map: Map<number, SubhutiMatchToken[]> = new Map()
+            //遍历所有匹配的token
+            for (const matchToken of matchTokens) {
+                //获取当前匹配token长度
+                const matchTokenLength = matchToken.tokenValue.length
+                //记录最长的
+                maxLength = Math.max(maxLength, matchTokenLength)
+                //如果是最长的，加入到结果中
+                if (matchTokenLength === maxLength) {
+                    map.set(maxLength, [...(map.get(maxLength) || []), matchToken])
+                }
             }
-            let resToken = matchTokens[0]; // 选择唯一的最大长度token
+            //获取最长长度的tokens
+            const maxLengthTokens = map.get(maxLength)
+            let resToken: SubhutiMatchToken
+            //如果有一个以上
+            if (maxLengthTokens.length > 1) {
+                const resTokens = maxLengthTokens.filter(item => this.tokenMap.get(item.tokenName).isKeyword)
+                if (resTokens.length > 1) {
+                    throw new Error('匹配了多个关键字:' + resTokens.map(item => item.tokenName).join(','))
+                }
+                resToken = resTokens[0]
+            } else {
+                resToken = maxLengthTokens[0]
+            }
             input = input.substring(resToken.tokenValue.length); // 从输入字符串中移除已匹配的部分
             const createToken = this.tokenMap.get(resToken.tokenName); // 获取创建token的配置信息
             if (createToken.group === SubhutiCreateTokenGroupType.skip) { // 如果token属于跳过组

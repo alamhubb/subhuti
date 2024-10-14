@@ -47,7 +47,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     Array() {
         this.tokenConsumer.LBracket();
-        this.MANY(() => {
+        this.Many(() => {
             this.Or([
                 {alt: () => this.ElementList()},
                 {alt: () => this.Elision()},
@@ -60,7 +60,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     ElementList() {
         this.AssignmentExpression();
-        this.MANY(() => {
+        this.Many(() => {
             this.Elision();
             this.AssignmentExpression();
         });
@@ -80,7 +80,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.tokenConsumer.LBrace();
         this.Option(() => {
             this.PropertyAssignment();
-            this.MANY(() => {
+            this.Many(() => {
                 this.tokenConsumer.Comma();
                 this.PropertyAssignment();
             });
@@ -148,14 +148,14 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.2 左值表达式
     @SubhutiRule
     MemberCallNewExpression() {
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.NewTok();
         });
         this.Or([
             {alt: () => this.PrimaryExpression()},
             {alt: () => this.FunctionExpression()},
         ]);
-        this.MANY(() => {
+        this.Many(() => {
             this.Or([
                 {alt: () => this.BoxMemberExpression()},
                 {alt: () => this.DotMemberExpression()},
@@ -185,7 +185,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.tokenConsumer.LParen();
         this.Option(() => {
             this.AssignmentExpression();
-            this.MANY(() => {
+            this.Many(() => {
                 this.tokenConsumer.Comma();
                 this.AssignmentExpression();
             });
@@ -233,7 +233,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     BinaryExpression() {
         this.UnaryExpression();
-        this.MANY(() => {
+        this.Many(() => {
             this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
                 {alt: () => this.tokenConsumer.VerticalBarVerticalBar()},
@@ -327,7 +327,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     BinaryExpressionNoIn() {
         this.UnaryExpression();
-        this.MANY(() => {
+        this.Many(() => {
             this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
                 {alt: () => this.tokenConsumer.VerticalBarVerticalBar()},
@@ -373,7 +373,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     Expression() {
         this.AssignmentExpression();
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.Comma();
             this.AssignmentExpression();
         });
@@ -382,7 +382,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     ExpressionNoIn() {
         this.AssignmentExpressionNoIn();
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.Comma();
             this.AssignmentExpressionNoIn();
         });
@@ -440,7 +440,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     VariableDeclarationList() {
         this.VariableDeclaration();
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.Comma();
             this.VariableDeclaration();
         });
@@ -450,7 +450,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     VariableDeclarationListNoIn() {
         let numOfVars = 1;
         this.VariableDeclarationNoIn();
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.Comma();
             this.VariableDeclarationNoIn();
             numOfVars++;
@@ -788,7 +788,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     FormalParameterList() {
         this.tokenConsumer.IdentifierName();
-        this.MANY(() => {
+        this.Many(() => {
             this.tokenConsumer.Comma();
             this.tokenConsumer.IdentifierName();
         });

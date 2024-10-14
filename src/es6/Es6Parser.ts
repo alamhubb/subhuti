@@ -7,17 +7,21 @@ export default class Es6Parser extends Es5Parser {
     @SubhutiRule
     importDeclaration() {
         this.or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.consume(es6TokensObj.ImportTok);
                     this.importClause();
                     this.fromClause();
                     this.consume(es6TokensObj.Semicolon);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.consume(es6TokensObj.ImportTok);
                     this.moduleSpecifier();
                     this.consume(es6TokensObj.Semicolon);
-                }},
+                }
+            },
         ]);
     }
 
@@ -25,19 +29,23 @@ export default class Es6Parser extends Es5Parser {
     @SubhutiRule
     importClause() {
         this.or([
-            { alt: () => this.importedDefaultBinding() },
-            { alt: () => this.namespaceImport() },
-            { alt: () => this.namedImports() },
-            { alt: () => {
+            {alt: () => this.importedDefaultBinding()},
+            {alt: () => this.namespaceImport()},
+            {alt: () => this.namedImports()},
+            {
+                alt: () => {
                     this.importedDefaultBinding();
                     this.consume(es6TokensObj.Comma);
                     this.namespaceImport();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.importedDefaultBinding();
                     this.consume(es6TokensObj.Comma);
                     this.namedImports();
-                }},
+                }
+            },
         ]);
     }
 
@@ -85,12 +93,14 @@ export default class Es6Parser extends Es5Parser {
     @SubhutiRule
     importSpecifier() {
         this.or([
-            { alt: () => this.importedBinding() },
-            { alt: () => {
+            {alt: () => this.importedBinding()},
+            {
+                alt: () => {
                     this.identifierName();
                     this.consume(es6TokensObj.AsTok);
                     this.importedBinding();
-                }},
+                }
+            },
         ]);
     }
 
@@ -109,5 +119,25 @@ export default class Es6Parser extends Es5Parser {
     @SubhutiRule
     bindingIdentifier() {
         this.identifierName()
+    }
+
+    @SubhutiRule
+    Scripts() {
+        this.Script()
+        return this.getCurCst()
+    }
+
+    @SubhutiRule
+    Script() {
+        this.AT_LEAST_ONE(() => {
+            this.ScriptBody();
+        });
+        return this.getCurCst()
+    }
+
+    @SubhutiRule
+    ScriptBody() {
+        this.StatementList()
+        return this.getCurCst()
     }
 }

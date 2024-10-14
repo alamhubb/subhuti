@@ -409,14 +409,14 @@ export class Es5Parser extends SubhutiParser {
     block() {
         this.consume(es5TokensObj.LBrace);
         this.option(() => {
-            this.statementList();
+            this.StatementList();
         });
         this.consume(es5TokensObj.RBrace);
     }
 
     // 12.1 语句列表
     @SubhutiRule
-    statementList() {
+    StatementList() {
         this.AT_LEAST_ONE(() => {
             this.statement();
         });
@@ -672,7 +672,7 @@ export class Es5Parser extends SubhutiParser {
         this.expression();
         this.consume(es5TokensObj.Colon);
         this.option(() => {
-            this.statementList();
+            this.StatementList();
         });
     }
 
@@ -682,7 +682,7 @@ export class Es5Parser extends SubhutiParser {
         this.consume(es5TokensObj.DefaultTok);
         this.consume(es5TokensObj.Colon);
         this.option(() => {
-            this.statementList();
+            this.StatementList();
         });
     }
 
@@ -791,21 +791,27 @@ export class Es5Parser extends SubhutiParser {
     // 14 程序
     @SubhutiRule
     program() {
-        this.sourceElements();
+        this.AT_LEAST_ONE(() => {
+            this.sourceElements();
+        });
         return this.getCurCst();
     }
 
     // 14 源元素
     @SubhutiRule
     sourceElements() {
-        this.AT_LEAST_ONE(() => {
-            this.or([
-                {
-                    alt: () => this.functionDeclaration(),
-                },
-                {alt: () => this.statement()},
-            ]);
-        });
+        this.SourceElement()
+        return this.getCurCst();
+    }
+
+    @SubhutiRule
+    SourceElement() {
+        this.or([
+            {
+                alt: () => this.functionDeclaration(),
+            },
+            {alt: () => this.statement()},
+        ]);
     }
 
     @SubhutiRule

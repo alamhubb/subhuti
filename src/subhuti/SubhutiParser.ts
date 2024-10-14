@@ -288,7 +288,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer> {
 
     @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
-    or(subhutiParserOrs: SubhutiParserOr[]) {
+    Or(subhutiParserOrs: SubhutiParserOr[]) {
         this.checkContinueExec();
         this.allowErrorStack.push(true);
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);

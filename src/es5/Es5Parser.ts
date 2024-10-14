@@ -12,7 +12,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.1 主表达式
     @SubhutiRule
     primaryExpression() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.ThisTok()},
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.AbsLiteral()},
@@ -25,7 +25,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 7.8 字面量
     @SubhutiRule
     AbsLiteral() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.NullTok()},
             {alt: () => this.tokenConsumer.TrueTok()},
             {alt: () => this.tokenConsumer.FalseTok()},
@@ -48,7 +48,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     array() {
         this.tokenConsumer.LBracket();
         this.MANY(() => {
-            this.or([
+            this.Or([
                 {alt: () => this.elementList()},
                 {alt: () => this.elision()},
             ]);
@@ -94,7 +94,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.1.5 属性赋值
     @SubhutiRule
     propertyAssignment() {
-        this.or([
+        this.Or([
             {alt: () => this.regularPropertyAssignment()},
             {alt: () => this.getPropertyAssignment()},
             {alt: () => this.setPropertyAssignment()},
@@ -137,7 +137,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.1.5 属性名称
     @SubhutiRule
     propertyName() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.tokenConsumer.StringLiteral()},
@@ -151,12 +151,12 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.MANY(() => {
             this.tokenConsumer.NewTok();
         });
-        this.or([
+        this.Or([
             {alt: () => this.primaryExpression()},
             {alt: () => this.functionExpression()},
         ]);
         this.MANY(() => {
-            this.or([
+            this.Or([
                 {alt: () => this.boxMemberExpression()},
                 {alt: () => this.dotMemberExpression()},
                 {alt: () => this.arguments()},
@@ -198,7 +198,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     postfixExpression() {
         this.memberCallNewExpression();
         this.option(() => {
-            this.or([
+            this.Or([
                 {alt: () => this.tokenConsumer.PlusPlus()},
                 {alt: () => this.tokenConsumer.MinusMinus()},
             ]);
@@ -208,11 +208,11 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.4 一元运算符
     @SubhutiRule
     unaryExpression() {
-        this.or([
+        this.Or([
             {alt: () => this.postfixExpression()},
             {
                 alt: () => {
-                    this.or([
+                    this.Or([
                         {alt: () => this.tokenConsumer.DeleteTok()},
                         {alt: () => this.tokenConsumer.VoidTok()},
                         {alt: () => this.tokenConsumer.TypeOfTok()},
@@ -234,7 +234,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     binaryExpression() {
         this.unaryExpression();
         this.MANY(() => {
-            this.or([
+            this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
                 {alt: () => this.tokenConsumer.VerticalBarVerticalBar()},
                 {alt: () => this.tokenConsumer.AmpersandAmpersand()},
@@ -256,7 +256,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.13 赋值运算符
     @SubhutiRule
     AbsAssignmentOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.Eq()},
             {alt: () => this.tokenConsumer.PlusEq()},
             {alt: () => this.tokenConsumer.AmpersandAmpersand()},
@@ -276,7 +276,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.9 相等运算符
     @SubhutiRule
     AbsEqualityOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.EqEq()},
             {alt: () => this.tokenConsumer.NotEq()},
             {alt: () => this.tokenConsumer.EqEq()},
@@ -287,7 +287,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.8 关系运算符
     @SubhutiRule
     AbsRelationalOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.Less()},
             {alt: () => this.tokenConsumer.Greater()},
             {alt: () => this.tokenConsumer.LessEq()},
@@ -298,7 +298,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.7 位移运算符
     @SubhutiRule
     AbsShiftOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.LessLess()},
             {alt: () => this.tokenConsumer.MoreMore()},
             {alt: () => this.tokenConsumer.MoreMoreMore()},
@@ -308,7 +308,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.5 乘法运算符
     @SubhutiRule
     AbsMultiplicativeOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.Asterisk()},
             {alt: () => this.tokenConsumer.Slash()},
             {alt: () => this.tokenConsumer.Percent()},
@@ -318,7 +318,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 11.6 加法运算符
     @SubhutiRule
     AbsAdditiveOperator() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.Plus()},
             {alt: () => this.tokenConsumer.Minus()},
         ]);
@@ -328,7 +328,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     binaryExpressionNoIn() {
         this.unaryExpression();
         this.MANY(() => {
-            this.or([
+            this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
                 {alt: () => this.tokenConsumer.VerticalBarVerticalBar()},
                 {alt: () => this.tokenConsumer.AmpersandAmpersand()},
@@ -391,7 +391,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 12 语句
     @SubhutiRule
     statement() {
-        this.or([
+        this.Or([
             {alt: () => this.block()},
             {alt: () => this.variableStatement()},
             {alt: () => this.emptyStatement()},
@@ -518,7 +518,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 12.6 迭代语句
     @SubhutiRule
     iterationStatement() {
-        this.or([
+        this.Or([
             {alt: () => this.doIteration()},
             {alt: () => this.whileIteration()},
             {alt: () => this.forIteration()},
@@ -553,7 +553,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         let inPossible = false;
         this.tokenConsumer.ForTok();
         this.tokenConsumer.LParen();
-        this.or([
+        this.Or([
             {
                 alt: () => {
                     this.tokenConsumer.VarTok();
@@ -575,7 +575,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 12.6.3 for 语句头部
     @SubhutiRule
     forHeaderParts(inPossible) {
-        this.or([
+        this.Or([
             {
                 alt: () => {
                     this.tokenConsumer.Semicolon();
@@ -715,7 +715,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     tryStatement() {
         this.tokenConsumer.TryTok();
         this.block();
-        this.or([
+        this.Or([
             {
                 alt: () => {
                     this.catch();
@@ -812,7 +812,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     @SubhutiRule
     SourceElement() {
-        this.or([
+        this.Or([
             {
                 alt: () => this.functionDeclaration(),
             },

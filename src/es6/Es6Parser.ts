@@ -9,7 +9,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer = new Es6TokenConsumer(this) as T
         this.thisClassName = this.constructor.name;
     }
-
     @SubhutiRule
     Scripts() {
         this.Script()
@@ -49,7 +48,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ModuleItem() {
-        this.or([
+        this.Or([
             {alt: () => this.importDeclaration()},
             {alt: () => this.exportDeclaration()},
             {alt: () => this.StatementListItem()},
@@ -58,7 +57,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     importDeclaration() {
-        this.or([
+        this.Or([
             {
                 alt: () => {
                     this.tokenConsumer.ImportTok();
@@ -79,7 +78,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     importClause() {
-        this.or([
+        this.Or([
             {alt: () => this.importedDefaultBinding()},
             {alt: () => this.namespaceImport()},
             {alt: () => this.namedImports()},
@@ -139,7 +138,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     importSpecifier() {
-        this.or([
+        this.Or([
             {alt: () => this.importedBinding()},
             {
                 alt: () => {
@@ -168,7 +167,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     exportDeclaration() {
-        this.or([
+        this.Or([
             {
                 alt: () => {
                     this.tokenConsumer.ExportTok();
@@ -201,21 +200,21 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.tokenConsumer.ExportTok();
-                    this.declaration();
+                    this.Declaration();
                 }
             },
             {
                 alt: () => {
                     this.tokenConsumer.ExportTok();
                     this.tokenConsumer.DefaultTok();
-                    this.hoistableDeclaration();
+                    this.HoistableDeclaration();
                 }
             },
             {
                 alt: () => {
                     this.tokenConsumer.ExportTok();
                     this.tokenConsumer.DefaultTok();
-                    this.classDeclaration();
+                    this.ClassDeclaration();
                 }
             },
             {
@@ -250,7 +249,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     exportSpecifier() {
-        this.or([
+        this.Or([
             {alt: () => this.tokenConsumer.IdentifierName()},
             {
                 alt: () => {
@@ -262,53 +261,439 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         ]);
     }
 
-    @SubhutiRule
-    variableStatement() {
-        // 实现 variableStatement
-    }
+    // ... [保留之前的方法] ...
 
     @SubhutiRule
-    declaration() {
-        // 实现 declaration
+    Statement() {
+        this.Or([
+            {alt: () => this.BlockStatement()},
+            {alt: () => this.VariableStatement()},
+            {alt: () => this.EmptyStatement()},
+            {alt: () => this.ExpressionStatement()},
+            {alt: () => this.IfStatement()},
+            {alt: () => this.BreakableStatement()},
+            {alt: () => this.ContinueStatement()},
+            {alt: () => this.BreakStatement()},
+            {alt: () => this.ReturnStatement()},
+            {alt: () => this.WithStatement()},
+            {alt: () => this.LabelledStatement()},
+            {alt: () => this.ThrowStatement()},
+            {alt: () => this.TryStatement()},
+            {alt: () => this.DebuggerStatement()},
+        ]);
     }
 
     @SubhutiRule
-    hoistableDeclaration() {
-        // 实现 hoistableDeclaration
+    Declaration() {
+        this.Or([
+            {alt: () => this.HoistableDeclaration()},
+            {alt: () => this.ClassDeclaration()},
+            {alt: () => this.LexicalDeclaration()},
+        ]);
     }
 
     @SubhutiRule
-    classDeclaration() {
-        // 实现 classDeclaration
+    HoistableDeclaration() {
+        this.Or([
+            {alt: () => this.FunctionDeclaration()},
+            {alt: () => this.GeneratorDeclaration()},
+        ]);
     }
 
-    BlockStatement(){
-        this.Block()
+    @SubhutiRule
+    BreakableStatement() {
+        this.Or([
+            {alt: () => this.IterationStatement()},
+            {alt: () => this.SwitchStatement()},
+        ]);
     }
 
-    Block(){
-        this.option(()=>{
-            this.StatementList()
-        })
+    @SubhutiRule
+    BlockStatement() {
+        this.Block();
     }
 
-    StatementList(){
-        this.StatementListItem()
+    @SubhutiRule
+    Block() {
+        this.tokenConsumer.LBrace();
+        this.option(() => this.StatementList());
+        this.tokenConsumer.RBrace();
     }
-    // 以下方法可能需要在 Es5Parser 中实现或重写
+
+    @SubhutiRule
+    StatementList() {
+        this.AT_LEAST_ONE(() => {
+            this.StatementListItem();
+        });
+    }
+
     @SubhutiRule
     StatementListItem() {
-        // 实现 StatementListItem
-        this.Statement()
-        this.Declaration()
+        this.Or([
+            {alt: () => this.Statement()},
+            {alt: () => this.Declaration()},
+        ]);
     }
 
-    Statement(){
-
+    @SubhutiRule
+    LexicalDeclaration() {
+        this.LetOrConst();
+        this.BindingList();
+        this.tokenConsumer.Semicolon();
     }
 
-    Declaration(){
-
+    @SubhutiRule
+    LetOrConst() {
+        this.Or([
+            {alt: () => this.tokenConsumer.LetTok()},
+            {alt: () => this.tokenConsumer.ConstTok()},
+        ]);
     }
 
+    @SubhutiRule
+    BindingList() {
+        this.LexicalBinding();
+        this.MANY(() => {
+            this.tokenConsumer.Comma();
+            this.LexicalBinding();
+        });
+    }
+
+    @SubhutiRule
+    LexicalBinding() {
+        this.Or([
+            {
+                alt: () => {
+                    this.BindingIdentifier();
+                    this.option(() => this.Initializer());
+                }
+            },
+            {
+                alt: () => {
+                    this.BindingPattern();
+                    this.Initializer();
+                }
+            },
+        ]);
+    }
+
+    @SubhutiRule
+    VariableStatement() {
+        this.tokenConsumer.VarTok();
+        this.VariableDeclarationList();
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    VariableDeclarationList() {
+        this.VariableDeclaration();
+        this.MANY(() => {
+            this.tokenConsumer.Comma();
+            this.VariableDeclaration();
+        });
+    }
+
+    @SubhutiRule
+    VariableDeclaration() {
+        this.Or([
+            {
+                alt: () => {
+                    this.BindingIdentifier();
+                    this.option(() => this.Initializer());
+                }
+            },
+            {
+                alt: () => {
+                    this.BindingPattern();
+                    this.Initializer();
+                }
+            },
+        ]);
+    }
+
+    @SubhutiRule
+    BindingPattern() {
+        this.Or([
+            {alt: () => this.ObjectBindingPattern()},
+            {alt: () => this.ArrayBindingPattern()},
+        ]);
+    }
+
+    @SubhutiRule
+    ObjectBindingPattern() {
+        this.tokenConsumer.LBrace();
+        this.option(() => {
+            this.BindingPropertyList();
+            this.option(() => this.tokenConsumer.Comma());
+        });
+        this.tokenConsumer.RBrace();
+    }
+
+    @SubhutiRule
+    ArrayBindingPattern() {
+        this.tokenConsumer.LBracket();
+        this.Or([
+            {
+                alt: () => {
+                    this.option(() => this.Elision());
+                    this.option(() => this.BindingRestElement());
+                }
+            },
+            {
+                alt: () => {
+                    this.BindingElementList();
+                    this.option(() => {
+                        this.tokenConsumer.Comma();
+                        this.option(() => this.Elision());
+                        this.option(() => this.BindingRestElement());
+                    });
+                }
+            },
+        ]);
+        this.tokenConsumer.RBracket();
+    }
+
+    // ... [实现其他方法，如 BindingPropertyList, BindingElementList, BindingElisionElement, BindingProperty, BindingElement, SingleNameBinding, BindingRestElement] ...
+
+    @SubhutiRule
+    EmptyStatement() {
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    ExpressionStatement() {
+        this.Expression();
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    IfStatement() {
+        this.tokenConsumer.IfTok();
+        this.tokenConsumer.LParen();
+        this.Expression();
+        this.tokenConsumer.RParen();
+        this.Statement();
+        this.option(() => {
+            this.tokenConsumer.ElseTok();
+            this.Statement();
+        });
+    }
+
+    @SubhutiRule
+    IterationStatement() {
+        this.Or([
+            {alt: () => this.DoWhileStatement()},
+            {alt: () => this.WhileStatement()},
+            {alt: () => this.ForStatement()},
+            {alt: () => this.ForInOfStatement()},
+        ]);
+    }
+
+    // ... [实现 DoWhileStatement, WhileStatement, ForStatement, ForInOfStatement] ...
+
+    @SubhutiRule
+    ContinueStatement() {
+        this.tokenConsumer.ContinueTok();
+        this.option(() => this.LabelIdentifier());
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    BreakStatement() {
+        this.tokenConsumer.BreakTok();
+        this.option(() => this.LabelIdentifier());
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    ReturnStatement() {
+        this.tokenConsumer.ReturnTok();
+        this.option(() => this.Expression());
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    WithStatement() {
+        this.tokenConsumer.WithTok();
+        this.tokenConsumer.LParen();
+        this.Expression();
+        this.tokenConsumer.RParen();
+        this.Statement();
+    }
+
+    @SubhutiRule
+    SwitchStatement() {
+        this.tokenConsumer.SwitchTok();
+        this.tokenConsumer.LParen();
+        this.Expression();
+        this.tokenConsumer.RParen();
+        this.CaseBlock();
+    }
+
+    // ... [实现 CaseBlock, CaseClauses, CaseClause, DefaultClause] ...
+
+    @SubhutiRule
+    LabelledStatement() {
+        this.LabelIdentifier();
+        this.tokenConsumer.Colon();
+        this.LabelledItem();
+    }
+
+    @SubhutiRule
+    LabelledItem() {
+        this.Or([
+            {alt: () => this.Statement()},
+            {alt: () => this.FunctionDeclaration()},
+        ]);
+    }
+
+    @SubhutiRule
+    ThrowStatement() {
+        this.tokenConsumer.ThrowTok();
+        this.Expression();
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    TryStatement() {
+        this.tokenConsumer.TryTok();
+        this.Block();
+        this.Or([
+            {
+                alt: () => {
+                    this.tokenConsumer.CatchTok();
+                    this.option(() => this.tokenConsumer.FinallyTok());
+                }
+            },
+            {alt: () => this.tokenConsumer.FinallyTok()},
+        ]);
+    }
+
+    // ... [实现 Catch, Finally, CatchParameter] ...
+
+    @SubhutiRule
+    DebuggerStatement() {
+        this.tokenConsumer.DebuggerTok();
+        this.tokenConsumer.Semicolon();
+    }
+
+    @SubhutiRule
+    FunctionDeclaration() {
+        this.tokenConsumer.FunctionTok();
+        this.option(() => this.BindingIdentifier());
+        this.tokenConsumer.LParen();
+        this.FormalParameters();
+        this.tokenConsumer.RParen();
+        this.tokenConsumer.LBrace();
+        this.FunctionBody();
+        this.tokenConsumer.RBrace();
+    }
+
+    // ... [实现 FunctionExpression, StrictFormalParameters, FormalParameters, FormalParameterList, FunctionRestParameter, FormalParameter, FunctionBody, FunctionStatementList] ...
+
+    @SubhutiRule
+    ArrowFunction() {
+        this.ArrowParameters();
+        this.tokenConsumer.Arrow();
+        this.ConciseBody();
+    }
+
+    // ... [实现 ArrowParameters, ConciseBody, ArrowFormalParameters] ...
+
+    @SubhutiRule
+    MethodDefinition() {
+        this.Or([
+            {
+                alt: () => {
+                    this.PropertyName();
+                    this.tokenConsumer.LParen();
+                    this.StrictFormalParameters();
+                    this.tokenConsumer.RParen();
+                    this.tokenConsumer.LBrace();
+                    this.FunctionBody();
+                    this.tokenConsumer.RBrace();
+                }
+            },
+            {alt: () => this.GeneratorMethod()},
+            {
+                alt: () => {
+                    this.tokenConsumer.GetTok();
+                    this.PropertyName();
+                    this.tokenConsumer.LParen();
+                    this.tokenConsumer.RParen();
+                    this.tokenConsumer.LBrace();
+                    this.FunctionBody();
+                    this.tokenConsumer.RBrace();
+                }
+            },
+            {
+                alt: () => {
+                    this.tokenConsumer.SetTok();
+                    this.PropertyName();
+                    this.tokenConsumer.LParen();
+                    this.PropertySetParameterList();
+                    this.tokenConsumer.RParen();
+                    this.tokenConsumer.LBrace();
+                    this.FunctionBody();
+                    this.tokenConsumer.RBrace();
+                }
+            },
+        ]);
+    }
+
+    // ... [实现 PropertySetParameterList, GeneratorMethod, GeneratorDeclaration, GeneratorExpression, GeneratorBody, YieldExpression] ...
+
+    @SubhutiRule
+    ClassDeclaration() {
+        this.tokenConsumer.ClassTok();
+        this.option(() => this.BindingIdentifier());
+        this.ClassTail();
+    }
+
+    @SubhutiRule
+    ClassExpression() {
+        this.tokenConsumer.ClassTok();
+        this.option(() => this.BindingIdentifier());
+        this.ClassTail();
+    }
+
+    @SubhutiRule
+    ClassTail() {
+        this.option(() => this.ClassHeritage());
+        this.tokenConsumer.LBrace();
+        this.option(() => this.ClassBody());
+        this.tokenConsumer.RBrace();
+    }
+
+    @SubhutiRule
+    ClassHeritage() {
+        this.tokenConsumer.ExtendsTok();
+        this.LeftHandSideExpression();
+    }
+
+    @SubhutiRule
+    ClassBody() {
+        this.ClassElementList();
+    }
+
+    @SubhutiRule
+    ClassElementList() {
+        this.MANY(() => this.ClassElement());
+    }
+
+    @SubhutiRule
+    ClassElement() {
+        this.Or([
+            {alt: () => this.MethodDefinition()},
+            {
+                alt: () => {
+                    this.tokenConsumer.StaticTok();
+                    this.MethodDefinition();
+                }
+            },
+            {alt: () => this.tokenConsumer.Semicolon()},
+        ]);
+    }
+
+    // ... [实现其他必要的辅助方法] ...
 }

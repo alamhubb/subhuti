@@ -35,7 +35,7 @@ export class SubhutiMappingParser extends Es6Parser {
     setGeneratorMode(generatorMode: boolean) {
         this._generatorMode = generatorMode;
     }
-    or(alienParserOrs: SubhutiParserOr[]) {
+    Or(alienParserOrs: SubhutiParserOr[]) {
         if (this.generatorMode) {
             for (const alienParserOr of alienParserOrs) {
                 this.setContinueMatch(false);
@@ -47,7 +47,7 @@ export class SubhutiMappingParser extends Es6Parser {
             }
         }
         else if (!this.generatorMode) {
-            return super.or(alienParserOrs);
+            return super.Or(alienParserOrs);
         }
     }
     @SubhutiRule

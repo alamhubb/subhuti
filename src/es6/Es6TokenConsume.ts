@@ -16,6 +16,8 @@ export const Es6TokenName = {
     OfTok: 'OfTok',
     ClassTok: 'ClassTok',
     StaticTok: 'StaticTok',
+    ExtendsTok: 'ExtendsTok',
+    Arrow: 'Arrow',
     Ellipsis: 'Ellipsis',
     NoSubstitutionTemplate: 'NoSubstitutionTemplate',
     TemplateHead: 'TemplateHead',
@@ -38,6 +40,8 @@ export const es6TokensObj = {
     OfTok: createKeywordToken({name: Es6TokenName.OfTok, pattern: /of/}),
     ClassTok: createKeywordToken({name: Es6TokenName.ClassTok, pattern: /class/}),
     StaticTok: createKeywordToken({name: Es6TokenName.StaticTok, pattern: /static/}),
+    ExtendsTok: createKeywordToken({name: Es6TokenName.ExtendsTok, pattern: /ExtendsTok/}),
+    Arrow: createKeywordToken({name: Es6TokenName.Arrow, pattern: /=>/}),
     Ellipsis: createKeywordToken({name: Es6TokenName.Ellipsis, pattern: /\.\.\./}),
     NoSubstitutionTemplate: createKeywordToken({
         name: Es6TokenName.NoSubstitutionTemplate,
@@ -109,8 +113,16 @@ export default class Es6TokenConsumer extends Es5TokenConsumer {
         return this.consume(es6TokensObj.ClassTok);
     }
 
+    ExtendsTok() {
+        return this.consume(es6TokensObj.ExtendsTok);
+    }
+
     StaticTok() {
         return this.consume(es6TokensObj.StaticTok);
+    }
+
+    Arrow() {
+        return this.consume(es6TokensObj.Arrow);
     }
 
     Ellipsis() {

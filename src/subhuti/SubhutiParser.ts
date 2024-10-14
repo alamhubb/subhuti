@@ -293,6 +293,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.allowErrorStack.push(true);
         const tokens = this.tokens
+        console.log(this.tokens.length)
+        console.log(this.cstStack.map(item => item.name))
         console.log(this.curCst.name)
         console.log('执行了规则了')
         const tokensBackup = JsonUtil.cloneDeep(tokens);

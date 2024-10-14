@@ -26,7 +26,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     AbsLiteral() {
         this.Or([
-            {alt: () => this.tokenConsumer.NullTok()},
+            {alt: () => this.tokenConsumer.NullLiteral()},
             {alt: () => this.tokenConsumer.TrueTok()},
             {alt: () => this.tokenConsumer.FalseTok()},
             {alt: () => this.tokenConsumer.NumericLiteral()},
@@ -215,7 +215,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
                     this.Or([
                         {alt: () => this.tokenConsumer.DeleteTok()},
                         {alt: () => this.tokenConsumer.VoidTok()},
-                        {alt: () => this.tokenConsumer.TypeOfTok()},
+                        {alt: () => this.tokenConsumer.TypeofTok()},
                         {alt: () => this.tokenConsumer.PlusPlus()},
                         {alt: () => this.tokenConsumer.MinusMinus()},
                         {alt: () => this.tokenConsumer.Plus()},
@@ -289,9 +289,9 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     AbsRelationalOperator() {
         this.Or([
             {alt: () => this.tokenConsumer.Less()},
-            {alt: () => this.tokenConsumer.Greater()},
+            {alt: () => this.tokenConsumer.More()},
             {alt: () => this.tokenConsumer.LessEq()},
-            {alt: () => this.tokenConsumer.GreaterEq()},
+            {alt: () => this.tokenConsumer.MoreEq()},
         ]);
     }
 

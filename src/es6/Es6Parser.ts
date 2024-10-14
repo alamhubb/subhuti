@@ -13,36 +13,42 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     IdentifierReference(yield_ = false) {
         this.Or([
-            { alt: () => this.Identifier() },
-            { alt: () => {
+            {alt: () => this.Identifier()},
+            {
+                alt: () => {
                     if (!yield_) {
                         this.tokenConsumer.YieldTok();
                     }
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     BindingIdentifier(yield_ = false) {
         this.Or([
-            { alt: () => this.Identifier() },
-            { alt: () => {
+            {alt: () => this.Identifier()},
+            {
+                alt: () => {
                     if (!yield_) {
                         this.tokenConsumer.YieldTok();
                     }
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     LabelIdentifier(yield_ = false) {
         this.Or([
-            { alt: () => this.Identifier() },
-            { alt: () => {
+            {alt: () => this.Identifier()},
+            {
+                alt: () => {
                     if (!yield_) {
                         this.tokenConsumer.YieldTok();
                     }
-                }}
+                }
+            }
         ]);
     }
 
@@ -55,46 +61,54 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     PrimaryExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.tokenConsumer.ThisTok() },
-            { alt: () => this.IdentifierReference(yield_) },
-            { alt: () => this.Literal() },
-            { alt: () => this.ArrayLiteral(yield_) },
-            { alt: () => this.ObjectLiteral(yield_) },
-            { alt: () => this.FunctionExpression() },
-            { alt: () => this.ClassExpression(yield_) },
-            { alt: () => this.GeneratorExpression() },
-            { alt: () => this.tokenConsumer.RegularExpressionLiteral() },
-            { alt: () => this.TemplateLiteral(yield_) },
-            { alt: () => this.CoverParenthesizedExpressionAndArrowParameterList(yield_) }
+            {alt: () => this.tokenConsumer.ThisTok()},
+            {alt: () => this.IdentifierReference(yield_)},
+            {alt: () => this.Literal()},
+            {alt: () => this.ArrayLiteral(yield_)},
+            {alt: () => this.ObjectLiteral(yield_)},
+            {alt: () => this.FunctionExpression()},
+            {alt: () => this.ClassExpression(yield_)},
+            {alt: () => this.GeneratorExpression()},
+            {alt: () => this.tokenConsumer.RegularExpressionLiteral()},
+            {alt: () => this.TemplateLiteral(yield_)},
+            {alt: () => this.CoverParenthesizedExpressionAndArrowParameterList(yield_)}
         ]);
     }
 
     @SubhutiRule
     CoverParenthesizedExpressionAndArrowParameterList(yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.tokenConsumer.LParen();
                     this.Expression(true, yield_);
                     this.tokenConsumer.RParen();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.LParen();
                     this.tokenConsumer.RParen();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.LParen();
                     this.tokenConsumer.Ellipsis();
                     this.BindingIdentifier(yield_);
                     this.tokenConsumer.RParen();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.LParen();
                     this.Expression(true, yield_);
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.Ellipsis();
                     this.BindingIdentifier(yield_);
                     this.tokenConsumer.RParen();
-                }}
+                }
+            }
         ]);
     }
 
@@ -108,10 +122,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Literal() {
         this.Or([
-            { alt: () => this.tokenConsumer.NullLiteral() },
-            { alt: () => this.tokenConsumer.BooleanLiteral() },
-            { alt: () => this.tokenConsumer.NumericLiteral() },
-            { alt: () => this.tokenConsumer.StringLiteral() }
+            {alt: () => this.tokenConsumer.NullLiteral()},
+            {alt: () => this.tokenConsumer.BooleanLiteral()},
+            {alt: () => this.tokenConsumer.NumericLiteral()},
+            {alt: () => this.tokenConsumer.StringLiteral()}
         ]);
     }
 
@@ -121,42 +135,54 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Option(() => this.Elision());
         this.tokenConsumer.RBracket();
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.ElementList(yield_);
                     this.tokenConsumer.RBracket();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ElementList(yield_);
                     this.tokenConsumer.Comma();
                     this.Option(() => this.Elision());
                     this.tokenConsumer.RBracket();
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     ElementList(yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.Option(() => this.Elision());
                     this.AssignmentExpression(true, yield_);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.Option(() => this.Elision());
                     this.SpreadElement(yield_);
-                }}
+                }
+            }
         ]);
         this.Many(() => {
             this.tokenConsumer.Comma();
             this.Or([
-                { alt: () => {
+                {
+                    alt: () => {
                         this.Option(() => this.Elision());
                         this.AssignmentExpression(true, yield_);
-                    }},
-                { alt: () => {
+                    }
+                },
+                {
+                    alt: () => {
                         this.Option(() => this.Elision());
                         this.SpreadElement(yield_);
-                    }}
+                    }
+                }
             ]);
         });
     }
@@ -177,16 +203,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ObjectLiteral(yield_ = false) {
         this.tokenConsumer.LBrace();
         this.Or([
-            { alt: () => this.tokenConsumer.RBrace() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.RBrace()},
+            {
+                alt: () => {
                     this.PropertyDefinitionList(yield_);
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.PropertyDefinitionList(yield_);
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 
@@ -202,31 +232,33 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     PropertyDefinition(yield_ = false) {
         this.Or([
-            { alt: () => this.IdentifierReference(yield_) },
-            { alt: () => this.CoverInitializedName(yield_) },
-            { alt: () => {
+            {alt: () => this.IdentifierReference(yield_)},
+            {alt: () => this.CoverInitializedName(yield_)},
+            {
+                alt: () => {
                     this.PropertyName(yield_);
                     this.tokenConsumer.Colon();
                     this.AssignmentExpression(true, yield_);
-                }},
-            { alt: () => this.MethodDefinition(yield_) }
+                }
+            },
+            {alt: () => this.MethodDefinition(yield_)}
         ]);
     }
 
     @SubhutiRule
     PropertyName(yield_ = false) {
         this.Or([
-            { alt: () => this.LiteralPropertyName() },
-            { alt: () => this.ComputedPropertyName(yield_) }
+            {alt: () => this.LiteralPropertyName()},
+            {alt: () => this.ComputedPropertyName(yield_)}
         ]);
     }
 
     @SubhutiRule
     LiteralPropertyName() {
         this.Or([
-            { alt: () => this.tokenConsumer.IdentifierName() },
-            { alt: () => this.tokenConsumer.StringLiteral() },
-            { alt: () => this.tokenConsumer.NumericLiteral() }
+            {alt: () => this.tokenConsumer.IdentifierName()},
+            {alt: () => this.tokenConsumer.StringLiteral()},
+            {alt: () => this.tokenConsumer.NumericLiteral()}
         ]);
     }
 
@@ -252,23 +284,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     TemplateLiteral(yield_ = false) {
         this.Or([
-            { alt: () => this.tokenConsumer.NoSubstitutionTemplate() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.NoSubstitutionTemplate()},
+            {
+                alt: () => {
                     this.tokenConsumer.TemplateHead();
                     this.Expression(true, yield_);
                     this.TemplateSpans(yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     TemplateSpans(yield_ = false) {
         this.Or([
-            { alt: () => this.tokenConsumer.TemplateTail() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.TemplateTail()},
+            {
+                alt: () => {
                     this.TemplateMiddleList(yield_);
                     this.tokenConsumer.TemplateTail();
-                }}
+                }
+            }
         ]);
     }
 
@@ -285,46 +321,58 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     MemberExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.PrimaryExpression(yield_) },
-            { alt: () => {
+            {alt: () => this.PrimaryExpression(yield_)},
+            {
+                alt: () => {
                     this.MemberExpression(yield_);
                     this.tokenConsumer.LBracket();
                     this.Expression(true, yield_);
                     this.tokenConsumer.RBracket();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.MemberExpression(yield_);
                     this.tokenConsumer.Dot();
                     this.tokenConsumer.IdentifierName();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.MemberExpression(yield_);
                     this.TemplateLiteral(yield_);
-                }},
-            { alt: () => this.SuperProperty(yield_) },
-            { alt: () => this.MetaProperty() },
-            { alt: () => {
+                }
+            },
+            {alt: () => this.SuperProperty(yield_)},
+            {alt: () => this.MetaProperty()},
+            {
+                alt: () => {
                     this.tokenConsumer.NewTok();
                     this.MemberExpression(yield_);
                     this.Arguments(yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     SuperProperty(yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.tokenConsumer.SuperTok();
                     this.tokenConsumer.LBracket();
                     this.Expression(true, yield_);
                     this.tokenConsumer.RBracket();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.SuperTok();
                     this.tokenConsumer.Dot();
                     this.tokenConsumer.IdentifierName();
-                }}
+                }
+            }
         ]);
     }
 
@@ -343,36 +391,44 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     NewExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.MemberExpression(yield_) },
-            { alt: () => {
+            {alt: () => this.MemberExpression(yield_)},
+            {
+                alt: () => {
                     this.tokenConsumer.NewTok();
                     this.NewExpression(yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     CallExpression(yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.MemberExpression(yield_);
                     this.Arguments(yield_);
-                }},
-            { alt: () => this.SuperCall(yield_) }
+                }
+            },
+            {alt: () => this.SuperCall(yield_)}
         ]);
         this.Many(() => {
             this.Or([
-                { alt: () => this.Arguments(yield_) },
-                { alt: () => {
+                {alt: () => this.Arguments(yield_)},
+                {
+                    alt: () => {
                         this.tokenConsumer.LBracket();
                         this.Expression(true, yield_);
                         this.tokenConsumer.RBracket();
-                    }},
-                { alt: () => {
+                    }
+                },
+                {
+                    alt: () => {
                         this.tokenConsumer.Dot();
                         this.tokenConsumer.IdentifierName();
-                    }},
-                { alt: () => this.TemplateLiteral(yield_) }
+                    }
+                },
+                {alt: () => this.TemplateLiteral(yield_)}
             ]);
         });
     }
@@ -393,20 +449,24 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ArgumentList(yield_ = false) {
         this.Or([
-            { alt: () => this.AssignmentExpression(true, yield_) },
-            { alt: () => {
+            {alt: () => this.AssignmentExpression(true, yield_)},
+            {
+                alt: () => {
                     this.tokenConsumer.Ellipsis();
                     this.AssignmentExpression(true, yield_);
-                }}
+                }
+            }
         ]);
         this.Many(() => {
             this.tokenConsumer.Comma();
             this.Or([
-                { alt: () => this.AssignmentExpression(true, yield_) },
-                { alt: () => {
+                {alt: () => this.AssignmentExpression(true, yield_)},
+                {
+                    alt: () => {
                         this.tokenConsumer.Ellipsis();
                         this.AssignmentExpression(true, yield_);
-                    }}
+                    }
+                }
             ]);
         });
     }
@@ -414,8 +474,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LeftHandSideExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.NewExpression(yield_) },
-            { alt: () => this.CallExpression(yield_) }
+            {alt: () => this.NewExpression(yield_)},
+            {alt: () => this.CallExpression(yield_)}
         ]);
     }
 
@@ -424,8 +484,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.LeftHandSideExpression(yield_);
         this.Option(() => {
             this.Or([
-                { alt: () => this.tokenConsumer.PlusPlus() },
-                { alt: () => this.tokenConsumer.MinusMinus() }
+                {alt: () => this.tokenConsumer.PlusPlus()},
+                {alt: () => this.tokenConsumer.MinusMinus()}
             ]);
         });
     }
@@ -433,21 +493,23 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     UnaryExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.PostfixExpression(yield_) },
-            { alt: () => {
+            {alt: () => this.PostfixExpression(yield_)},
+            {
+                alt: () => {
                     this.Or([
-                        { alt: () => this.tokenConsumer.DeleteTok() },
-                        { alt: () => this.tokenConsumer.VoidTok() },
-                        { alt: () => this.tokenConsumer.TypeofTok() },
-                        { alt: () => this.tokenConsumer.PlusPlus() },
-                        { alt: () => this.tokenConsumer.MinusMinus() },
-                        { alt: () => this.tokenConsumer.Plus() },
-                        { alt: () => this.tokenConsumer.Minus() },
-                        { alt: () => this.tokenConsumer.Tilde() },
-                        { alt: () => this.tokenConsumer.Exclamation() }
+                        {alt: () => this.tokenConsumer.DeleteTok()},
+                        {alt: () => this.tokenConsumer.VoidTok()},
+                        {alt: () => this.tokenConsumer.TypeofTok()},
+                        {alt: () => this.tokenConsumer.PlusPlus()},
+                        {alt: () => this.tokenConsumer.MinusMinus()},
+                        {alt: () => this.tokenConsumer.Plus()},
+                        {alt: () => this.tokenConsumer.Minus()},
+                        {alt: () => this.tokenConsumer.Tilde()},
+                        {alt: () => this.tokenConsumer.Exclamation()}
                     ]);
                     this.UnaryExpression(yield_);
-                }}
+                }
+            }
         ]);
     }
 
@@ -463,9 +525,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     MultiplicativeOperator() {
         this.Or([
-            { alt: () => this.tokenConsumer.Asterisk() },
-            { alt: () => this.tokenConsumer.Slash() },
-            { alt: () => this.tokenConsumer.Percent() }
+            {alt: () => this.tokenConsumer.Asterisk()},
+            {alt: () => this.tokenConsumer.Slash()},
+            {alt: () => this.tokenConsumer.Percent()}
         ]);
     }
 
@@ -474,8 +536,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.MultiplicativeExpression(yield_);
         this.Many(() => {
             this.Or([
-                { alt: () => this.tokenConsumer.Plus() },
-                { alt: () => this.tokenConsumer.Minus() }
+                {alt: () => this.tokenConsumer.Plus()},
+                {alt: () => this.tokenConsumer.Minus()}
             ]);
             this.MultiplicativeExpression(yield_);
         });
@@ -486,9 +548,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.AdditiveExpression(yield_);
         this.Many(() => {
             this.Or([
-                { alt: () => this.tokenConsumer.LessLess() },
-                { alt: () => this.tokenConsumer.MoreMore() },
-                { alt: () => this.tokenConsumer.MoreMoreMore() }
+                {alt: () => this.tokenConsumer.LessLess()},
+                {alt: () => this.tokenConsumer.MoreMore()},
+                {alt: () => this.tokenConsumer.MoreMoreMore()}
             ]);
             this.AdditiveExpression(yield_);
         });
@@ -499,16 +561,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.ShiftExpression(yield_);
         this.Many(() => {
             this.Or([
-                { alt: () => this.tokenConsumer.Less() },
-                { alt: () => this.tokenConsumer.More() },
-                { alt: () => this.tokenConsumer.LessEq() },
-                { alt: () => this.tokenConsumer.MoreEq() },
-                { alt: () => this.tokenConsumer.InstanceOfTok() },
-                { alt: () => {
+                {alt: () => this.tokenConsumer.Less()},
+                {alt: () => this.tokenConsumer.More()},
+                {alt: () => this.tokenConsumer.LessEq()},
+                {alt: () => this.tokenConsumer.MoreEq()},
+                {alt: () => this.tokenConsumer.InstanceOfTok()},
+                {
+                    alt: () => {
                         if (in_) {
                             this.tokenConsumer.InTok();
                         }
-                    }}
+                    }
+                }
             ]);
             this.ShiftExpression(yield_);
         });
@@ -519,10 +583,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.RelationalExpression(in_, yield_);
         this.Many(() => {
             this.Or([
-                { alt: () => this.tokenConsumer.EqEq() },
-                { alt: () => this.tokenConsumer.NotEq() },
-                { alt: () => this.tokenConsumer.EqEqEq() },
-                { alt: () => this.tokenConsumer.NotEqEq() }
+                {alt: () => this.tokenConsumer.EqEq()},
+                {alt: () => this.tokenConsumer.NotEq()},
+                {alt: () => this.tokenConsumer.EqEqEq()},
+                {alt: () => this.tokenConsumer.NotEqEq()}
             ]);
             this.RelationalExpression(in_, yield_);
         });
@@ -587,40 +651,46 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     AssignmentExpression(in_ = true, yield_ = false) {
         this.Or([
-            { alt: () => this.ConditionalExpression(in_, yield_) },
-            { alt: () => {
+            {alt: () => this.ConditionalExpression(in_, yield_)},
+            {
+                alt: () => {
                     if (yield_) {
                         this.YieldExpression(in_);
                     }
-                }},
-            { alt: () => this.ArrowFunction(in_, yield_) },
-            { alt: () => {
+                }
+            },
+            {alt: () => this.ArrowFunction(in_, yield_)},
+            {
+                alt: () => {
                     this.LeftHandSideExpression(yield_);
                     this.tokenConsumer.Eq();
                     this.AssignmentExpression(in_, yield_);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.LeftHandSideExpression(yield_);
                     this.AssignmentOperator();
                     this.AssignmentExpression(in_, yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     AssignmentOperator() {
         this.Or([
-            { alt: () => this.tokenConsumer.AsteriskEq() },
-            { alt: () => this.tokenConsumer.SlashEq() },
-            { alt: () => this.tokenConsumer.PercentEq() },
-            { alt: () => this.tokenConsumer.PlusEq() },
-            { alt: () => this.tokenConsumer.MinusEq() },
-            { alt: () => this.tokenConsumer.LessLessEq() },
-            { alt: () => this.tokenConsumer.MoreMoreEq() },
-            { alt: () => this.tokenConsumer.MoreMoreMoreEq() },
-            { alt: () => this.tokenConsumer.AmpersandEq() },
-            { alt: () => this.tokenConsumer.CircumflexEq() },
-            { alt: () => this.tokenConsumer.VerticalBarEq() }
+            {alt: () => this.tokenConsumer.AsteriskEq()},
+            {alt: () => this.tokenConsumer.SlashEq()},
+            {alt: () => this.tokenConsumer.PercentEq()},
+            {alt: () => this.tokenConsumer.PlusEq()},
+            {alt: () => this.tokenConsumer.MinusEq()},
+            {alt: () => this.tokenConsumer.LessLessEq()},
+            {alt: () => this.tokenConsumer.MoreMoreEq()},
+            {alt: () => this.tokenConsumer.MoreMoreMoreEq()},
+            {alt: () => this.tokenConsumer.AmpersandEq()},
+            {alt: () => this.tokenConsumer.CircumflexEq()},
+            {alt: () => this.tokenConsumer.VerticalBarEq()}
         ]);
     }
 
@@ -636,49 +706,51 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Statement(yield_ = false, return_ = false) {
         this.Or([
-            { alt: () => this.BlockStatement(yield_, return_) },
-            { alt: () => this.VariableStatement(yield_) },
-            { alt: () => this.EmptyStatement() },
-            { alt: () => this.ExpressionStatement(yield_) },
-            { alt: () => this.IfStatement(yield_, return_) },
-            { alt: () => this.BreakableStatement(yield_, return_) },
-            { alt: () => this.ContinueStatement(yield_) },
-            { alt: () => this.BreakStatement(yield_) },
-            { alt: () => {
+            {alt: () => this.BlockStatement(yield_, return_)},
+            {alt: () => this.VariableStatement(yield_)},
+            {alt: () => this.EmptyStatement()},
+            {alt: () => this.ExpressionStatement(yield_)},
+            {alt: () => this.IfStatement(yield_, return_)},
+            {alt: () => this.BreakableStatement(yield_, return_)},
+            {alt: () => this.ContinueStatement(yield_)},
+            {alt: () => this.BreakStatement(yield_)},
+            {
+                alt: () => {
                     if (return_) {
                         this.ReturnStatement(yield_);
                     }
-                }},
-            { alt: () => this.WithStatement(yield_, return_) },
-            { alt: () => this.LabelledStatement(yield_, return_) },
-            { alt: () => this.ThrowStatement(yield_) },
-            { alt: () => this.TryStatement(yield_, return_) },
-            { alt: () => this.DebuggerStatement() }
+                }
+            },
+            {alt: () => this.WithStatement(yield_, return_)},
+            {alt: () => this.LabelledStatement(yield_, return_)},
+            {alt: () => this.ThrowStatement(yield_)},
+            {alt: () => this.TryStatement(yield_, return_)},
+            {alt: () => this.DebuggerStatement()}
         ]);
     }
 
     @SubhutiRule
     Declaration(yield_ = false) {
         this.Or([
-            { alt: () => this.HoistableDeclaration(yield_, false) },
-            { alt: () => this.ClassDeclaration(yield_, false) },
-            { alt: () => this.LexicalDeclaration(true, yield_) }
+            {alt: () => this.HoistableDeclaration(yield_, false)},
+            {alt: () => this.ClassDeclaration(yield_, false)},
+            {alt: () => this.LexicalDeclaration(true, yield_)}
         ]);
     }
 
     @SubhutiRule
     HoistableDeclaration(yield_ = false, default_ = false) {
         this.Or([
-            { alt: () => this.FunctionDeclaration(yield_, default_) },
-            { alt: () => this.GeneratorDeclaration(yield_, default_) }
+            {alt: () => this.FunctionDeclaration(yield_, default_)},
+            {alt: () => this.GeneratorDeclaration(yield_, default_)}
         ]);
     }
 
     @SubhutiRule
     BreakableStatement(yield_ = false, return_ = false) {
         this.Or([
-            { alt: () => this.IterationStatement(yield_, return_) },
-            { alt: () => this.SwitchStatement(yield_, return_) }
+            {alt: () => this.IterationStatement(yield_, return_)},
+            {alt: () => this.SwitchStatement(yield_, return_)}
         ]);
     }
 
@@ -702,8 +774,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementListItem(yield_ = false, return_ = false) {
         this.Or([
-            { alt: () => this.Statement(yield_, return_) },
-            { alt: () => this.Declaration(yield_) }
+            {alt: () => this.Statement(yield_, return_)},
+            {alt: () => this.Declaration(yield_)}
         ]);
     }
 
@@ -717,8 +789,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LetOrConst() {
         this.Or([
-            { alt: () => this.tokenConsumer.LetTok() },
-            { alt: () => this.tokenConsumer.ConstTok() }
+            {alt: () => this.tokenConsumer.LetTok()},
+            {alt: () => this.tokenConsumer.ConstTok()}
         ]);
     }
 
@@ -734,14 +806,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LexicalBinding(in_ = true, yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.BindingIdentifier(yield_);
                     this.Option(() => this.Initializer(in_, yield_));
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.BindingPattern(yield_);
                     this.Initializer(in_, yield_);
-                }}
+                }
+            }
         ]);
     }
 
@@ -764,22 +840,26 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     VariableDeclaration(in_ = true, yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.BindingIdentifier(yield_);
                     this.Option(() => this.Initializer(in_, yield_));
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.BindingPattern(yield_);
                     this.Initializer(in_, yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     BindingPattern(yield_ = false) {
         this.Or([
-            { alt: () => this.ObjectBindingPattern(yield_) },
-            { alt: () => this.ArrayBindingPattern(yield_) }
+            {alt: () => this.ObjectBindingPattern(yield_)},
+            {alt: () => this.ArrayBindingPattern(yield_)}
         ]);
     }
 
@@ -787,16 +867,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ObjectBindingPattern(yield_ = false) {
         this.tokenConsumer.LBrace();
         this.Or([
-            { alt: () => this.tokenConsumer.RBrace() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.RBrace()},
+            {
+                alt: () => {
                     this.BindingPropertyList(yield_);
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.BindingPropertyList(yield_);
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 
@@ -804,22 +888,28 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ArrayBindingPattern(yield_ = false) {
         this.tokenConsumer.LBracket();
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.Option(() => this.Elision());
                     this.Option(() => this.BindingRestElement(yield_));
                     this.tokenConsumer.RBracket();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.BindingElementList(yield_);
                     this.tokenConsumer.RBracket();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.BindingElementList(yield_);
                     this.tokenConsumer.Comma();
                     this.Option(() => this.Elision());
                     this.Option(() => this.BindingRestElement(yield_));
                     this.tokenConsumer.RBracket();
-                }}
+                }
+            }
         ]);
     }
 
@@ -850,23 +940,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     BindingProperty(yield_ = false) {
         this.Or([
-            { alt: () => this.SingleNameBinding(yield_) },
-            { alt: () => {
+            {alt: () => this.SingleNameBinding(yield_)},
+            {
+                alt: () => {
                     this.PropertyName(yield_);
                     this.tokenConsumer.Colon();
                     this.BindingElement(yield_);
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     BindingElement(yield_ = false) {
         this.Or([
-            { alt: () => this.SingleNameBinding(yield_) },
-            { alt: () => {
+            {alt: () => this.SingleNameBinding(yield_)},
+            {
+                alt: () => {
                     this.BindingPattern(yield_);
                     this.Option(() => this.Initializer(true, yield_));
-                }}
+                }
+            }
         ]);
     }
 
@@ -910,10 +1004,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     IterationStatement(yield_ = false, return_ = false) {
         this.Or([
-            { alt: () => this.DoWhileStatement(yield_, return_) },
-            { alt: () => this.WhileStatement(yield_, return_) },
-            { alt: () => this.ForStatement(yield_, return_) },
-            { alt: () => this.ForInOfStatement(yield_, return_) }
+            {alt: () => this.DoWhileStatement(yield_, return_)},
+            {alt: () => this.WhileStatement(yield_, return_)},
+            {alt: () => this.ForStatement(yield_, return_)},
+            {alt: () => this.ForInOfStatement(yield_, return_)}
         ]);
     }
 
@@ -943,27 +1037,33 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.LParen();
         // TODO: Implement lookahead check for 'let ['
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.Option(() => this.Expression(false, yield_));
                     this.tokenConsumer.Semicolon();
                     this.Option(() => this.Expression(true, yield_));
                     this.tokenConsumer.Semicolon();
                     this.Option(() => this.Expression(true, yield_));
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.VarTok();
                     this.VariableDeclarationList(yield_);
                     this.tokenConsumer.Semicolon();
                     this.Option(() => this.Expression(true, yield_));
                     this.tokenConsumer.Semicolon();
                     this.Option(() => this.Expression(true, yield_));
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.LexicalDeclaration(yield_);
                     this.Option(() => this.Expression(true, yield_));
                     this.tokenConsumer.Semicolon();
                     this.Option(() => this.Expression(true, yield_));
-                }}
+                }
+            }
         ]);
         this.tokenConsumer.RParen();
         this.Statement(yield_, return_);
@@ -974,47 +1074,65 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.ForTok();
         this.tokenConsumer.LParen();
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     // TODO: Implement lookahead check for 'let ['
                     this.LeftHandSideExpression(yield_);
                     this.Or([
-                        { alt: () => {
+                        {
+                            alt: () => {
                                 this.tokenConsumer.InTok();
                                 this.Expression(true, yield_);
-                            }},
-                        { alt: () => {
+                            }
+                        },
+                        {
+                            alt: () => {
                                 this.tokenConsumer.OfTok();
                                 this.AssignmentExpression(true, yield_);
-                            }}
+                            }
+                        }
                     ]);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.VarTok();
                     this.ForBinding(yield_);
                     this.Or([
-                        { alt: () => {
+                        {
+                            alt: () => {
                                 this.tokenConsumer.InTok();
                                 this.Expression(true, yield_);
-                            }},
-                        { alt: () => {
+                            }
+                        },
+                        {
+                            alt: () => {
                                 this.tokenConsumer.OfTok();
                                 this.AssignmentExpression(true, yield_);
-                            }}
+                            }
+                        }
                     ]);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ForDeclaration(yield_);
                     this.Or([
-                        { alt: () => {
+                        {
+                            alt: () => {
                                 this.tokenConsumer.InTok();
                                 this.Expression(true, yield_);
-                            }},
-                        { alt: () => {
+                            }
+                        },
+                        {
+                            alt: () => {
                                 this.tokenConsumer.OfTok();
                                 this.AssignmentExpression(true, yield_);
-                            }}
+                            }
+                        }
                     ]);
-                }}
+                }
+            }
         ]);
         this.tokenConsumer.RParen();
         this.Statement(yield_, return_);
@@ -1029,8 +1147,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ForBinding(yield_ = false) {
         this.Or([
-            { alt: () => this.BindingIdentifier(yield_) },
-            { alt: () => this.BindingPattern(yield_) }
+            {alt: () => this.BindingIdentifier(yield_)},
+            {alt: () => this.BindingPattern(yield_)}
         ]);
     }
 
@@ -1123,8 +1241,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LabelledItem(yield_ = false, return_ = false) {
         this.Or([
-            { alt: () => this.Statement(yield_, return_) },
-            { alt: () => this.FunctionDeclaration(yield_) }
+            {alt: () => this.Statement(yield_, return_)},
+            {alt: () => this.FunctionDeclaration(yield_)}
         ]);
     }
 
@@ -1141,11 +1259,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.TryTok();
         this.Block(yield_, return_);
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.Catch(yield_, return_);
                     this.Option(() => this.Finally(yield_, return_));
-                }},
-            { alt: () => this.Finally(yield_, return_) }
+                }
+            },
+            {alt: () => this.Finally(yield_, return_)}
         ]);
     }
 
@@ -1167,8 +1287,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     CatchParameter(yield_ = false) {
         this.Or([
-            { alt: () => this.BindingIdentifier(yield_) },
-            { alt: () => this.BindingPattern(yield_) }
+            {alt: () => this.BindingIdentifier(yield_)},
+            {alt: () => this.BindingPattern(yield_)}
         ]);
     }
 
@@ -1212,22 +1332,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     FormalParameters(yield_ = false) {
         this.Or([
-            { alt: () => {} }, // empty
-            { alt: () => this.FormalParameterList(yield_) }
+            {
+                alt: () => {
+                }
+            }, // empty
+            {alt: () => this.FormalParameterList(yield_)}
         ]);
     }
 
     @SubhutiRule
     FormalParameterList(yield_ = false) {
         this.Or([
-            { alt: () => this.FunctionRestParameter(yield_) },
-            { alt: () => {
+            {alt: () => this.FunctionRestParameter(yield_)},
+            {
+                alt: () => {
                     this.FormalsList(yield_);
                     this.Option(() => {
                         this.tokenConsumer.Comma();
                         this.FunctionRestParameter(yield_);
                     });
-                }}
+                }
+            }
         ]);
     }
 
@@ -1271,23 +1396,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ArrowParameters(yield_ = false) {
         this.Or([
-            { alt: () => this.BindingIdentifier(yield_) },
-            { alt: () => this.CoverParenthesizedExpressionAndArrowParameterList(yield_) }
+            {alt: () => this.BindingIdentifier(yield_)},
+            {alt: () => this.CoverParenthesizedExpressionAndArrowParameterList(yield_)}
         ]);
     }
 
     @SubhutiRule
     ConciseBody(in_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     // TODO: Implement lookahead check
                     this.AssignmentExpression(in_);
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 
@@ -1301,7 +1430,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     MethodDefinition(yield_ = false) {
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.PropertyName(yield_);
                     this.tokenConsumer.LParen();
                     this.StrictFormalParameters();
@@ -1309,9 +1439,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => this.GeneratorMethod(yield_) },
-            { alt: () => {
+                }
+            },
+            {alt: () => this.GeneratorMethod(yield_)},
+            {
+                alt: () => {
                     this.tokenConsumer.GetTok();
                     this.PropertyName(yield_);
                     this.tokenConsumer.LParen();
@@ -1319,8 +1451,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.tokenConsumer.SetTok();
                     this.PropertyName(yield_);
                     this.tokenConsumer.LParen();
@@ -1329,7 +1463,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 
@@ -1389,11 +1524,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Option(() => {
             // TODO: Implement [no LineTerminator here] check
             this.Or([
-                { alt: () => this.AssignmentExpression(in_, true) },
-                { alt: () => {
+                {alt: () => this.AssignmentExpression(in_, true)},
+                {
+                    alt: () => {
                         this.tokenConsumer.Asterisk();
                         this.AssignmentExpression(in_, true);
-                    }}
+                    }
+                }
             ]);
         });
     }
@@ -1441,12 +1578,14 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ClassElement(yield_ = false) {
         this.Or([
-            { alt: () => this.MethodDefinition(yield_) },
-            { alt: () => {
+            {alt: () => this.MethodDefinition(yield_)},
+            {
+                alt: () => {
                     this.tokenConsumer.StaticTok();
                     this.MethodDefinition(yield_);
-                }},
-            { alt: () => this.tokenConsumer.Semicolon() }
+                }
+            },
+            {alt: () => this.tokenConsumer.Semicolon()}
         ]);
     }
 
@@ -1478,9 +1617,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ModuleItem() {
         this.Or([
-            { alt: () => this.ImportDeclaration() },
-            { alt: () => this.ExportDeclaration() },
-            { alt: () => this.StatementListItem() }
+            {alt: () => this.ImportDeclaration()},
+            {alt: () => this.ExportDeclaration()},
+            {alt: () => this.StatementListItem()}
         ]);
     }
 
@@ -1488,34 +1627,42 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ImportDeclaration() {
         this.tokenConsumer.ImportTok();
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.ImportClause();
                     this.FromClause();
                     this.tokenConsumer.Semicolon();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ModuleSpecifier();
                     this.tokenConsumer.Semicolon();
-                }}
+                }
+            }
         ]);
     }
 
     @SubhutiRule
     ImportClause() {
         this.Or([
-            { alt: () => this.ImportedDefaultBinding() },
-            { alt: () => this.NameSpaceImport() },
-            { alt: () => this.NamedImports() },
-            { alt: () => {
+            {alt: () => this.ImportedDefaultBinding()},
+            {alt: () => this.NameSpaceImport()},
+            {alt: () => this.NamedImports()},
+            {
+                alt: () => {
                     this.ImportedDefaultBinding();
                     this.tokenConsumer.Comma();
                     this.NameSpaceImport();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ImportedDefaultBinding();
                     this.tokenConsumer.Comma();
                     this.NamedImports();
-                }}
+                }
+            }
         ]);
     }
 
@@ -1535,16 +1682,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     NamedImports() {
         this.tokenConsumer.LBrace();
         this.Or([
-            { alt: () => this.tokenConsumer.RBrace() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.RBrace()},
+            {
+                alt: () => {
                     this.ImportsList();
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ImportsList();
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 
@@ -1566,12 +1717,14 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ImportSpecifier() {
         this.Or([
-            { alt: () => this.ImportedBinding() },
-            { alt: () => {
+            {alt: () => this.ImportedBinding()},
+            {
+                alt: () => {
                     this.tokenConsumer.IdentifierName();
                     this.tokenConsumer.AsTok();
                     this.ImportedBinding();
-                }}
+                }
+            }
         ]);
     }
 
@@ -1589,34 +1742,44 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ExportDeclaration() {
         this.tokenConsumer.ExportTok();
         this.Or([
-            { alt: () => {
+            {
+                alt: () => {
                     this.tokenConsumer.Asterisk();
                     this.FromClause();
                     this.tokenConsumer.Semicolon();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ExportClause();
                     this.FromClause();
                     this.tokenConsumer.Semicolon();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ExportClause();
                     this.tokenConsumer.Semicolon();
-                }},
-            { alt: () => this.VariableStatement() },
-            { alt: () => this.Declaration() },
-            { alt: () => {
+                }
+            },
+            {alt: () => this.VariableStatement()},
+            {alt: () => this.Declaration()},
+            {
+                alt: () => {
                     this.tokenConsumer.DefaultTok();
                     this.Or([
-                        { alt: () => this.HoistableDeclaration(false, true) },
-                        { alt: () => this.ClassDeclaration(false, true) },
-                        { alt: () => {
+                        {alt: () => this.HoistableDeclaration(false, true)},
+                        {alt: () => this.ClassDeclaration(false, true)},
+                        {
+                            alt: () => {
                                 // TODO: Implement lookahead check
                                 this.AssignmentExpression(true);
                                 this.tokenConsumer.Semicolon();
-                            }}
+                            }
+                        }
                     ]);
-                }}
+                }
+            }
         ]);
     }
 
@@ -1624,16 +1787,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     ExportClause() {
         this.tokenConsumer.LBrace();
         this.Or([
-            { alt: () => this.tokenConsumer.RBrace() },
-            { alt: () => {
+            {alt: () => this.tokenConsumer.RBrace()},
+            {
+                alt: () => {
                     this.ExportsList();
                     this.tokenConsumer.RBrace();
-                }},
-            { alt: () => {
+                }
+            },
+            {
+                alt: () => {
                     this.ExportsList();
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.RBrace();
-                }}
+                }
+            }
         ]);
     }
 

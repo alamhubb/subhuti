@@ -1,4 +1,4 @@
-import SubhutiParser from "./SubhutiParser";
+import SubhutiParser, {SubhutiParserOr} from "./SubhutiParser";
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
 
 export default class SubhutiTokenConsumer {
@@ -10,5 +10,8 @@ export default class SubhutiTokenConsumer {
 
     consume(tokenName: SubhutiCreateToken) {
         this.instance.consume(tokenName)
+    }
+    or(subhutiParserOrs: SubhutiParserOr[]) {
+        this.instance.Or(subhutiParserOrs)
     }
 }

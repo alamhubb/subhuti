@@ -1,4 +1,5 @@
 import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../subhuti/struct/SubhutiCreateToken";
+import {Es6TokenName} from "../es6/old/Es6Tokens";
 
 export const Es5TokensName = {
     // Keywords
@@ -6,7 +7,7 @@ export const Es5TokensName = {
     BreakTok: 'BreakTok',
     DoTok: 'DoTok',
     InstanceOfTok: 'InstanceOfTok',
-    TypeOfTok: 'TypeOfTok',
+    TypeofTok: 'TypeofTok',
     CaseTok: 'CaseTok',
     ElseTok: 'ElseTok',
     NewTok: 'NewTok',
@@ -29,7 +30,7 @@ export const Es5TokensName = {
     InTok: 'InTok',
     TryTok: 'TryTok',
     SuperTok: 'SuperTok',
-    NullTok: 'NullTok',
+    NullLiteral: 'NullLiteral',
     TrueTok: 'TrueTok',
     FalseTok: 'FalseTok',
     // Identifiers
@@ -67,9 +68,9 @@ export const Es5TokensName = {
     MoreMore: 'MoreMore',
     MoreMoreMore: 'MoreMoreMore',
     Less: 'Less',
-    Greater: 'Greater',
+    More: 'More',
     LessEq: 'LessEq',
-    GreaterEq: 'GreaterEq',
+    MoreEq: 'MoreEq',
     EqEq: 'EqEq',
     NotEq: 'NotEq',
     EqEqEq: 'EqEqEq',
@@ -98,7 +99,7 @@ export const es5TokensObj = {
     BreakTok: createKeywordToken({name: Es5TokensName.BreakTok, pattern: /break/}),
     DoTok: createKeywordToken({name: Es5TokensName.DoTok, pattern: /do/}),
     InstanceOfTok: createKeywordToken({name: Es5TokensName.InstanceOfTok, pattern: /instanceof/}),
-    TypeOfTok: createKeywordToken({name: Es5TokensName.TypeOfTok, pattern: /typeof/}),
+    TypeofTok: createKeywordToken({name: Es5TokensName.TypeofTok, pattern: /typeof/}),
     CaseTok: createKeywordToken({name: Es5TokensName.CaseTok, pattern: /case/}),
     ElseTok: createKeywordToken({name: Es5TokensName.ElseTok, pattern: /else/}),
     NewTok: createKeywordToken({name: Es5TokensName.NewTok, pattern: /new/}),
@@ -121,7 +122,7 @@ export const es5TokensObj = {
     InTok: createKeywordToken({name: Es5TokensName.InTok, pattern: /in/}),
     TryTok: createKeywordToken({name: Es5TokensName.TryTok, pattern: /try/}),
     SuperTok: createKeywordToken({name: Es5TokensName.SuperTok, pattern: /super/}),
-    NullTok: createKeywordToken({name: Es5TokensName.NullTok, pattern: /null/}),
+    NullLiteral: createKeywordToken({name: Es5TokensName.NullLiteral, pattern: /null/}),
     TrueTok: createKeywordToken({name: Es5TokensName.TrueTok, pattern: /true/}),
     FalseTok: createKeywordToken({name: Es5TokensName.FalseTok, pattern: /false/}),
     // Identifiers
@@ -159,9 +160,9 @@ export const es5TokensObj = {
     MoreMore: createToken({name: Es5TokensName.MoreMore, pattern: />>/}),
     MoreMoreMore: createToken({name: Es5TokensName.MoreMoreMore, pattern: />>>/}),
     Less: createToken({name: Es5TokensName.Less, pattern: /</}),
-    Greater: createToken({name: Es5TokensName.Greater, pattern: />/}),
+    More: createToken({name: Es5TokensName.More, pattern: />/}),
     LessEq: createToken({name: Es5TokensName.LessEq, pattern: /<=/}),
-    GreaterEq: createToken({name: Es5TokensName.GreaterEq, pattern: />=/}),
+    MoreEq: createToken({name: Es5TokensName.MoreEq, pattern: />=/}),
     EqEq: createToken({name: Es5TokensName.EqEq, pattern: /==/}),
     NotEq: createToken({name: Es5TokensName.NotEq, pattern: /!=/}),
     EqEqEq: createToken({name: Es5TokensName.EqEqEq, pattern: /===/}),

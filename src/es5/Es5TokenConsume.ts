@@ -11,8 +11,15 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.IdentifierName);
     }
 
-    NullTok() {
-        return this.consume(es5TokensObj.NullTok);
+    NullLiteral() {
+        return this.consume(es5TokensObj.NullLiteral);
+    }
+
+    BooleanLiteral() {
+        this.or([
+            {alt: () => this.TrueTok()},
+            {alt: () => this.FalseTok()}
+        ])
     }
 
     TrueTok() {
@@ -99,8 +106,8 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.VoidTok);
     }
 
-    TypeOfTok() {
-        return this.consume(es5TokensObj.TypeOfTok);
+    TypeofTok() {
+        return this.consume(es5TokensObj.TypeofTok);
     }
 
     Plus() {
@@ -151,8 +158,49 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.Eq);
     }
 
+    AsteriskEq() {
+        return this.consume(es5TokensObj.AsteriskEq);
+    }
+
+    SlashEq() {
+        return this.consume(es5TokensObj.SlashEq);
+    }
+
+    PercentEq() {
+        return this.consume(es5TokensObj.PercentEq);
+    }
+
+    MinusEq() {
+        return this.consume(es5TokensObj.MinusEq);
+    }
+
     PlusEq() {
         return this.consume(es5TokensObj.PlusEq);
+    }
+
+
+    LessLessEq() {
+        return this.consume(es5TokensObj.LessLessEq);
+    }
+
+    MoreMoreEq() {
+        return this.consume(es5TokensObj.MoreMoreEq);
+    }
+
+    MoreMoreMoreEq() {
+        return this.consume(es5TokensObj.MoreMoreMoreEq);
+    }
+
+    AmpersandEq() {
+        return this.consume(es5TokensObj.AmpersandEq);
+    }
+
+    CircumflexEq() {
+        return this.consume(es5TokensObj.CircumflexEq);
+    }
+
+    VerticalBarEq() {
+        return this.consume(es5TokensObj.VerticalBarEq);
     }
 
     EqEq() {
@@ -163,6 +211,10 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.NotEq);
     }
 
+    EqEqEq() {
+        return this.consume(es5TokensObj.EqEqEq);
+    }
+
     NotEqEq() {
         return this.consume(es5TokensObj.NotEqEq);
     }
@@ -171,16 +223,16 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.Less);
     }
 
-    Greater() {
-        return this.consume(es5TokensObj.Greater);
+    More() {
+        return this.consume(es5TokensObj.More);
     }
 
     LessEq() {
         return this.consume(es5TokensObj.LessEq);
     }
 
-    GreaterEq() {
-        return this.consume(es5TokensObj.GreaterEq);
+    MoreEq() {
+        return this.consume(es5TokensObj.MoreEq);
     }
 
     LessLess() {

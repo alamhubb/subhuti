@@ -262,12 +262,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         ]);
     }
 
-    // 以下方法可能需要在 Es5Parser 中实现或重写
-    @SubhutiRule
-    StatementListItem() {
-        // 实现 StatementListItem
-    }
-
     @SubhutiRule
     variableStatement() {
         // 实现 variableStatement
@@ -287,4 +281,34 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     classDeclaration() {
         // 实现 classDeclaration
     }
+
+    BlockStatement(){
+        this.Block()
+    }
+
+    Block(){
+        this.option(()=>{
+            this.StatementList()
+        })
+    }
+
+    StatementList(){
+        this.StatementListItem()
+    }
+    // 以下方法可能需要在 Es5Parser 中实现或重写
+    @SubhutiRule
+    StatementListItem() {
+        // 实现 StatementListItem
+        this.Statement()
+        this.Declaration()
+    }
+
+    Statement(){
+
+    }
+
+    Declaration(){
+
+    }
+
 }

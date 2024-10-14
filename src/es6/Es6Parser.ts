@@ -17,7 +17,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Script() {
-        this.option(() => this.ScriptBody());
+        this.Option(() => this.ScriptBody());
         return this.getCurCst()
     }
 
@@ -29,7 +29,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Module() {
-        this.option(() => this.ModuleBody());
+        this.Option(() => this.ModuleBody());
         return this.getCurCst()
     }
 
@@ -114,9 +114,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     namedImports() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
+        this.Option(() => {
             this.importsList();
-            this.option(() => this.tokenConsumer.Comma());
+            this.Option(() => this.tokenConsumer.Comma());
         });
         this.tokenConsumer.RBrace();
     }
@@ -231,9 +231,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     exportClause() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
+        this.Option(() => {
             this.exportsList();
-            this.option(() => this.tokenConsumer.Comma());
+            this.Option(() => this.tokenConsumer.Comma());
         });
         this.tokenConsumer.RBrace();
     }
@@ -316,7 +316,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Block() {
         this.tokenConsumer.LBrace();
-        this.option(() => this.StatementList());
+        this.Option(() => this.StatementList());
         this.tokenConsumer.RBrace();
     }
 
@@ -365,7 +365,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.BindingIdentifier();
-                    this.option(() => this.Initializer());
+                    this.Option(() => this.Initializer());
                 }
             },
             {
@@ -399,7 +399,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.BindingIdentifier();
-                    this.option(() => this.Initializer());
+                    this.Option(() => this.Initializer());
                 }
             },
             {
@@ -422,9 +422,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ObjectBindingPattern() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
+        this.Option(() => {
             this.BindingPropertyList();
-            this.option(() => this.tokenConsumer.Comma());
+            this.Option(() => this.tokenConsumer.Comma());
         });
         this.tokenConsumer.RBrace();
     }
@@ -435,17 +435,17 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Or([
             {
                 alt: () => {
-                    this.option(() => this.Elision());
-                    this.option(() => this.BindingRestElement());
+                    this.Option(() => this.Elision());
+                    this.Option(() => this.BindingRestElement());
                 }
             },
             {
                 alt: () => {
                     this.BindingElementList();
-                    this.option(() => {
+                    this.Option(() => {
                         this.tokenConsumer.Comma();
-                        this.option(() => this.Elision());
-                        this.option(() => this.BindingRestElement());
+                        this.Option(() => this.Elision());
+                        this.Option(() => this.BindingRestElement());
                     });
                 }
             },
@@ -473,7 +473,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Expression();
         this.tokenConsumer.RParen();
         this.Statement();
-        this.option(() => {
+        this.Option(() => {
             this.tokenConsumer.ElseTok();
             this.Statement();
         });
@@ -494,21 +494,21 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ContinueStatement() {
         this.tokenConsumer.ContinueTok();
-        this.option(() => this.LabelIdentifier());
+        this.Option(() => this.LabelIdentifier());
         this.tokenConsumer.Semicolon();
     }
 
     @SubhutiRule
     BreakStatement() {
         this.tokenConsumer.BreakTok();
-        this.option(() => this.LabelIdentifier());
+        this.Option(() => this.LabelIdentifier());
         this.tokenConsumer.Semicolon();
     }
 
     @SubhutiRule
     ReturnStatement() {
         this.tokenConsumer.ReturnTok();
-        this.option(() => this.Expression());
+        this.Option(() => this.Expression());
         this.tokenConsumer.Semicolon();
     }
 
@@ -562,7 +562,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.tokenConsumer.CatchTok();
-                    this.option(() => this.tokenConsumer.FinallyTok());
+                    this.Option(() => this.tokenConsumer.FinallyTok());
                 }
             },
             {alt: () => this.tokenConsumer.FinallyTok()},
@@ -580,7 +580,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     FunctionDeclaration() {
         this.tokenConsumer.FunctionTok();
-        this.option(() => this.BindingIdentifier());
+        this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
         this.FormalParameters();
         this.tokenConsumer.RParen();
@@ -646,22 +646,22 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ClassDeclaration() {
         this.tokenConsumer.ClassTok();
-        this.option(() => this.BindingIdentifier());
+        this.Option(() => this.BindingIdentifier());
         this.ClassTail();
     }
 
     @SubhutiRule
     ClassExpression() {
         this.tokenConsumer.ClassTok();
-        this.option(() => this.BindingIdentifier());
+        this.Option(() => this.BindingIdentifier());
         this.ClassTail();
     }
 
     @SubhutiRule
     ClassTail() {
-        this.option(() => this.ClassHeritage());
+        this.Option(() => this.ClassHeritage());
         this.tokenConsumer.LBrace();
-        this.option(() => this.ClassBody());
+        this.Option(() => this.ClassBody());
         this.tokenConsumer.RBrace();
     }
 

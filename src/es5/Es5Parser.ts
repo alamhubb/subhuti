@@ -11,14 +11,14 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.1 主表达式
     @SubhutiRule
-    primaryExpression() {
+    PrimaryExpression() {
         this.Or([
             {alt: () => this.tokenConsumer.ThisTok()},
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.AbsLiteral()},
-            {alt: () => this.array()},
-            {alt: () => this.object()},
-            {alt: () => this.parenthesisExpression()},
+            {alt: () => this.Array()},
+            {alt: () => this.Object()},
+            {alt: () => this.ParenthesisExpression()},
         ]);
     }
 
@@ -37,20 +37,20 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.1.6 括号表达式
     @SubhutiRule
-    parenthesisExpression() {
+    ParenthesisExpression() {
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
     }
 
     // 11.1.4 数组初始化器
     @SubhutiRule
-    array() {
+    Array() {
         this.tokenConsumer.LBracket();
         this.MANY(() => {
             this.Or([
-                {alt: () => this.elementList()},
-                {alt: () => this.elision()},
+                {alt: () => this.ElementList()},
+                {alt: () => this.Elision()},
             ]);
         });
         this.tokenConsumer.RBracket();
@@ -58,17 +58,17 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.1.4 数组初始化器 - 元素列表
     @SubhutiRule
-    elementList() {
-        this.assignmentExpression();
+    ElementList() {
+        this.AssignmentExpression();
         this.MANY(() => {
-            this.elision();
-            this.assignmentExpression();
+            this.Elision();
+            this.AssignmentExpression();
         });
     }
 
     // 11.1.4 数组初始化器 - 省略元素
     @SubhutiRule
-    elision() {
+    Elision() {
         this.AT_LEAST_ONE(() => {
             this.tokenConsumer.Comma();
         });
@@ -76,15 +76,15 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.1.5 对象初始化器
     @SubhutiRule
-    object() {
+    Object() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
-            this.propertyAssignment();
+        this.Option(() => {
+            this.PropertyAssignment();
             this.MANY(() => {
                 this.tokenConsumer.Comma();
-                this.propertyAssignment();
+                this.PropertyAssignment();
             });
-            this.option(() => {
+            this.Option(() => {
                 this.tokenConsumer.Comma();
             });
         });
@@ -93,50 +93,50 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.1.5 属性赋值
     @SubhutiRule
-    propertyAssignment() {
+    PropertyAssignment() {
         this.Or([
-            {alt: () => this.regularPropertyAssignment()},
-            {alt: () => this.getPropertyAssignment()},
-            {alt: () => this.setPropertyAssignment()},
+            {alt: () => this.RegularPropertyAssignment()},
+            {alt: () => this.GetPropertyAssignment()},
+            {alt: () => this.SetPropertyAssignment()},
         ]);
     }
 
     // 11.1.5 常规属性赋值
     @SubhutiRule
-    regularPropertyAssignment() {
-        this.propertyName();
+    RegularPropertyAssignment() {
+        this.PropertyName();
         this.tokenConsumer.Colon();
-        this.assignmentExpression();
+        this.AssignmentExpression();
     }
 
     // 11.1.5 getter 属性赋值
     @SubhutiRule
-    getPropertyAssignment() {
+    GetPropertyAssignment() {
         this.tokenConsumer.GetTok();
-        this.propertyName();
+        this.PropertyName();
         this.tokenConsumer.LParen();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
-        this.sourceElements();
+        this.SourceElements();
         this.tokenConsumer.RBrace();
     }
 
     // 11.1.5 setter 属性赋值
     @SubhutiRule
-    setPropertyAssignment() {
+    SetPropertyAssignment() {
         this.tokenConsumer.SetTok();
-        this.propertyName();
+        this.PropertyName();
         this.tokenConsumer.LParen();
         this.tokenConsumer.IdentifierName();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
-        this.sourceElements();
+        this.SourceElements();
         this.tokenConsumer.RBrace();
     }
 
     // 11.1.5 属性名称
     @SubhutiRule
-    propertyName() {
+    PropertyName() {
         this.Or([
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.tokenConsumer.IdentifierName()},
@@ -147,47 +147,47 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.2 左值表达式
     @SubhutiRule
-    memberCallNewExpression() {
+    MemberCallNewExpression() {
         this.MANY(() => {
             this.tokenConsumer.NewTok();
         });
         this.Or([
-            {alt: () => this.primaryExpression()},
-            {alt: () => this.functionExpression()},
+            {alt: () => this.PrimaryExpression()},
+            {alt: () => this.FunctionExpression()},
         ]);
         this.MANY(() => {
             this.Or([
-                {alt: () => this.boxMemberExpression()},
-                {alt: () => this.dotMemberExpression()},
-                {alt: () => this.arguments()},
+                {alt: () => this.BoxMemberExpression()},
+                {alt: () => this.DotMemberExpression()},
+                {alt: () => this.Arguments()},
             ]);
         });
     }
 
     // 11.2.1 属性访问表达式
     @SubhutiRule
-    boxMemberExpression() {
+    BoxMemberExpression() {
         this.tokenConsumer.LBracket();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RBracket();
     }
 
     // 11.2.1 属性访问表达式
     @SubhutiRule
-    dotMemberExpression() {
+    DotMemberExpression() {
         this.tokenConsumer.Dot();
         this.tokenConsumer.IdentifierName();
     }
 
     // 11.2.3 函数调用
     @SubhutiRule
-    arguments() {
+    Arguments() {
         this.tokenConsumer.LParen();
-        this.option(() => {
-            this.assignmentExpression();
+        this.Option(() => {
+            this.AssignmentExpression();
             this.MANY(() => {
                 this.tokenConsumer.Comma();
-                this.assignmentExpression();
+                this.AssignmentExpression();
             });
         });
         this.tokenConsumer.RParen();
@@ -195,9 +195,9 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.3 后缀表达式
     @SubhutiRule
-    postfixExpression() {
-        this.memberCallNewExpression();
-        this.option(() => {
+    PostfixExpression() {
+        this.MemberCallNewExpression();
+        this.Option(() => {
             this.Or([
                 {alt: () => this.tokenConsumer.PlusPlus()},
                 {alt: () => this.tokenConsumer.MinusMinus()},
@@ -207,9 +207,9 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.4 一元运算符
     @SubhutiRule
-    unaryExpression() {
+    UnaryExpression() {
         this.Or([
-            {alt: () => this.postfixExpression()},
+            {alt: () => this.PostfixExpression()},
             {
                 alt: () => {
                     this.Or([
@@ -223,7 +223,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
                         {alt: () => this.tokenConsumer.Tilde()},
                         {alt: () => this.tokenConsumer.Exclamation()},
                     ]);
-                    this.unaryExpression();
+                    this.UnaryExpression();
                 },
             },
         ]);
@@ -231,8 +231,8 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 11.5 乘法运算符, 11.6 加法运算符, 11.7 位移运算符, 11.8 关系运算符, 11.9 相等运算符, 11.10 二进制位运算符, 11.11 二进制逻辑运算符
     @SubhutiRule
-    binaryExpression() {
-        this.unaryExpression();
+    BinaryExpression() {
+        this.UnaryExpression();
         this.MANY(() => {
             this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
@@ -249,7 +249,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
                 {alt: () => this.AbsMultiplicativeOperator()},
                 {alt: () => this.AbsAdditiveOperator()},
             ]);
-            this.unaryExpression();
+            this.UnaryExpression();
         });
     }
 
@@ -325,8 +325,8 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     }
 
     @SubhutiRule
-    binaryExpressionNoIn() {
-        this.unaryExpression();
+    BinaryExpressionNoIn() {
+        this.UnaryExpression();
         this.MANY(() => {
             this.Or([
                 {alt: () => this.AbsAssignmentOperator()},
@@ -342,79 +342,79 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
                 {alt: () => this.AbsMultiplicativeOperator()},
                 {alt: () => this.AbsAdditiveOperator()},
             ]);
-            this.unaryExpression();
+            this.UnaryExpression();
         });
     }
 
     // 11.12 条件运算符
     @SubhutiRule
-    assignmentExpression() {
-        this.binaryExpression();
-        this.option(() => {
+    AssignmentExpression() {
+        this.BinaryExpression();
+        this.Option(() => {
             this.tokenConsumer.Question();
-            this.assignmentExpression();
+            this.AssignmentExpression();
             this.tokenConsumer.Colon();
-            this.assignmentExpression();
+            this.AssignmentExpression();
         });
     }
 
     @SubhutiRule
-    assignmentExpressionNoIn() {
-        this.binaryExpressionNoIn();
-        this.option(() => {
+    AssignmentExpressionNoIn() {
+        this.BinaryExpressionNoIn();
+        this.Option(() => {
             this.tokenConsumer.Question();
-            this.assignmentExpression();
+            this.AssignmentExpression();
             this.tokenConsumer.Colon();
-            this.assignmentExpressionNoIn();
+            this.AssignmentExpressionNoIn();
         });
     }
 
     // 11.14 逗号运算符
     @SubhutiRule
-    expression() {
-        this.assignmentExpression();
+    Expression() {
+        this.AssignmentExpression();
         this.MANY(() => {
             this.tokenConsumer.Comma();
-            this.assignmentExpression();
+            this.AssignmentExpression();
         });
     }
 
     @SubhutiRule
-    expressionNoIn() {
-        this.assignmentExpressionNoIn();
+    ExpressionNoIn() {
+        this.AssignmentExpressionNoIn();
         this.MANY(() => {
             this.tokenConsumer.Comma();
-            this.assignmentExpressionNoIn();
+            this.AssignmentExpressionNoIn();
         });
     }
 
     // 12 语句
     @SubhutiRule
-    statement() {
+    Statement() {
         this.Or([
-            {alt: () => this.block()},
-            {alt: () => this.variableStatement()},
-            {alt: () => this.emptyStatement()},
-            {alt: () => this.labelledStatement()},
-            {alt: () => this.expressionStatement()},
-            {alt: () => this.ifStatement()},
-            {alt: () => this.iterationStatement()},
-            {alt: () => this.continueStatement()},
-            {alt: () => this.breakStatement()},
-            {alt: () => this.returnStatement()},
-            {alt: () => this.withStatement()},
-            {alt: () => this.switchStatement()},
-            {alt: () => this.throwStatement()},
-            {alt: () => this.tryStatement()},
-            {alt: () => this.debuggerStatement()},
+            {alt: () => this.Block()},
+            {alt: () => this.VariableStatement()},
+            {alt: () => this.EmptyStatement()},
+            {alt: () => this.LabelledStatement()},
+            {alt: () => this.ExpressionStatement()},
+            {alt: () => this.IfStatement()},
+            {alt: () => this.IterationStatement()},
+            {alt: () => this.ContinueStatement()},
+            {alt: () => this.BreakStatement()},
+            {alt: () => this.ReturnStatement()},
+            {alt: () => this.WithStatement()},
+            {alt: () => this.SwitchStatement()},
+            {alt: () => this.ThrowStatement()},
+            {alt: () => this.TryStatement()},
+            {alt: () => this.DebuggerStatement()},
         ]);
     }
 
     // 12.1 语句块
     @SubhutiRule
-    block() {
+    Block() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
+        this.Option(() => {
             this.StatementList();
         });
         this.tokenConsumer.RBrace();
@@ -424,35 +424,35 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     StatementList() {
         this.AT_LEAST_ONE(() => {
-            this.statement();
+            this.Statement();
         });
     }
 
     // 12.2 变量语句
     @SubhutiRule
-    variableStatement() {
+    VariableStatement() {
         this.tokenConsumer.VarTok();
-        this.variableDeclarationList();
+        this.VariableDeclarationList();
         this.tokenConsumer.Semicolon();
     }
 
     // 12.2 变量声明列表
     @SubhutiRule
-    variableDeclarationList() {
-        this.variableDeclaration();
+    VariableDeclarationList() {
+        this.VariableDeclaration();
         this.MANY(() => {
             this.tokenConsumer.Comma();
-            this.variableDeclaration();
+            this.VariableDeclaration();
         });
     }
 
     @SubhutiRule
-    variableDeclarationListNoIn() {
+    VariableDeclarationListNoIn() {
         let numOfVars = 1;
-        this.variableDeclarationNoIn();
+        this.VariableDeclarationNoIn();
         this.MANY(() => {
             this.tokenConsumer.Comma();
-            this.variableDeclarationNoIn();
+            this.VariableDeclarationNoIn();
             numOfVars++;
         });
         return numOfVars;
@@ -460,96 +460,96 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.2 变量声明
     @SubhutiRule
-    variableDeclaration() {
+    VariableDeclaration() {
         this.tokenConsumer.IdentifierName();
-        this.option(() => {
-            this.initialiser();
+        this.Option(() => {
+            this.Initialiser();
         });
     }
 
     @SubhutiRule
-    variableDeclarationNoIn() {
+    VariableDeclarationNoIn() {
         this.tokenConsumer.IdentifierName();
-        this.option(() => {
-            this.initialiserNoIn();
+        this.Option(() => {
+            this.InitialiserNoIn();
         });
     }
 
     // 12.2 初始化器
     @SubhutiRule
-    initialiser() {
+    Initialiser() {
         this.tokenConsumer.Eq();
-        this.assignmentExpression();
+        this.AssignmentExpression();
     }
 
     @SubhutiRule
-    initialiserNoIn() {
+    InitialiserNoIn() {
         this.tokenConsumer.Eq();
-        this.assignmentExpressionNoIn();
+        this.AssignmentExpressionNoIn();
     }
 
     // 12.3 空语句
     @SubhutiRule
-    emptyStatement() {
+    EmptyStatement() {
         this.tokenConsumer.Semicolon();
     }
 
     // 12.4 表达式语句
     @SubhutiRule
-    expressionStatement() {
-        this.expression();
+    ExpressionStatement() {
+        this.Expression();
         this.tokenConsumer.Semicolon();
     }
 
     // 12.5 if 语句
     @SubhutiRule
-    ifStatement() {
+    IfStatement() {
         this.tokenConsumer.IfTok();
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
-        this.statement();
-        this.option(() => {
+        this.Statement();
+        this.Option(() => {
             this.tokenConsumer.ElseTok();
-            this.statement();
+            this.Statement();
         });
     }
 
     // 12.6 迭代语句
     @SubhutiRule
-    iterationStatement() {
+    IterationStatement() {
         this.Or([
-            {alt: () => this.doIteration()},
-            {alt: () => this.whileIteration()},
-            {alt: () => this.forIteration()},
+            {alt: () => this.DoIteration()},
+            {alt: () => this.WhileIteration()},
+            {alt: () => this.ForIteration()},
         ]);
     }
 
     // 12.6.1 do-while 语句
     @SubhutiRule
-    doIteration() {
+    DoIteration() {
         this.tokenConsumer.DoTok();
-        this.statement();
+        this.Statement();
         this.tokenConsumer.WhileTok();
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
         this.tokenConsumer.Semicolon();
     }
 
     // 12.6.2 while 语句
     @SubhutiRule
-    whileIteration() {
+    WhileIteration() {
         this.tokenConsumer.WhileTok();
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
-        this.statement();
+        this.Statement();
     }
 
     // 12.6.3 for 语句
     @SubhutiRule
-    forIteration() {
+    ForIteration() {
         let inPossible = false;
         this.tokenConsumer.ForTok();
         this.tokenConsumer.LParen();
@@ -557,41 +557,41 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
             {
                 alt: () => {
                     this.tokenConsumer.VarTok();
-                    const numOfVars = this.variableDeclarationListNoIn();
+                    const numOfVars = this.VariableDeclarationListNoIn();
                     inPossible = numOfVars === 1;
-                    this.forHeaderParts(inPossible);
+                    this.ForHeaderParts(inPossible);
                 },
             },
             {
                 alt: () => {
-                    this.forHeaderParts(inPossible);
+                    this.ForHeaderParts(inPossible);
                 },
             },
         ]);
         this.tokenConsumer.RParen();
-        this.statement();
+        this.Statement();
     }
 
     // 12.6.3 for 语句头部
     @SubhutiRule
-    forHeaderParts(inPossible) {
+    ForHeaderParts(inPossible) {
         this.Or([
             {
                 alt: () => {
                     this.tokenConsumer.Semicolon();
-                    this.option(() => {
-                        this.expression();
+                    this.Option(() => {
+                        this.Expression();
                     });
                     this.tokenConsumer.Semicolon();
-                    this.option(() => {
-                        this.expression();
+                    this.Option(() => {
+                        this.Expression();
                     });
                 },
             },
             {
                 alt: () => {
                     this.tokenConsumer.InTok();
-                    this.expression();
+                    this.Expression();
                 },
             },
         ]);
@@ -599,9 +599,9 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.7 continue 语句
     @SubhutiRule
-    continueStatement() {
+    ContinueStatement() {
         this.tokenConsumer.ContinueTok();
-        this.option(() => {
+        this.Option(() => {
             this.tokenConsumer.IdentifierName();
         });
         this.tokenConsumer.Semicolon();
@@ -609,9 +609,9 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.8 break 语句
     @SubhutiRule
-    breakStatement() {
+    BreakStatement() {
         this.tokenConsumer.BreakTok();
-        this.option(() => {
+        this.Option(() => {
             this.tokenConsumer.IdentifierName();
         });
         this.tokenConsumer.Semicolon();
@@ -619,174 +619,174 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.9 return 语句
     @SubhutiRule
-    returnStatement() {
+    ReturnStatement() {
         this.tokenConsumer.ReturnTok();
-        this.option(() => {
-            this.expression();
+        this.Option(() => {
+            this.Expression();
         });
         this.tokenConsumer.Semicolon();
     }
 
     // 12.10 with 语句
     @SubhutiRule
-    withStatement() {
+    WithStatement() {
         this.tokenConsumer.WithTok();
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
-        this.statement();
+        this.Statement();
     }
 
     // 12.11 switch 语句
     @SubhutiRule
-    switchStatement() {
+    SwitchStatement() {
         this.tokenConsumer.SwitchTok();
         this.tokenConsumer.LParen();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.RParen();
-        this.caseBlock();
+        this.CaseBlock();
     }
 
     // 12.11 case 块
     @SubhutiRule
-    caseBlock() {
+    CaseBlock() {
         this.tokenConsumer.LBrace();
-        this.option(() => {
-            this.caseClauses();
+        this.Option(() => {
+            this.CaseClauses();
         });
-        this.option(() => {
-            this.defaultClause();
+        this.Option(() => {
+            this.DefaultClause();
         });
-        this.option(() => {
-            this.caseClauses();
+        this.Option(() => {
+            this.CaseClauses();
         });
         this.tokenConsumer.RBrace();
     }
 
     // 12.11 case 子句列表
     @SubhutiRule
-    caseClauses() {
+    CaseClauses() {
         this.AT_LEAST_ONE(() => {
-            this.caseClause();
+            this.CaseClause();
         });
     }
 
     // 12.11 case 子句
     @SubhutiRule
-    caseClause() {
+    CaseClause() {
         this.tokenConsumer.CaseTok();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.Colon();
-        this.option(() => {
+        this.Option(() => {
             this.StatementList();
         });
     }
 
     // 12.11 default 子句
     @SubhutiRule
-    defaultClause() {
+    DefaultClause() {
         this.tokenConsumer.DefaultTok();
         this.tokenConsumer.Colon();
-        this.option(() => {
+        this.Option(() => {
             this.StatementList();
         });
     }
 
     // 12.12 标记语句
     @SubhutiRule
-    labelledStatement() {
+    LabelledStatement() {
         this.tokenConsumer.IdentifierName();
         this.tokenConsumer.Colon();
-        this.option(() => {
-            this.statement();
+        this.Option(() => {
+            this.Statement();
         });
     }
 
     // 12.13 throw 语句
     @SubhutiRule
-    throwStatement() {
+    ThrowStatement() {
         this.tokenConsumer.ThrowTok();
-        this.expression();
+        this.Expression();
         this.tokenConsumer.Semicolon();
     }
 
     // 12.14 try 语句
     @SubhutiRule
-    tryStatement() {
+    TryStatement() {
         this.tokenConsumer.TryTok();
-        this.block();
+        this.Block();
         this.Or([
             {
                 alt: () => {
-                    this.catch();
-                    this.option(() => {
-                        this.finally();
+                    this.Catch();
+                    this.Option(() => {
+                        this.Finally();
                     });
                 },
             },
-            {alt: () => this.finally()},
+            {alt: () => this.Finally()},
         ]);
     }
 
     // 12.14 catch 子句
     @SubhutiRule
-    catch() {
+    Catch() {
         this.tokenConsumer.CatchTok();
         this.tokenConsumer.LParen();
         this.tokenConsumer.IdentifierName();
         this.tokenConsumer.RParen();
-        this.block();
+        this.Block();
     }
 
     // 12.14 finally 子句
     @SubhutiRule
-    finally() {
+    Finally() {
         this.tokenConsumer.FinallyTok();
-        this.block();
+        this.Block();
     }
 
     // 12.15 debugger 语句
     @SubhutiRule
-    debuggerStatement() {
+    DebuggerStatement() {
         this.tokenConsumer.DebuggerTok();
         this.tokenConsumer.Semicolon();
     }
 
     // 13 函数定义
     @SubhutiRule
-    functionDeclaration() {
+    FunctionDeclaration() {
         this.tokenConsumer.FunctionTok();
         this.tokenConsumer.IdentifierName();
         this.tokenConsumer.LParen();
-        this.option(() => {
-            this.formalParameterList();
+        this.Option(() => {
+            this.FormalParameterList();
         });
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
-        this.sourceElements();
+        this.SourceElements();
         this.tokenConsumer.RBrace();
     }
 
     // 13 函数表达式
     @SubhutiRule
-    functionExpression() {
+    FunctionExpression() {
         this.tokenConsumer.FunctionTok();
-        this.option(() => {
+        this.Option(() => {
             this.tokenConsumer.IdentifierName();
         });
         this.tokenConsumer.LParen();
-        this.option(() => {
-            this.formalParameterList();
+        this.Option(() => {
+            this.FormalParameterList();
         });
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
-        this.sourceElements();
+        this.SourceElements();
         this.tokenConsumer.RBrace();
     }
 
     // 13 形式参数列表
     @SubhutiRule
-    formalParameterList() {
+    FormalParameterList() {
         this.tokenConsumer.IdentifierName();
         this.MANY(() => {
             this.tokenConsumer.Comma();
@@ -796,16 +796,16 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 14 程序
     @SubhutiRule
-    program() {
+    Program() {
         this.AT_LEAST_ONE(() => {
-            this.sourceElements();
+            this.SourceElements();
         });
         return this.getCurCst();
     }
 
     // 14 源元素
     @SubhutiRule
-    sourceElements() {
+    SourceElements() {
         this.SourceElement()
         return this.getCurCst();
     }
@@ -814,14 +814,14 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     SourceElement() {
         this.Or([
             {
-                alt: () => this.functionDeclaration(),
+                alt: () => this.FunctionDeclaration(),
             },
-            {alt: () => this.statement()},
+            {alt: () => this.Statement()},
         ]);
     }
 
     @SubhutiRule
-    stringLiteral() {
+    StringLiteral() {
         this.tokenConsumer.StringLiteral()
     }
 }

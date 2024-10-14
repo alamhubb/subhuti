@@ -233,7 +233,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer> {
 
     @CheckMethodCanExec
     //匹配0次或者1次
-    option(fun: Function) {
+    Option(fun: Function) {
         this.checkContinueExec();
         this.setAllowError(true);
         this.allowErrorStack.push(true);

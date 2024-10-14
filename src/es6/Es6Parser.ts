@@ -1594,6 +1594,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     Script() {
         // this.Option(() => this.ScriptBody());
         this.ScriptBody()
+        return this.getCurCst()
     }
 
     @SubhutiRule

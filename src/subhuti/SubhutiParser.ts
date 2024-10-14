@@ -113,6 +113,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     checkTokens() {
         //如果可以匹配，
         if (!this._tokens.length) {
+            console.log('token s weikong le ')
             if (!this.allowError) {
                 throw new Error('tokens is empty, please set tokens');
             }
@@ -291,7 +292,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     Or(subhutiParserOrs: SubhutiParserOr[]) {
         this.checkContinueExec();
         this.allowErrorStack.push(true);
-        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+        const tokens = this.tokens
+        console.log(this.curCst.name)
+        console.log('执行了规则了')
+        const tokensBackup = JsonUtil.cloneDeep(tokens);
         const funLength = subhutiParserOrs.length
         let index = 0;
         for (const subhutiParserOr of subhutiParserOrs) {

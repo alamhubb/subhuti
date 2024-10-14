@@ -768,7 +768,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     StatementList(yield_ = false, return_ = false) {
-        this.Many(() => this.StatementListItem(yield_, return_));
+        this.StatementListItem(yield_, return_);
+        // this.Many(() => this.StatementListItem(yield_, return_));
     }
 
     @SubhutiRule
@@ -1591,7 +1592,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Script() {
-        this.Option(() => this.ScriptBody());
+        // this.Option(() => this.ScriptBody());
+        this.ScriptBody()
     }
 
     @SubhutiRule

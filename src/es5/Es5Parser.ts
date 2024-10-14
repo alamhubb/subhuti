@@ -796,7 +796,7 @@ export class Es5Parser extends SubhutiParser {
     // 14 源元素
     @SubhutiRule
     sourceElements() {
-        this.MANY(() => {
+        this.AT_LEAST_ONE(() => {
             this.or([
                 {
                     alt: () => this.functionDeclaration(),

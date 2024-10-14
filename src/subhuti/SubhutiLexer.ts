@@ -1,6 +1,5 @@
 import {SubhutiCreateToken, SubhutiCreateTokenGroupType} from "./struct/SubhutiCreateToken";
 import SubhutiMatchToken, {createMatchToken} from "./struct/SubhutiMatchToken";
-import {Es6TokenName} from "../es6/Es6Tokens";
 
 export default class SubhutiLexer {
     constructor(tokens: SubhutiCreateToken[]) {

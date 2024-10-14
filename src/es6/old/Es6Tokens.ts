@@ -1,4 +1,5 @@
-import { SubhutiCreateTokenGroupType, createKeywordToken, createToken } from "../subhuti/struct/SubhutiCreateToken";
+import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../../subhuti/struct/SubhutiCreateToken";
+
 export enum Es6TokenName {
     let = 'let',
     const = 'const',

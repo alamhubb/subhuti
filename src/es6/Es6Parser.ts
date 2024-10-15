@@ -1616,7 +1616,12 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ModuleItem() {
         this.Or([
-            {alt: () => this.ImportDeclaration()},
+            {
+                alt: () => {
+                    this.ImportDeclaration()
+                    console.log('zhixingwanbi')
+                }
+            },
             {alt: () => this.ExportDeclaration()},
             {alt: () => this.StatementListItem()}
         ]);
@@ -1629,7 +1634,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.ImportClause();
+                    console.log(this.tokens.map(item => item.tokenName))
                     this.FromClause();
+                    console.log(this.tokens.map(item => item.tokenName))
                     this.tokenConsumer.Semicolon();
                 }
             },

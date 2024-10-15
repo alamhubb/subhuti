@@ -206,12 +206,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         let index = 0
         while (this.continueExec) {
             if (index > 0) {
-                this.setAllowError(true);
-                this.allowErrorStack.push(true);
+                this.setAllowErrorNewState()
                 const tokensBackup = JsonUtil.cloneDeep(this.tokens);
                 fun();
                 //必须放这里，会循环push，所以需要循环pop
-                this.allowErrorStack.pop();
+                this.setAllowErrorLastStateAndPop()
                 //If the match fails, the tokens are reset.
                 if (!this.continueExec) {
                     this.setContinueExec(true);
@@ -220,6 +219,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 } else if (this.continueExec) {
                     //校验可执行没问题，因为肯定是可执行
                     if (!this.tokens.length) {
+                        //如果token执行完毕，则跳出
                         break;
                     }
                 }
@@ -238,10 +238,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             index++
         }
-        if (index > 0) {
+        //放循环里面了，逻辑更清晰,不放循环里，还需要判断index > 0
+        /*if (index > 0) {
             //只有index>0 了才需要重置回去状态，放循环里多余，没必要
             this.setAllowError(!!this.allowErrorStack.length);
-        }
+        }*/
         return this.getCurCst();
     }
 
@@ -249,8 +250,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //匹配0次或者1次
     Option(fun: Function) {
         this.checkContinueExec();
-        this.setAllowError(true);
-        this.allowErrorStack.push(true);
+        this.setAllowErrorNewState()
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
         fun();
         //If the match fails, the tokens are reset.
@@ -262,8 +262,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.checkTokens()
         }
         //push了，需要pop
-        this.allowErrorStack.pop();
-        this.setAllowError(!!this.allowErrorStack.length);
+        this.setAllowErrorLastStateAndPop()
         return this.getCurCst();
     }
 
@@ -288,6 +287,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             throw new Error('匹配失败');
         }
+        //如果成功匹配了一个，则将允许错误状态，改为上一个
+        this.setAllowError(false)
         popToken = this.tokens.shift();
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
@@ -300,11 +301,26 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     allowErrorStack = [];
     ruleExecErrorStack = [];
 
+    setAllowErrorLastStateAndPop() {
+        this.allowErrorStack.pop();
+        this.onlySetAllowErrorLastState()
+    }
+
+    onlySetAllowErrorLastState() {
+        this.setAllowError(!!this.allowErrorStack.length)
+    }
+
+
+    setAllowErrorNewState() {
+        this.setAllowError(true);
+        this.allowErrorStack.push(true);
+    }
+
     @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]) {
         this.checkContinueExec();
-        this.allowErrorStack.push(true);
+        this.setAllowErrorNewState()
         const tokens = this.tokens
         // console.log(this.tokens.length)
         // console.log(this.cstStack.map(item => item.name))
@@ -315,7 +331,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             index++;
             //If it is the last round of the for loop, an error will be reported if it fails.
             if (index === funLength) {
-                this.setAllowError(!!this.allowErrorStack.length)
+                this.onlySetAllowErrorLastState()
             } else {
                 this.setAllowError(true);
             }
@@ -330,9 +346,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 break;
             }
         }
-        //必须放这里，如果放 if (this.continueExec) { 下面，可能不被触发，因为有可能所有or都不满足
-        this.allowErrorStack.pop();
-        this.setAllowError(!!this.allowErrorStack.length);
+        //必须放这里，放this.continueExec可能不执行，放index === funLength  也有可能this.continueExec 时不执行，俩地方都放可能执行两次，只能放这里
+        this.setAllowErrorLastStateAndPop()
         return this.getCurCst();
     }
 
@@ -340,8 +355,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //匹配0次或者N次
     Many(fun: Function) {
         this.checkContinueExec();
-        this.setAllowError(true);
-        this.allowErrorStack.push(true);
+        this.setAllowErrorNewState()
         while (this.continueExec) {
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
             fun();
@@ -359,8 +373,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
         }
         //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题
-        this.allowErrorStack.pop();
-        this.setAllowError(!!this.allowErrorStack.length);
+        this.setAllowErrorLastStateAndPop()
         return this.getCurCst();
     }
 

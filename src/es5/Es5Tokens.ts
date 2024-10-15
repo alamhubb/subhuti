@@ -181,7 +181,7 @@ export const es5TokensObj = {
     SlashEq: createToken({name: Es5TokensName.SlashEq, pattern: /\/=/}),
     // Literals
     NumericLiteral: createToken({name: Es5TokensName.NumericLiteral, pattern: /-?\d+(\.\d+)?/}),
-    StringLiteral: createToken({name: Es5TokensName.StringLiteral, pattern: /(['"])(?:\\.|[^\\])*?\1/}),
+    StringLiteral: createToken({name: Es5TokensName.StringLiteral, pattern: /(["'])((?:\\\1|(?:(?!\1|\n|\r).)*)*)\1/}),
     RegularExpressionLiteral: createToken({
         name: Es5TokensName.RegularExpressionLiteral,
         pattern: /\/(?:\\.|[^\\\/])+\/[gimuy]*/

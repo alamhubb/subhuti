@@ -226,7 +226,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.PropertyName();
-                    this.printTokens()
                     this.tokenConsumer.Colon();
                     this.AssignmentExpression();
                 }
@@ -711,7 +710,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     LexicalDeclaration() {
         this.LetOrConst();
         this.BindingList();
-        this.printTokens()
         this.tokenConsumer.Semicolon();
     }
 

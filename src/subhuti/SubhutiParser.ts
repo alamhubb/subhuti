@@ -34,9 +34,6 @@ function CheckMethodCanExec(newTargetFun: any, context) {
     const ruleName = newTargetFun.name;
     // 创建一个新的函数并显式指定函数的名称
     const wrappedFunction = function (...args: any[]) {
-        if (ruleName === 'subhutiRule') {
-            console.log(args[1])
-        }
         this.checkMethodCanExec(newTargetFun, args);
         return this.generateCst(this.curCst);
     }
@@ -68,7 +65,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     printCstStacks() {
-        // console.log(this.cstStack.map(item => item.name).join(','))
+        console.log(this.cstStack.map(item => item.name).join(','))
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -290,16 +287,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             throw new Error('syntax error');
         }
         if (popToken.tokenName !== tokenName) {
-            console.log('bu pei :' + popToken.tokenName)
             this.setContinueExec(false);
             if (this.allowError) {
                 return;
             }
             throw new Error('匹配失败');
-        } else {
-            console.log('pi pei :' + popToken.tokenName)
         }
-        this.printCstStacks()
         //如果成功匹配了一个，则将允许错误状态，改为上一个
         popToken = this.tokens.shift();
         const cst = new SubhutiCst();
@@ -352,7 +345,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             if (this.continueExec) {
-                console.log('tiaochu xunhaun')
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             }

@@ -280,7 +280,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
-        let popToken = this.tokens[0];
+        let popToken = this.getMatchToken(tokenName);
         //容错代码
         if (!popToken) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
@@ -294,13 +294,22 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             throw new Error('匹配失败');
         }
         //如果成功匹配了一个，则将允许错误状态，改为上一个
-        popToken = this.tokens.shift();
+        popToken = this.consumeMatchToken(tokenName)
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
         this.curCst.tokens.push(popToken);
         return this.generateCst(cst);
+    }
+
+    getMatchToken(tokenName: string) {
+        let popToken = this.tokens[0];
+        return popToken;
+    }
+
+    consumeMatchToken(tokenName: string) {
+        return this.tokens.shift();
     }
 
     allowErrorStack = [];

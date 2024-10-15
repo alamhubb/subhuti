@@ -181,27 +181,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
     processCst(ruleName: string, targetFun: Function) {
-        let lastRuleName = ''
-        if (this.cstStack.length) {
-            lastRuleName = this.cstStack[this.cstStack.length - 1].name
-        }
-        if (lastRuleName === ruleName) {
-            console.trace(lastRuleName)
-            console.log('执行次数大于10，返回:' + ruleName)
-            // console.log(this.cstStack.map(item => item.name))
-            // throw new Error('递归调用错误')
-            return null;
-        }
-
-
         let cst = new SubhutiCst();
         cst.name = ruleName;
         cst.children = [];
-        // console.log('进入规则')
 
         this.setCurCst(cst);
-        // console.log(this.curCst.name)
-        // console.log('出去规则')
         this.cstStack.push(cst);
         this.ruleExecErrorStack.push(ruleName);
 

@@ -321,30 +321,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     MemberExpression(yield_ = false) {
         this.Or([
-            {alt: () => this.PrimaryExpression(yield_)},
-            {
-                alt: () => {
-                    this.MemberExpression(yield_);
-                    this.tokenConsumer.LBracket();
-                    this.Expression(true, yield_);
-                    this.tokenConsumer.RBracket();
-                }
-            },
-            {
-                alt: () => {
-                    this.MemberExpression(yield_);
-                    this.tokenConsumer.Dot();
-                    this.tokenConsumer.IdentifierName();
-                }
-            },
-            {
-                alt: () => {
-                    this.MemberExpression(yield_);
-                    this.TemplateLiteral(yield_);
-                }
-            },
-            {alt: () => this.SuperProperty(yield_)},
-            {alt: () => this.MetaProperty()},
+            { alt: () => this.PrimaryExpression(yield_) },
+            { alt: () => this.SuperProperty(yield_) },
+            { alt: () => this.MetaProperty() },
             {
                 alt: () => {
                     this.tokenConsumer.NewTok();
@@ -353,6 +332,29 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 }
             }
         ]);
+        // 使用 Many 处理多个后缀操作（. IdentifierName, [ Expression ], TemplateLiteral）
+        this.Many(() => {
+            this.Or([
+                {
+                    alt: () => {
+                        this.tokenConsumer.Dot();
+                        this.tokenConsumer.IdentifierName();
+                    }
+                },
+                {
+                    alt: () => {
+                        this.tokenConsumer.LBracket();
+                        this.Expression(true, yield_);
+                        this.tokenConsumer.RBracket();
+                    }
+                },
+                {
+                    alt: () => {
+                        this.TemplateLiteral(yield_);
+                    }
+                }
+            ]);
+        });
     }
 
     @SubhutiRule

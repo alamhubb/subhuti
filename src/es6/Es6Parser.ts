@@ -465,9 +465,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         console.log('zhixingle 22222')
         this.Or([
             {alt: () => this.AssignmentExpression()},
-            {alt: () => this.EllipsisAssignmentExpression()}
+            // {alt: () => this.EllipsisAssignmentExpression()}
         ]);
         console.log('zhixingle 33333')
+        // throw new Error('cjvla')
         this.printTokens()
         this.Many(() => {
             this.tokenConsumer.Comma();
@@ -485,8 +486,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LeftHandSideExpression() {
         this.Or([
-            // {alt: () => this.NewExpression()},
-            {alt: () => this.CallExpression()}
+            {
+                alt: () => {
+                    console.log('zhixingle1111')
+                    this.CallExpression()
+                }
+            },
+            {
+                alt: () => {
+                    console.log('zhixingle2222')
+                    this.NewExpression()
+                }
+            }
         ]);
     }
 

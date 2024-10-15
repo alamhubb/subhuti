@@ -101,7 +101,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     setTokens(tokens?: SubhutiMatchToken[]) {
+        let flag = false
+        if (this.tokens && (this.tokens.length !== tokens.length)) {
+            flag = true
+            this.printTokens()
+        }
         this._tokens = tokens;
+        if (flag) {
+            this.printTokens()
+            console.trace('zhignzhi tokens')
+        }
         //这考虑的是什么情况，option、many，都有可能token处理完了，执行option、many，设置token时，需要为可匹配状态
         this.checkTokens();
     }
@@ -183,7 +192,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // ast.stack = parent.stack + '->' + ruleName
         }
         this.allStack.push(ast)
-        console.log('zhixingle :' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
         console.log('wanchengle :' + ruleName)
         if (this.allStack.length > 1) {
@@ -313,6 +321,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return;
             }
+            this.printTokens()
             console.log(popToken.tokenName)
             console.log(tokenName)
             throw new Error('syntax error');

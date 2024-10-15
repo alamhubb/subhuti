@@ -64,14 +64,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     allStack: SubhutiCst[] = [];
 
     //只针对or，特殊，many有可能没匹配就触发true导致不执行下面的，避免这种情况
-    private _matchSuccess = false
+    private _orBreakFlag = false
 
-    get matchSuccess(): boolean {
-        return this._matchSuccess;
+    get orBreakFlag(): boolean {
+        return this._orBreakFlag;
     }
 
-    setMatchSuccess(value: boolean) {
-        this._matchSuccess = value;
+    setOrBreakFlag(value: boolean) {
+        this._orBreakFlag = value;
     }
 
 //必须两个一个不够用，
@@ -349,14 +349,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
             this.setContinueMatch(false);
-            this.setMatchSuccess(false)
+            this.setOrBreakFlag(false)
             // this.setContinueFor(false);
             if (this.allowError) {
                 return;
             }
             throw new Error('syntax error');
         }
-        this.setMatchSuccess(true)
+        this.setOrBreakFlag(true)
         this.setContinueMatch(true)
         //性能优化先不管
         // this.setAllowError(this.allowErrorStack.length > 1)
@@ -426,12 +426,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             this.setContinueMatch(true)
-            this.setMatchSuccess(false)
+            this.setOrBreakFlag(false)
             subhutiParserOr.alt();
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
-            if (this.matchSuccess) {
+            if (this.orBreakFlag) {
                 console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;

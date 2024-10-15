@@ -60,6 +60,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     _continueExec = true;
     thisClassName: string;
     uuid: string;
+    allStack: SubhutiCst[] = [];
 
     printTokens() {
         console.log(this.tokens.map(item => item.tokenName).join(','))
@@ -173,9 +174,21 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.cstStack = [];
             this.ruleExecErrorStack = [];
         }
+        const ast = new SubhutiCst()
+        ast.name = ruleName
+        ast.children = []
+        if (this.allStack.length) {
+            const parent = this.allStack[this.allStack.length - 1]
+            parent.children.push(ast)
+        }
+        this.allStack.push(ast)
         console.log('zhixingle :' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
         console.log('wanchengle :' + ruleName)
+        if (this.allStack.length > 1) {
+            this.allStack.pop()
+        }
+
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
@@ -292,10 +305,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.getMatchToken(tokenName);
-        if (popToken.tokenName === Es5TokensName.LBrace) {
+        if (popToken.tokenName === Es5TokensName.IdentifierName) {
             console.log(6666)
             console.log('this.curCst.name:' + this.curCst.name)
-            this.printCstStacks()
+            // this.printCstStacks()
             console.log(tokenName)
         }
         //容错代码

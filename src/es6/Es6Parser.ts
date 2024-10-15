@@ -446,26 +446,22 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     }
 
     @SubhutiRule
+    EllipsisAssignmentExpression(){
+        this.tokenConsumer.Ellipsis();
+        this.AssignmentExpression();
+    }
+
+    @SubhutiRule
     ArgumentList() {
         this.Or([
             {alt: () => this.AssignmentExpression()},
-            {
-                alt: () => {
-                    this.tokenConsumer.Ellipsis();
-                    this.AssignmentExpression();
-                }
-            }
+            {alt: () => this.EllipsisAssignmentExpression()}
         ]);
         this.Many(() => {
             this.tokenConsumer.Comma();
             this.Or([
                 {alt: () => this.AssignmentExpression()},
-                {
-                    alt: () => {
-                        this.tokenConsumer.Ellipsis();
-                        this.AssignmentExpression();
-                    }
-                }
+                {alt: () => this.EllipsisAssignmentExpression()}
             ]);
         });
     }
@@ -675,25 +671,25 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Statement() {
         this.Or([
-            {alt: () => this.AssignmentExpression()},
-            {alt: () => this.BlockStatement()},
-            {alt: () => this.VariableStatement()},
-            {alt: () => this.EmptyStatement()},
-            {alt: () => this.ExpressionStatement()},
-            {alt: () => this.IfStatement()},
-            {alt: () => this.BreakableStatement()},
-            {alt: () => this.ContinueStatement()},
-            {alt: () => this.BreakStatement()},
+            // {alt: () => this.AssignmentExpression()},
+            // {alt: () => this.BlockStatement()},
+            // {alt: () => this.VariableStatement()},
+            // {alt: () => this.EmptyStatement()},
+            // {alt: () => this.ExpressionStatement()},
+            // {alt: () => this.IfStatement()},
+            // {alt: () => this.BreakableStatement()},
+            // {alt: () => this.ContinueStatement()},
+            // {alt: () => this.BreakStatement()},
             {
                 alt: () => {
                     this.ReturnStatement();
                 }
             },
-            {alt: () => this.WithStatement()},
-            {alt: () => this.LabelledStatement()},
-            {alt: () => this.ThrowStatement()},
-            {alt: () => this.TryStatement()},
-            {alt: () => this.DebuggerStatement()}
+            // {alt: () => this.WithStatement()},
+            // {alt: () => this.LabelledStatement()},
+            // {alt: () => this.ThrowStatement()},
+            // {alt: () => this.TryStatement()},
+            // {alt: () => this.DebuggerStatement()}
         ]);
     }
 
@@ -1164,15 +1160,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ReturnStatement() {
-        console.log('chufale ReturnTok')
-        this.printTokens()
         this.tokenConsumer.ReturnTok();
-        this.printTokens()
         this.Option(() => {
             // TODO: Implement [no LineTerminator here] check
             this.Expression();
         });
-        this.printTokens()
         this.tokenConsumer.Semicolon();
     }
 
@@ -1598,7 +1590,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     StatementListItem() {
         this.Or([
             {alt: () => this.Statement()},
-            {alt: () => this.Declaration()}
+            // {alt: () => this.Declaration()}
         ]);
     }
 

@@ -4,6 +4,7 @@ import JsonUtil from "../utils/JsonUtil";
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
 import Es5TokenConsumer from "../es5/Es5TokenConsume";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
+import {Es5TokensName} from "../es5/Es5Tokens";
 
 export class SubhutiParserOr {
     alt: Function;
@@ -172,7 +173,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.cstStack = [];
             this.ruleExecErrorStack = [];
         }
+        console.log('zhixingle :' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
+        console.log('wanchengle :' + ruleName)
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
@@ -289,6 +292,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.getMatchToken(tokenName);
+        if (popToken.tokenName === Es5TokensName.LBrace) {
+            console.log(6666)
+            console.log('this.curCst.name:' + this.curCst.name)
+            this.printCstStacks()
+            console.log(tokenName)
+        }
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
@@ -298,6 +307,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             throw new Error('syntax error');
         }
+        //性能优化先不管
+        // this.setAllowError(this.allowErrorStack.length > 1)
         //如果成功匹配了一个，则将允许错误状态，改为上一个
         popToken = this.consumeMatchToken(tokenName)
         return this.generateCstByToken(popToken);

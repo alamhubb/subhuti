@@ -1164,11 +1164,15 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ReturnStatement() {
+        console.log('chufale ReturnTok')
+        this.printTokens()
         this.tokenConsumer.ReturnTok();
+        this.printTokens()
         this.Option(() => {
             // TODO: Implement [no LineTerminator here] check
             this.Expression();
         });
+        this.printTokens()
         this.tokenConsumer.Semicolon();
     }
 
@@ -1293,19 +1297,24 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.FunctionTok();
         this.BindingIdentifier();
         this.tokenConsumer.LParen();
-        this.FormalParameters();
+        this.Option(() => {
+            this.FormalParameterList();
+        })
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.FunctionBody();
         this.tokenConsumer.RBrace();
     }
 
+
     @SubhutiRule
     FunctionExpression() {
         this.tokenConsumer.FunctionTok();
         this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
-        this.FormalParameters();
+        this.Option(() => {
+            this.FormalParameterList();
+        });
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.FunctionBody();
@@ -1314,18 +1323,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     StrictFormalParameters() {
-        this.FormalParameters();
-    }
-
-    @SubhutiRule
-    FormalParameters() {
-        this.Or([
-            {
-                alt: () => {
-                }
-            }, // empty
-            {alt: () => this.FormalParameterList()}
-        ]);
+        this.FormalParameterList();
     }
 
     @SubhutiRule
@@ -1365,7 +1363,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     FunctionBody() {
-        this.FunctionStatementList();
+        this.StatementList()
     }
 
     @SubhutiRule
@@ -1479,7 +1477,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.Asterisk();
         this.BindingIdentifier();
         this.tokenConsumer.LParen();
-        this.FormalParameters();
+        this.FormalParameterList();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.GeneratorBody();
@@ -1492,7 +1490,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.Asterisk();
         this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
-        this.FormalParameters();
+        this.FormalParameterList();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.GeneratorBody();
@@ -1575,8 +1573,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Program() {
-        this.StatementList()
+        this.Or([
+            {alt: () => this.ModuleItemList()},
+            {alt: () => this.StatementList()}
+        ]);
         return this.getCurCst()
+    }
+
+    @SubhutiRule
+    ModuleItemList(){
+        this.Or([
+            {alt: () => this.ImportDeclaration()},
+            {alt: () => this.ExportDeclaration()},
+            {alt: () => this.StatementListItem()},
+        ]);
     }
 
     @SubhutiRule
@@ -1587,8 +1597,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementListItem() {
         this.Or([
-            {alt: () => this.ImportDeclaration()},
-            {alt: () => this.ExportDeclaration()},
             {alt: () => this.Statement()},
             {alt: () => this.Declaration()}
         ]);

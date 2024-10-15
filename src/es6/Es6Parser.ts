@@ -321,9 +321,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     MemberExpression(yield_ = false) {
         this.Or([
-            { alt: () => this.PrimaryExpression(yield_) },
-            { alt: () => this.SuperProperty(yield_) },
-            { alt: () => this.MetaProperty() },
+            {alt: () => this.PrimaryExpression(yield_)},
+            {alt: () => this.SuperProperty(yield_)},
+            {alt: () => this.MetaProperty()},
             {
                 alt: () => {
                     this.tokenConsumer.NewTok();
@@ -1597,10 +1597,19 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     }
 
     @SubhutiRule
+    Program() {
+        this.Or([
+            {alt: () => this.Script()},
+            {alt: () => this.Module()},
+        ]);
+        return this.getCurCst()
+    }
+
+    @SubhutiRule
     Script() {
+        console.log('zhixingle')
         // this.Option(() => this.ScriptBody());
         this.ScriptBody()
-        return this.getCurCst()
     }
 
     @SubhutiRule
@@ -1610,7 +1619,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Module() {
-        this.Option(() => this.ModuleBody());
+        console.log('zhixingle22222')
+        this.ModuleBody()
     }
 
     @SubhutiRule

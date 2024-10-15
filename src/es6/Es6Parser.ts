@@ -391,7 +391,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     NewExpression(yield_ = false) {
         this.Or([
-            {alt: () => this.MemberExpression(yield_)},
+            {
+                alt: () => {
+                    this.MemberExpression(yield_)
+                }
+            },
             {
                 alt: () => {
                     this.tokenConsumer.NewTok();

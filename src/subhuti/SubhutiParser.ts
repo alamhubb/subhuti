@@ -17,8 +17,9 @@ enum LogicType {
 }
 
 export function SubhutiRule(targetFun: any, context) {
+    //这部分是初始化时执行
     const ruleName = targetFun.name;
-    // 创建一个新的函数并显式指定函数的名称
+    // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
     const wrappedFunction = function () {
         this.subhutiRule(targetFun, ruleName);
         return this.generateCst(this.curCst);
@@ -28,6 +29,7 @@ export function SubhutiRule(targetFun: any, context) {
     return wrappedFunction
 }
 
+//为什么没有放SubhutiRule里，因为你不是所有的都会执行SubhutiRule
 function CheckMethodCanExec(newTargetFun: any, context) {
     const ruleName = newTargetFun.name;
     // 创建一个新的函数并显式指定函数的名称
@@ -40,6 +42,13 @@ function CheckMethodCanExec(newTargetFun: any, context) {
     return wrappedFunction
 }
 
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0;
+        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiTokenConsumer> {
     tokenConsumer: T
@@ -49,6 +58,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     cstStack: SubhutiCst[] = [];
     _continueExec = true;
     thisClassName: string;
+    uuid: string;
 
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -56,6 +66,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.setTokens(tokens);
         }
         this.thisClassName = this.constructor.name;
+        this.uuid = generateUUID()
     }
 
     get continueExec() {
@@ -170,12 +181,30 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
     processCst(ruleName: string, targetFun: Function) {
+        let lastRuleName = ''
+        if (this.cstStack.length) {
+            lastRuleName = this.cstStack[this.cstStack.length - 1].name
+        }
+        if (lastRuleName === ruleName) {
+            console.trace(lastRuleName)
+            console.log('执行次数大于10，返回:' + ruleName)
+            // console.log(this.cstStack.map(item => item.name))
+            // throw new Error('递归调用错误')
+            return null;
+        }
+
+
         let cst = new SubhutiCst();
         cst.name = ruleName;
         cst.children = [];
+        // console.log('进入规则')
+
         this.setCurCst(cst);
+        // console.log(this.curCst.name)
+        // console.log('出去规则')
         this.cstStack.push(cst);
         this.ruleExecErrorStack.push(ruleName);
+
         // 规则解析
         targetFun.apply(this);
         this.cstStack.pop();
@@ -293,10 +322,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.allowErrorStack.push(true);
         const tokens = this.tokens
-        console.log(this.tokens.length)
-        console.log(this.cstStack.map(item => item.name))
-        console.log(this.curCst.name)
-        console.log('执行了规则了')
+        // console.log(this.tokens.length)
+        // console.log(this.cstStack.map(item => item.name))
         const tokensBackup = JsonUtil.cloneDeep(tokens);
         const funLength = subhutiParserOrs.length
         let index = 0;

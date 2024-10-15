@@ -1610,11 +1610,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         console.log('zhixingle')
         // this.Option(() => this.ScriptBody());
         this.ScriptBody()
+        console.log('zhixingle4444')
     }
 
     @SubhutiRule
     ScriptBody() {
         this.StatementList();
+        console.log('zhixingjieshu3333')
     }
 
     @SubhutiRule

@@ -316,8 +316,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             //If it is the last round of the for loop, an error will be reported if it fails.
             if (index === funLength) {
                 this.setAllowError(!!this.allowErrorStack.length)
+            } else {
+                this.setAllowError(true);
             }
-            this.setAllowError(true);
             this.setContinueExec(true);
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);

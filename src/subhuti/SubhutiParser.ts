@@ -63,7 +63,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     uuid: string;
     allStack: SubhutiCst[] = [];
 
-    //必须两个一个不够用，
+    //只针对or，特殊，many有可能没匹配就触发true导致不执行下面的，避免这种情况
+    private _matchSuccess = false
+
+    get matchSuccess(): boolean {
+        return this._matchSuccess;
+    }
+
+    setMatchSuccess(value: boolean) {
+        this._matchSuccess = value;
+    }
+
+//必须两个一个不够用，
     // 一个是判断是否存在错误，就不继续执行了的，
     // 另一个是判断是否跳出循环的，只有匹配成功才跳出循环 , 只用一个的问题就是 or的时候，
     //
@@ -73,6 +84,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //or，ture进入，执行完是true就跳出，执行完是false就重新执行，改为true，肯定有地方会改为false的呀
     //是否继续匹配
     //是否有错误
+    // 最新问题，如果一个or里面只有一个many，
     get continueMatch() {
         return this._continueMatch;
     }
@@ -81,16 +93,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this._continueMatch = flag;
     }
 
-  /*  private _continueExec = true
+    /*  private _continueExec = true
 
-    setContinueExec(value: boolean) {
-        this._continueExec = value;
-    }
+      setContinueExec(value: boolean) {
+          this._continueExec = value;
+      }
 
-    get continueExec(): boolean {
-        return this._continueExec;
-    }
-*/
+      get continueExec(): boolean {
+          return this._continueExec;
+      }
+  */
     //一个是标识many这种
     //一个是标识token匹配失败了
 
@@ -337,12 +349,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
             this.setContinueMatch(false);
+            this.setMatchSuccess(false)
             // this.setContinueFor(false);
             if (this.allowError) {
                 return;
             }
             throw new Error('syntax error');
         }
+        this.setMatchSuccess(true)
         this.setContinueMatch(true)
         //性能优化先不管
         // this.setAllowError(this.allowErrorStack.length > 1)
@@ -412,11 +426,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
             this.setContinueMatch(true)
+            this.setMatchSuccess(false)
             subhutiParserOr.alt();
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
-            if (this.continueMatch) {
+            if (this.matchSuccess) {
                 console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
@@ -427,11 +442,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.getCurCst();
     }
 
-    @CheckMethodCanExec
+    // @CheckMethodCanExec
     //匹配0次或者N次
     Many(fun: Function) {
         this.checkContinueExec();
         this.setAllowErrorNewState()
+
         while (this.continueMatch) {
             this.setContinueMatch(false)
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);

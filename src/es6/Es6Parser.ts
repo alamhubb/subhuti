@@ -406,7 +406,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.MemberExpression();
-                    console.log('zhixing canshu jiexi')
                     this.Arguments();
                 }
             },
@@ -441,17 +440,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Arguments() {
-        console.log('66666')
-        this.printTokens()
         this.tokenConsumer.LParen();
-        console.log('7777')
-        this.printTokens()
         this.Option(() => this.ArgumentList());
-        console.log('8888')
-        this.printTokens()
         this.tokenConsumer.RParen();
-        console.log('9999')
-        this.printTokens()
     }
 
     @SubhutiRule
@@ -462,39 +453,31 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ArgumentList() {
-        console.log('zhixingle 22222')
         this.Or([
             {alt: () => this.AssignmentExpression()},
             // {alt: () => this.EllipsisAssignmentExpression()}
         ]);
-        console.log('zhixingle 33333')
         // throw new Error('cjvla')
-        this.printTokens()
         this.Many(() => {
             this.tokenConsumer.Comma();
-            console.log('4444444')
             this.Or([
                 {alt: () => this.AssignmentExpression()},
                 {alt: () => this.EllipsisAssignmentExpression()}
             ]);
-            this.printTokens()
         });
-        console.log('555555')
-        this.printTokens()
     }
 
     @SubhutiRule
     LeftHandSideExpression() {
+        //需要保证 CallExpression 在前面执行
         this.Or([
             {
                 alt: () => {
-                    console.log('zhixingle1111')
                     this.CallExpression()
                 }
             },
             {
                 alt: () => {
-                    console.log('zhixingle2222')
                     this.NewExpression()
                 }
             }
@@ -781,7 +764,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     AssignmentExpression() {
-        console.log('zhixingle AssignmentExpression')
         this.Or([
             {alt: () => this.ConditionalExpression()},
             {

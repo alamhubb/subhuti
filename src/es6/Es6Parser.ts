@@ -14,11 +14,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     IdentifierReference() {
         this.Or([
             {alt: () => this.Identifier()},
-            {
-                alt: () => {
-                    this.tokenConsumer.YieldTok();
-                }
-            }
+            {alt: () => this.tokenConsumer.YieldTok()}
         ]);
     }
 
@@ -226,6 +222,15 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     PropertyDefinition() {
         this.Or([
+            //顺序前置，优先匹配
+            {
+                alt: () => {
+                    this.PropertyName();
+                    this.printTokens()
+                    this.tokenConsumer.Colon();
+                    this.AssignmentExpression();
+                }
+            },
             {
                 alt: () => {
                     this.IdentifierReference()
@@ -234,14 +239,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.CoverInitializedName()
-                }
-            },
-            {
-                alt: () => {
-                    this.PropertyName();
-                    this.printTokens()
-                    this.tokenConsumer.Colon();
-                    this.AssignmentExpression();
                 }
             },
             {alt: () => this.MethodDefinition()}

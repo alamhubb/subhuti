@@ -79,16 +79,21 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     Object() {
         this.tokenConsumer.LBrace();
         this.Option(() => {
-            this.PropertyAssignment();
-            this.Many(() => {
-                this.tokenConsumer.Comma();
-                this.PropertyAssignment();
-            });
-            this.Option(() => {
-                this.tokenConsumer.Comma();
-            });
+            this.PropertyNameAndValueList()
         });
         this.tokenConsumer.RBrace();
+    }
+
+    @SubhutiRule
+    PropertyNameAndValueList(){
+        this.PropertyAssignment();
+        this.Many(() => {
+            this.tokenConsumer.Comma();
+            this.PropertyAssignment();
+        });
+        this.Option(() => {
+            this.tokenConsumer.Comma();
+        });
     }
 
     // 11.1.5 属性赋值
@@ -138,7 +143,6 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     PropertyName() {
         this.Or([
-            {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.tokenConsumer.IdentifierName()},
             {alt: () => this.tokenConsumer.StringLiteral()},
             {alt: () => this.tokenConsumer.NumericLiteral()},

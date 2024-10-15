@@ -306,12 +306,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
         let popToken = this.getMatchToken(tokenName);
-        if (popToken.tokenName === Es5TokensName.IdentifierName) {
-            console.log(6666)
-            console.log('this.curCst.name:' + this.curCst.name)
-            // this.printCstStacks()
-            console.log(tokenName)
-        }
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
@@ -319,6 +313,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return;
             }
+            console.log(popToken.tokenName)
+            console.log(tokenName)
             throw new Error('syntax error');
         }
         //性能优化先不管
@@ -348,6 +344,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     consumeMatchToken(tokenName: string) {
+        console.log('xiaohaotoken:' + tokenName)
+        this.printCstStacks()
+        this.printTokens()
         return this.tokens.shift();
     }
 

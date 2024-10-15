@@ -392,7 +392,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     consumeMatchToken(tokenName: string) {
-        return this.tokens.shift();
+        const token = this.tokens.shift();
+        console.log(777)
+        console.log(this.curCst.name)
+        this.printTokens()
+        return token;
     }
 
     allowErrorStack = [];

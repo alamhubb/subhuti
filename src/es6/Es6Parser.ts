@@ -1585,7 +1585,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     console.log('zhixingle module')
-                    this.ModuleItem()
+                    this.ModuleItemList()
                 }
             },
         ]);
@@ -1593,7 +1593,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     }
 
     @SubhutiRule
-    ModuleItem() {
+    ModuleItemList() {
         this.Many(() => {
             this.Or([
                 {alt: () => this.ImportDeclaration()},

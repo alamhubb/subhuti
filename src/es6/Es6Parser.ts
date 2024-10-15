@@ -1576,8 +1576,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Program() {
         this.Or([
-            {alt: () => this.StatementList()},
-            {alt: () => this.ModuleItemList()},
+            {
+                alt: () => {
+                    console.log('zhixing le StatementList')
+                    this.StatementList()
+                }
+            },
+            {
+                alt: () => {
+                    console.log('zhixingle module')
+                    this.ModuleItemList()
+                }
+            },
         ]);
         return this.getCurCst()
     }
@@ -1594,6 +1604,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementList() {
         this.Many(() => this.StatementListItem());
+        console.log('zhixingjieshule')
     }
 
     @SubhutiRule

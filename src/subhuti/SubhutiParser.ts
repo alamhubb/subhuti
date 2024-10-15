@@ -96,7 +96,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     ////校验可执行没问题，因为肯定是可执行
     get tokens() {
-        this.checkTokens();
+        // this.checkTokens();
         return this._tokens;
     }
 
@@ -150,14 +150,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return this.generateCst(this.curCst);
             }
-            throw new Error('匹配失败');
+            return this.generateCst(this.curCst);
         } else if (this.continueExec) {
             //如果可以匹配，
             if (!this.tokens.length) {
                 if (this.allowError) {
                     return this.generateCst(this.curCst);
                 }
-                throw new Error('tokens is empty, please set tokens');
+                return this.generateCst(this.curCst);
             }
         }
         return newTargetFun.apply(this, args);
@@ -180,6 +180,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (this.allStack.length) {
             const parent = this.allStack[this.allStack.length - 1]
             parent.children.push(ast)
+            // ast.stack = parent.stack + '->' + ruleName
         }
         this.allStack.push(ast)
         console.log('zhixingle :' + ruleName)

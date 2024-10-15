@@ -3,6 +3,7 @@ import SubhutiMatchToken from "./SubhutiMatchToken";
 export default class SubhutiCst {
     name: string;
     children?: SubhutiCst[]
+    stack?: string
     tokens?: SubhutiMatchToken[]
     value?: string;
 

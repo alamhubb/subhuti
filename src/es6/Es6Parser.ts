@@ -443,6 +443,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.LParen();
         this.Option(() => this.ArgumentList());
         this.tokenConsumer.RParen();
+        console.log('66666')
+        // this.printTokens()
     }
 
     @SubhutiRule
@@ -457,13 +459,19 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.AssignmentExpression()},
             {alt: () => this.EllipsisAssignmentExpression()}
         ]);
+        console.log('333333333')
+        this.printTokens()
         this.Many(() => {
             this.tokenConsumer.Comma();
+            console.log('4444444')
             this.Or([
                 {alt: () => this.AssignmentExpression()},
                 {alt: () => this.EllipsisAssignmentExpression()}
             ]);
+            this.printTokens()
         });
+        console.log('555555')
+        this.printTokens()
     }
 
     @SubhutiRule

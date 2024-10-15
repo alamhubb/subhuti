@@ -62,6 +62,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     uuid: string;
     allStack: SubhutiCst[] = [];
 
+    //是否继续匹配
+    //是否有错误
+
+    //many中，无线循环，什么时候终止呢， 执行时有个flag，  执行前改为false，如果 执行成功变为true了则可以再次进去，再次进入后将他改为false
+
+
     printTokens() {
         console.log(this.tokens.map(item => item.tokenName).join(','))
     }
@@ -84,6 +90,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     setContinueExec(flag: boolean) {
         this._continueExec = flag;
+        if (flag) {
+            console.trace('shehzi wei true')
+        }
     }
 
     setCurCst(curCst: SubhutiCst) {
@@ -150,6 +159,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return this.generateCst(this.curCst);
             }
+            //为什么删除了抛出错误，因为many，允许不执行，但是仅仅是获取一下tokens，或者已经不可执行时，执行了一下many就报粗了，应该是many内部判断，已经不可执行则不执行，这里判断会导致方法都无法调用
             return this.generateCst(this.curCst);
         } else if (this.continueExec) {
             //如果可以匹配，
@@ -307,6 +317,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
+            console.log(this.curCst.name)
+            console.log('shezhi wei flase')
             this.setContinueExec(false);
             if (this.allowError) {
                 return;
@@ -385,6 +397,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             if (this.continueExec) {
+                console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             }
@@ -400,11 +413,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.setAllowErrorNewState()
         while (this.continueExec) {
+            this.setContinueExec(false)
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
             fun();
             //If the match fails, the tokens are reset.
             if (!this.continueExec) {
-                this.setContinueExec(true);
                 this.setTokens(tokensBackup);
                 break
             } else if (this.continueExec) {
@@ -415,6 +428,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 }
             }
         }
+        this.setContinueExec(true);
         //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题
         this.setAllowErrorLastStateAndPop()
         return this.getCurCst();

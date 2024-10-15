@@ -1580,6 +1580,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     console.log('zhixing le StatementList')
                     this.StatementList()
+                    console.log(this.continueMatch)
                 }
             },
             {

@@ -60,6 +60,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     thisClassName: string;
     uuid: string;
 
+    printTokens() {
+        console.log(this.tokens.map(item => item.tokenName).join(','))
+    }
+
+    printCstStacks() {
+        console.log(this.cstStack.map(item => item.name).join(','))
+    }
 
     constructor(tokens?: SubhutiMatchToken[]) {
         if (tokens) {
@@ -124,7 +131,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     checkTokens() {
         //如果可以匹配，
         if (!this._tokens.length) {
-            console.log('token s weikong le ')
             if (!this.allowError) {
                 throw new Error('tokens is empty, please set tokens');
             }
@@ -287,8 +293,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             throw new Error('匹配失败');
         }
+        this.printCstStacks()
         //如果成功匹配了一个，则将允许错误状态，改为上一个
-        this.setAllowError(false)
         popToken = this.tokens.shift();
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
@@ -322,8 +328,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const tokens = this.tokens
-        // console.log(this.tokens.length)
-        // console.log(this.cstStack.map(item => item.name))
         const tokensBackup = JsonUtil.cloneDeep(tokens);
         const funLength = subhutiParserOrs.length
         let index = 0;

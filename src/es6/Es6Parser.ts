@@ -226,11 +226,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     PropertyDefinition() {
         this.Or([
-            {alt: () => this.IdentifierReference()},
-            {alt: () => this.CoverInitializedName()},
+            {
+                alt: () => {
+                    this.IdentifierReference()
+                }
+            },
+            {
+                alt: () => {
+                    this.CoverInitializedName()
+                }
+            },
             {
                 alt: () => {
                     this.PropertyName();
+                    this.printTokens()
                     this.tokenConsumer.Colon();
                     this.AssignmentExpression();
                 }
@@ -267,12 +276,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     CoverInitializedName() {
         this.IdentifierReference();
         this.Initializer();
-    }
-
-    @SubhutiRule
-    Initializer() {
-        this.tokenConsumer.Eq();
-        this.AssignmentExpression();
     }
 
     @SubhutiRule
@@ -646,32 +649,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         });
     }
 
-    @SubhutiRule
-    AssignmentExpression() {
-        this.Or([
-            {alt: () => this.ConditionalExpression()},
-            {
-                alt: () => {
-                    this.YieldExpression();
-                }
-            },
-            {alt: () => this.ArrowFunction()},
-            {
-                alt: () => {
-                    this.LeftHandSideExpression();
-                    this.tokenConsumer.Eq();
-                    this.AssignmentExpression();
-                }
-            },
-            {
-                alt: () => {
-                    this.LeftHandSideExpression();
-                    this.AssignmentOperator();
-                    this.AssignmentExpression();
-                }
-            }
-        ]);
-    }
 
     @SubhutiRule
     AssignmentOperator() {
@@ -702,6 +679,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Statement() {
         this.Or([
+            {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
             {alt: () => this.VariableStatement()},
             {alt: () => this.EmptyStatement()},
@@ -733,39 +711,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     }
 
     @SubhutiRule
-    HoistableDeclaration() {
-        this.Or([
-            {alt: () => this.FunctionDeclaration()},
-            {alt: () => this.GeneratorDeclaration()}
-        ]);
-    }
-
-    @SubhutiRule
-    BreakableStatement() {
-        this.Or([
-            {alt: () => this.IterationStatement()},
-            {alt: () => this.SwitchStatement()}
-        ]);
-    }
-
-    @SubhutiRule
-    BlockStatement() {
-        this.Block();
-    }
-
-    @SubhutiRule
-    Block() {
-        this.tokenConsumer.LBrace();
-        this.Option(() => this.StatementList());
-        this.tokenConsumer.RBrace();
-    }
-
-    @SubhutiRule
     LexicalDeclaration() {
         this.LetOrConst();
         this.BindingList();
+        this.printTokens()
         this.tokenConsumer.Semicolon();
     }
+
 
     @SubhutiRule
     LetOrConst() {
@@ -800,6 +752,68 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 }
             }
         ]);
+    }
+
+    @SubhutiRule
+    Initializer() {
+        this.tokenConsumer.Eq();
+        this.AssignmentExpression();
+    }
+
+
+    @SubhutiRule
+    AssignmentExpression() {
+        this.Or([
+            {alt: () => this.ConditionalExpression()},
+            {
+                alt: () => {
+                    this.YieldExpression();
+                }
+            },
+            {alt: () => this.ArrowFunction()},
+            {
+                alt: () => {
+                    this.LeftHandSideExpression();
+                    this.tokenConsumer.Eq();
+                    this.AssignmentExpression();
+                }
+            },
+            {
+                alt: () => {
+                    this.LeftHandSideExpression();
+                    this.AssignmentOperator();
+                    this.AssignmentExpression();
+                }
+            }
+        ]);
+    }
+
+    @SubhutiRule
+    HoistableDeclaration() {
+        this.Or([
+            {alt: () => this.FunctionDeclaration()},
+            {alt: () => this.GeneratorDeclaration()}
+        ]);
+    }
+
+    @SubhutiRule
+    BreakableStatement() {
+        this.Or([
+            {alt: () => this.IterationStatement()},
+            {alt: () => this.SwitchStatement()}
+        ]);
+    }
+
+    @SubhutiRule
+    BlockStatement() {
+        this.Block();
+    }
+
+    @SubhutiRule
+    Block() {
+        this.tokenConsumer.LBrace();
+        this.Option(() => this.StatementList());
+        this.tokenConsumer.RBrace();
     }
 
     @SubhutiRule
@@ -1593,9 +1607,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.ImportClause();
-                    console.log(this.tokens.map(item => item.tokenName))
                     this.FromClause();
-                    console.log(this.tokens.map(item => item.tokenName))
                     this.tokenConsumer.Semicolon();
                 }
             },
@@ -1733,8 +1745,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.tokenConsumer.DefaultTok();
                     this.Or([
-                        {alt: () => this.HoistableDeclaration(true)},
-                        {alt: () => this.ClassDeclaration(true)},
+                        {alt: () => this.HoistableDeclaration()},
+                        {alt: () => this.ClassDeclaration()},
                         {
                             alt: () => {
                                 // TODO: Implement lookahead check

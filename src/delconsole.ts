@@ -3,11 +3,11 @@ import ts from 'typescript';
 import fs from 'fs';
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-// 删除 console.log 的 Transformer
+// 删除 console 的 Transformer
 function removeConsoleLogTransformer<T extends ts.Node>(context: ts.TransformationContext) {
     return (rootNode: T): T => {
         function visit(node: ts.Node): ts.Node | undefined {
-            // 检查是否为 console.log 表达式
+            // 检查是否为 consolelog 表达式
             if (ts.isExpressionStatement(node) &&
                 ts.isCallExpression(node.expression) &&
                 ts.isPropertyAccessExpression(node.expression.expression) &&
@@ -56,7 +56,7 @@ function delConsole(filePath: string) {
             throw err;
         // 解析代码为 AST
         const sourceFile = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true);
-        // 使用 Transformer 删除 console.log
+        // 使用 Transformer 删除 consolelog
         const result = ts.transform(sourceFile, [removeConsoleLogTransformer]);
         // 打印出最终的代码，保留空格和换行符
         const printer = ts.createPrinter({ newLine: ts.NewLineKind.CarriageReturnLineFeed });

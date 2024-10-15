@@ -185,6 +185,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     checkMethodCanExec(newTargetFun: any, args: any[]) {
+        if (newTargetFun.name === 'consume') {
+            const tokenname = args[0].name
+            if (tokenname === 'Comma') {
+                console.log('zhixing commaa 44444')
+            }
+        }
         //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
         if (!this.continueMatch) {
             if (this.allowError) {
@@ -199,6 +205,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                     return this.generateCst(this.curCst);
                 }
                 return this.generateCst(this.curCst);
+            }
+        }
+        if (newTargetFun.name === 'consume') {
+            const tokenname = args[0].name
+            if (tokenname === 'Comma') {
+                console.log('zhixing commaa 55555')
             }
         }
         return newTargetFun.apply(this, args);
@@ -326,6 +338,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     @CheckMethodCanExec
     //匹配0次或者1次
     Option(fun: Function) {
+        let lastBreakFlag = this.orBreakFlag
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
@@ -341,6 +354,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             //防御性编程，肯定没问题的代码，因为这里是setAllowError(true)
             this.checkTokens()
         }
+        if (this.orBreakFlag || lastBreakFlag) {
+            this.setOrBreakFlag(lastBreakFlag)
+        }
         //push了，需要pop
         this.setAllowErrorLastStateAndPop()
         return this.getCurCst();
@@ -348,17 +364,25 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     @CheckMethodCanExec
     consume(tokenName: SubhutiCreateToken) {
+        if (tokenName.name === Es5TokensName.Comma) {
+            console.log('zhixing commale22222')
+        }
         this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
+        if (tokenName === Es5TokensName.Comma) {
+            console.log('zhixing commale3333333')
+        }
         let popToken = this.getMatchToken(tokenName);
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
             this.setContinueMatch(false);
+            //内部consume,也需要把标识设为false，有可能深层子设为了true，但是后来又改为了false，如果不同步改就会没同步
+            this.setOrBreakFlag(false);
             // this.setContinueFor(false);
             if (this.allowError) {
                 return;
@@ -468,8 +492,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.setAllowErrorNewState()
 
-        while (this.continueMatch) {
-            this.setContinueMatch(false)
+        let lastBreakState = this.orBreakFlag
+
+        this.setOrBreakFlag(true)
+        while (this.orBreakFlag) {
+            this.setOrBreakFlag(false)
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
             fun();
             //If the match fails, the tokens are reset.
@@ -484,7 +511,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 }
             }
         }
+        //不为true也执行不了额，所以返回设为true
         this.setContinueMatch(true);
+        if (this.orBreakFlag || lastBreakState) {
+            this.setOrBreakFlag(true);
+        }
         //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题
         this.setAllowErrorLastStateAndPop()
         return this.getCurCst();

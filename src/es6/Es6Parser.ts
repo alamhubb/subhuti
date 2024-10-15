@@ -407,6 +407,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.MemberExpression();
                     this.Arguments();
+                    console.log('zuode CallExpression')
                 }
             },
             {
@@ -478,9 +479,16 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             }
         ]);
         console.log('kaishi zhixing many')
+        console.log(this.continueMatch)
+        console.log(this.orBreakFlag)
         this.Many(() => {
             console.log('zhixing xiaohao comma')
+            this.printTokens()
+            console.log('this.continueMatch：' + this.continueMatch)
+            console.log('this.orBreakFlag：' + this.orBreakFlag)
             this.tokenConsumer.Comma();
+            console.log('zhixing xiaohao comma')
+            this.printTokens()
             this.Or([
                 {alt: () => this.AssignmentExpression()},
                 {alt: () => this.EllipsisAssignmentExpression()}
@@ -687,6 +695,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             this.tokenConsumer.Colon();
             this.AssignmentExpression();
         });
+        console.log('this.continueMatch：' + this.continueMatch)
+        console.log('this.orBreakFlag：' + this.orBreakFlag)
     }
 
 
@@ -803,11 +813,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     AssignmentExpression() {
         this.Or([
+            {alt: () => this.ConditionalExpression()},
             {
                 alt: () => {
-                    this.ConditionalExpression()
+                    this.YieldExpression();
                 }
             },
+            {alt: () => this.ArrowFunction()},
+            {
+                alt: () => {
+                    this.LeftHandSideExpression();
+                    this.tokenConsumer.Eq();
+                    this.AssignmentExpression();
+                }
+            },
+            {
+                alt: () => {
+                    this.LeftHandSideExpression();
+                    this.AssignmentOperator();
+                    this.AssignmentExpression();
+                }
+            }
         ]);
     }
 

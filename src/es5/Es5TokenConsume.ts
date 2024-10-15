@@ -1,4 +1,4 @@
-import {es5TokensObj} from "./Es5Tokens";
+import {Es5TokensName, es5TokensObj} from "./Es5Tokens";
 import SubhutiTokenConsumer from "../subhuti/SubhutiTokenConsumer";
 
 //想让他单例，那他就不能有属性。不能有状态。，有状态对象做不了多例

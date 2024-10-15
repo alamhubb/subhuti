@@ -409,7 +409,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.Arguments();
                 }
             },
-            {alt: () => this.SuperCall()}
+            {
+                alt: () => {
+                    this.SuperCall()
+                }
+            }
         ]);
         this.Many(() => {
             this.Or([
@@ -442,6 +446,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     Arguments() {
         this.tokenConsumer.LParen();
         this.Option(() => this.ArgumentList());
+        this.printTokens()
         this.tokenConsumer.RParen();
     }
 
@@ -454,11 +459,27 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ArgumentList() {
         this.Or([
-            {alt: () => this.AssignmentExpression()},
-            // {alt: () => this.EllipsisAssignmentExpression()}
+            {
+                alt: () => {
+                    console.log('kaishi  AssignmentExpression')
+                    this.printTokens()
+                    this.AssignmentExpression()
+                    console.log('end AssignmentExpression')
+                    this.printTokens()
+                    console.log(this.continueMatch)
+                    console.log(this.orBreakFlag)
+                }
+            },
+            {
+                alt: () => {
+                    throw new Error('bu应该触发')
+                    this.EllipsisAssignmentExpression()
+                }
+            }
         ]);
-        // throw new Error('cjvla')
+        console.log('kaishi zhixing many')
         this.Many(() => {
+            console.log('zhixing xiaohao comma')
             this.tokenConsumer.Comma();
             this.Or([
                 {alt: () => this.AssignmentExpression()},
@@ -478,6 +499,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             },
             {
                 alt: () => {
+                    console.log('chufale new preseesion')
                     this.NewExpression()
                 }
             }
@@ -487,20 +509,34 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     PostfixExpression() {
         this.LeftHandSideExpression();
+        console.log('end LeftHandSideExpression')
+        console.log(this.continueMatch)
+        console.log(this.orBreakFlag)
         this.Option(() => {
             this.Or([
                 {alt: () => this.tokenConsumer.PlusPlus()},
                 {alt: () => this.tokenConsumer.MinusMinus()}
             ]);
         });
+        console.log('end PostfixExpression')
+        console.log(this.continueMatch)
+        console.log(this.orBreakFlag)
     }
 
     @SubhutiRule
     UnaryExpression() {
         this.Or([
-            {alt: () => this.PostfixExpression()},
             {
                 alt: () => {
+                    this.PostfixExpression()
+                    console.log('endle  this.PostfixExpression:' + this.continueMatch)
+                    console.log('endle  this.PostfixExpression:' + this.orBreakFlag)
+                }
+            },
+            {
+                alt: () => {
+                    console.log('endle child child:' + this.continueMatch)
+                    console.log('endle child child:' + this.orBreakFlag)
                     this.Or([
                         {alt: () => this.tokenConsumer.DeleteTok()},
                         {alt: () => this.tokenConsumer.VoidTok()},
@@ -516,6 +552,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 }
             }
         ]);
+        console.log('jieshu UnaryExpression:' + this.continueMatch)
     }
 
     @SubhutiRule
@@ -643,6 +680,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ConditionalExpression() {
         this.LogicalORExpression();
+        //这个把orbreak改为了false
         this.Option(() => {
             this.tokenConsumer.Question();
             this.AssignmentExpression();
@@ -765,27 +803,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     AssignmentExpression() {
         this.Or([
-            {alt: () => this.ConditionalExpression()},
             {
                 alt: () => {
-                    this.YieldExpression();
+                    this.ConditionalExpression()
                 }
             },
-            {alt: () => this.ArrowFunction()},
-            {
-                alt: () => {
-                    this.LeftHandSideExpression();
-                    this.tokenConsumer.Eq();
-                    this.AssignmentExpression();
-                }
-            },
-            {
-                alt: () => {
-                    this.LeftHandSideExpression();
-                    this.AssignmentOperator();
-                    this.AssignmentExpression();
-                }
-            }
         ]);
     }
 

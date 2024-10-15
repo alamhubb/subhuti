@@ -8,8 +8,12 @@ export default class SubhutiTokenConsumer {
         this.instance = instance;
     }
 
-    consume(tokenName: SubhutiCreateToken) {
-        this.instance.consume(tokenName)
+    consume(token: SubhutiCreateToken) {
+        console.log('zhixing:' + token.name)
+        this.instance.consume(token)
+        console.log('end:' + token.name)
+        console.log('this.continueMatch：' + this.instance.continueMatch)
+        console.log('this.orBreakFlag：' + this.instance.orBreakFlag)
     }
     or(subhutiParserOrs: SubhutiParserOr[]) {
         this.instance.Or(subhutiParserOrs)

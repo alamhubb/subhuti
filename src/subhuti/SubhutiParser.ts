@@ -58,7 +58,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     initFlag = true;
     curCst: SubhutiCst;
     cstStack: SubhutiCst[] = [];
-    _continueMatch = true;
+    private _continueMatch = true;
     thisClassName: string;
     uuid: string;
     allStack: SubhutiCst[] = [];
@@ -224,7 +224,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // ast.stack = parent.stack + '->' + ruleName
         }
         this.allStack.push(ast)
+
+        console.log('zhixing:' + ruleName)
+        console.log(this.continueMatch)
         let cst = this.processCst(ruleName, targetFun);
+        console.log('end:' + ruleName)
+        console.log('this.continueMatch：' + this.continueMatch)
+        console.log('this.orBreakFlag：' + this.orBreakFlag)
+
         if (this.allStack.length > 1) {
             this.allStack.pop()
         }
@@ -322,7 +329,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+        console.log(8888)
         fun();
+        console.log(9999)
+        console.log(this.curCst.name)
         //If the match fails, the tokens are reset.
         if (!this.continueMatch) {
             this.setContinueMatch(true);
@@ -349,11 +359,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
             this.setContinueMatch(false);
-            this.setOrBreakFlag(false)
             // this.setContinueFor(false);
             if (this.allowError) {
                 return;
             }
+            console.log(popToken.tokenName)
+            console.log(tokenName)
             throw new Error('syntax error');
         }
         this.setOrBreakFlag(true)
@@ -415,7 +426,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const tokensBackup = JsonUtil.cloneDeep(tokens);
         const funLength = subhutiParserOrs.length
         let index = 0;
+
+        let preOrBreakFlag = this.orBreakFlag
+
         for (const subhutiParserOr of subhutiParserOrs) {
+            console.log('or 循环：' + this.curCst.name)
             index++;
             //If it is the last round of the for loop, an error will be reported if it fails.
             if (index === funLength) {
@@ -432,18 +447,23 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
             if (this.orBreakFlag) {
-                console.log('跳出：' + this.curCst.name)
+                console.log('zhixing tiaochu')
+                // console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             }
+        }
+        //本级和上级有一个为true则改为true
+        if (this.orBreakFlag || preOrBreakFlag) {
+            this.setOrBreakFlag(true)
         }
         //必须放这里，放this.continueExec可能不执行，放index === funLength  也有可能this.continueExec 时不执行，俩地方都放可能执行两次，只能放这里
         this.setAllowErrorLastStateAndPop()
         return this.getCurCst();
     }
 
-    // @CheckMethodCanExec
     //匹配0次或者N次
+    @CheckMethodCanExec
     Many(fun: Function) {
         this.checkContinueExec();
         this.setAllowErrorNewState()

@@ -526,14 +526,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     //默认就是遍历生成
-    exec(cst: SubhutiCst = this.getCurCst(), code = '') {
-        //自己决定自己的code 是什么
+    exec(cst: SubhutiCst = this.getCurCst(), code = ''): string {
         if (cst.value) {
-            code += ' ' + cst.value;
+            code = (code + ' ' + cst.value)
         } else {
-            cst.children.forEach(item => {
-                code += ' ' + this.exec(item, code);
-            })
+            const childrenCode = cst.children
+                .map(child => this.exec(child, code))
+                .join('');
+            code = (code + ' ' + childrenCode)
+
         }
         return code.trim();
     }

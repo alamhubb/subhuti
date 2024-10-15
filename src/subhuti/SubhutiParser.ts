@@ -528,11 +528,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //默认就是遍历生成
     exec(cst: SubhutiCst = this.getCurCst(), code = ''): string {
         if (cst.value) {
-            code = (code + ' ' + cst.value)
+            code = (' ' + code + ' ' + cst.value)
         } else {
             const childrenCode = cst.children
                 .map(child => this.exec(child, code))
-                .join('');
+                .join(' ');
             code = (code + ' ' + childrenCode)
 
         }

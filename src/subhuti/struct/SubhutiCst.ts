@@ -16,6 +16,6 @@ export default class SubhutiCst {
     }
 
     pushCstToken(popToken: SubhutiMatchToken) {
-        // this.tokens.push(popToken);
+        this.tokens.push(popToken);
     }
 }

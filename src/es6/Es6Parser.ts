@@ -1327,16 +1327,22 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     FunctionExpression() {
+        console.log(444)
+        this.printTokens()
         this.tokenConsumer.FunctionTok();
         this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
         this.Option(() => {
             this.FormalParameterList();
         });
-        this.tokenConsumer.RParen();
-        this.tokenConsumer.LBrace();
+        console.log(555)
+        this.printTokens()
+        // this.tokenConsumer.RParen();
+        // this.tokenConsumer.LBrace();
+        console.log(666)
+        this.printTokens()
         this.FunctionBody();
-        this.tokenConsumer.RBrace();
+        // this.tokenConsumer.RBrace();
     }
 
     @SubhutiRule

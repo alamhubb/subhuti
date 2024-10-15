@@ -282,19 +282,26 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     consumeToken(tokenName: string) {
         let popToken = this.getMatchToken(tokenName);
         //容错代码
-        if (!popToken) {
+        if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
-            throw new Error('syntax error');
-        }
-        if (popToken.tokenName !== tokenName) {
             this.setContinueExec(false);
             if (this.allowError) {
                 return;
             }
-            throw new Error('匹配失败');
+            throw new Error('syntax error');
         }
         //如果成功匹配了一个，则将允许错误状态，改为上一个
         popToken = this.consumeMatchToken(tokenName)
+        return this.generateCstByToken(popToken);
+    }
+
+    //获取token
+    //如果token不匹配
+    //则返回
+    //token匹配则消除
+
+
+    generateCstByToken(popToken: SubhutiMatchToken) {
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;

@@ -179,6 +179,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         } else {
             if (cst) {
                 const parentCst = this.cstStack[this.cstStack.length - 1];
+                //优化cst展示
+                if (!cst.children.length) {
+                    cst.children = undefined
+                }
+                if (!cst.tokens.length) {
+                    cst.tokens = undefined
+                }
                 parentCst.children.push(cst);
                 this.setCurCst(parentCst);
             }
@@ -190,6 +197,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         let cst = new SubhutiCst();
         cst.name = ruleName;
         cst.children = [];
+        cst.tokens = [];
 
         this.setCurCst(cst);
         this.cstStack.push(cst);
@@ -300,13 +308,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //则返回
     //token匹配则消除
 
-
     generateCstByToken(popToken: SubhutiMatchToken) {
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
         this.curCst.children.push(cst);
-        this.curCst.tokens.push(popToken);
+        this.curCst.pushCstToken(popToken);
         return this.generateCst(cst);
     }
 

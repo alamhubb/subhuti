@@ -681,25 +681,25 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Statement() {
         this.Or([
-            // {alt: () => this.AssignmentExpression()},
-            // {alt: () => this.BlockStatement()},
-            // {alt: () => this.VariableStatement()},
-            // {alt: () => this.EmptyStatement()},
-            // {alt: () => this.ExpressionStatement()},
-            // {alt: () => this.IfStatement()},
-            // {alt: () => this.BreakableStatement()},
-            // {alt: () => this.ContinueStatement()},
-            // {alt: () => this.BreakStatement()},
+            {alt: () => this.AssignmentExpression()},
+            {alt: () => this.BlockStatement()},
+            {alt: () => this.VariableStatement()},
+            {alt: () => this.EmptyStatement()},
+            {alt: () => this.ExpressionStatement()},
+            {alt: () => this.IfStatement()},
+            {alt: () => this.BreakableStatement()},
+            {alt: () => this.ContinueStatement()},
+            {alt: () => this.BreakStatement()},
             {
                 alt: () => {
                     this.ReturnStatement();
                 }
             },
-            // {alt: () => this.WithStatement()},
-            // {alt: () => this.LabelledStatement()},
-            // {alt: () => this.ThrowStatement()},
-            // {alt: () => this.TryStatement()},
-            // {alt: () => this.DebuggerStatement()}
+            {alt: () => this.WithStatement()},
+            {alt: () => this.LabelledStatement()},
+            {alt: () => this.ThrowStatement()},
+            {alt: () => this.TryStatement()},
+            {alt: () => this.DebuggerStatement()}
         ]);
     }
 
@@ -1576,8 +1576,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Program() {
         this.Or([
+            {alt: () => this.StatementList()},
             {alt: () => this.ModuleItemList()},
-            {alt: () => this.StatementList()}
         ]);
         return this.getCurCst()
     }
@@ -1600,7 +1600,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     StatementListItem() {
         this.Or([
             {alt: () => this.Statement()},
-            // {alt: () => this.Declaration()}
+            {alt: () => this.Declaration()}
         ]);
     }
 

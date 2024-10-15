@@ -1,7 +1,7 @@
 import SubhutiCst from "../subhuti/struct/SubhutiCst";
 import SubhutiParser, { SubhutiParserOr, SubhutiRule } from "../subhuti/SubhutiParser";
 import { Es6TokenName } from "../es6/Es6Tokens";
-import Es6CstParser from "../es6/Es6CstParser";
+import Es6Parser from "../es6/Es6Parser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 const mappingTokenMap = {
     const: 'let'
@@ -17,7 +17,7 @@ function traverse(currentNode: SubhutiCst, map = new Map<string, SubhutiCst>) {
     }
     return map;
 }
-export class SubhutiMappingParser extends Es6CstParser {
+export class SubhutiMappingParser extends Es6Parser {
     _generatorMode = false;
     mappingCst: SubhutiCst;
     mappingCstMap: Map<string, SubhutiCst>;

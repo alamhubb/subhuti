@@ -761,20 +761,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     }
 
     @SubhutiRule
-    StatementList() {
-        this.StatementListItem();
-        // this.Many(() => this.StatementListItem());
-    }
-
-    @SubhutiRule
-    StatementListItem() {
-        this.Or([
-            {alt: () => this.Statement()},
-            {alt: () => this.Declaration()}
-        ]);
-    }
-
-    @SubhutiRule
     LexicalDeclaration() {
         this.LetOrConst();
         this.BindingList();
@@ -1580,52 +1566,25 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Program() {
-        this.Or([
-            {alt: () => this.Script()},
-            {alt: () => this.Module()},
-        ]);
+        this.StatementList()
         return this.getCurCst()
     }
 
     @SubhutiRule
-    Script() {
-        // this.Option(() => this.ScriptBody());
-        this.ScriptBody()
+    StatementList() {
+        this.Many(() => this.StatementListItem());
     }
 
     @SubhutiRule
-    ScriptBody() {
-        this.StatementList();
-    }
-
-    @SubhutiRule
-    Module() {
-        this.ModuleBody()
-    }
-
-    @SubhutiRule
-    ModuleBody() {
-        this.ModuleItemList();
-    }
-
-    @SubhutiRule
-    ModuleItemList() {
-        this.Many(() => this.ModuleItem());
-    }
-
-    @SubhutiRule
-    ModuleItem() {
+    StatementListItem() {
         this.Or([
-            {
-                alt: () => {
-                    this.ImportDeclaration()
-                    console.log('zhixingwanbi')
-                }
-            },
+            {alt: () => this.ImportDeclaration()},
             {alt: () => this.ExportDeclaration()},
-            {alt: () => this.StatementListItem()}
+            {alt: () => this.Statement()},
+            {alt: () => this.Declaration()}
         ]);
     }
+
 
     @SubhutiRule
     ImportDeclaration() {

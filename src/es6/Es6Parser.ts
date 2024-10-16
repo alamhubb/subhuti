@@ -3,6 +3,7 @@ import {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 import Es6TokenConsumer, {Es6TokenName} from "./Es6Tokens";
 import JsonUtil from "../utils/JsonUtil";
+import QqqqUtil from "../utils/qqqqUtil";
 
 export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> extends Es5Parser<T> {
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -392,38 +393,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     CallExpression() {
-        this.Or([
-            {
-                alt: () => {
-                    this.MemberExpression();
-                    this.Arguments();
-                }
-            },
-            {
-                alt: () => {
-                    this.SuperCall()
-                }
-            }
-        ]);
-        this.Many(() => {
-            this.Or([
-                {alt: () => this.Arguments()},
-                {
-                    alt: () => {
-                        this.tokenConsumer.LBracket();
-                        this.Expression();
-                        this.tokenConsumer.RBracket();
-                    }
-                },
-                {
-                    alt: () => {
-                        this.tokenConsumer.Dot();
-                        this.tokenConsumer.IdentifierName();
-                    }
-                },
-                {alt: () => this.TemplateLiteral()}
-            ]);
-        });
+        this.MemberExpression();
+        this.Arguments();
     }
 
     @SubhutiRule
@@ -747,7 +718,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Let() {
-        console.log('zhixingle fuyuansude ')
+        QqqqUtil.log('zhixingle fuyuansude ')
         this.tokenConsumer.LetTok()
     }
 
@@ -787,6 +758,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     AssignmentExpression() {
+        QqqqUtil.log('jinrule zhixing')
         this.Or([
             {alt: () => this.ConditionalExpression()},
             {
@@ -1444,7 +1416,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.PropertyName();
                     this.tokenConsumer.LParen();
                     this.FormalParameters();
-                    console.log(this.continueMatch)
                     this.tokenConsumer.RParen();
                     //这里改为了false，后面年度没执行
                     this.tokenConsumer.LBrace();
@@ -1454,7 +1425,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             },
             {
                 alt: () => {
-                    throw new Error('不应该执行这里1111')
                     this.GeneratorMethod()
                 }
             },

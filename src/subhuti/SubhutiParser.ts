@@ -6,6 +6,7 @@ import Es5TokenConsumer from "../es5/Es5TokenConsume";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
 import {Es5TokensName} from "../es5/Es5Tokens";
 import {Function} from "acorn";
+import QqqqUtil from "../utils/qqqqUtil";
 
 const pathNameSymbol = '$$'
 
@@ -98,15 +99,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 //many中，无线循环，什么时候终止呢， 执行时有个flag，  执行前改为false，如果 执行成功变为true了则可以再次进去，再次进入后将他改为false
 
     printCst() {
-        console.log(this.getCurCst())
+        QqqqUtil.log(this.getCurCst())
     }
 
     printTokens() {
-        console.log(this.tokens.map(item => item.tokenName).join(','))
+        QqqqUtil.log(this.tokens.map(item => item.tokenName).join(','))
     }
 
     printCstStacks() {
-        console.log(this.cstStack.map(item => item.name).join(','))
+        QqqqUtil.log(this.cstStack.map(item => item.name).join(','))
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -171,6 +172,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         } else if (this.continueMatch) {
             //如果可以匹配，
             if (this.tokenNotUse) {
+                QqqqUtil.log('return tokenNotUse')
                 return false
             }
         }
@@ -208,6 +210,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     subhutiRule(targetFun: any, ruleName: string) {
+        QqqqUtil.log('zhixing1111:' + ruleName)
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
@@ -216,10 +219,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.cstStack = [];
             this.ruleExecErrorStack = [];
         } else {
-            if (!this.checkMethodCanExec){
+            if (!this.checkMethodCanExec) {
                 return
             }
         }
+        QqqqUtil.log('zhixing222:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
 
         if (initFlag) {
@@ -256,7 +260,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.setCurCst(cst);
         this.cstStack.push(cst);
         this.ruleExecErrorStack.push(ruleName);
-
         // 规则解析
         targetFun.apply(this);
         this.cstStack.pop();
@@ -269,7 +272,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //匹配1次或者N次
     AT_LEAST_ONE(fun: Function) {
-        if (!this.checkMethodCanExec){
+        if (!this.checkMethodCanExec) {
             return
         }
         this.checkContinueExec();
@@ -324,7 +327,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //匹配0次或者1次
     Option(fun: Function) {
-        if (!this.checkMethodCanExec){
+        if (!this.checkMethodCanExec) {
             return
         }
         let lastBreakFlag = this.orBreakFlag
@@ -350,7 +353,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
 
     consume(tokenName: SubhutiCreateToken) {
-        if (!this.checkMethodCanExec){
+        if (!this.checkMethodCanExec) {
             return
         }
         this.checkContinueExec()
@@ -424,9 +427,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]) {
-        if (!this.checkMethodCanExec){
+        QqqqUtil.log('zhixingor kaishi')
+        if (!this.checkMethodCanExec) {
             return
         }
+        QqqqUtil.log('zhixingor kaishi111')
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const funLength = subhutiParserOrs.length
@@ -487,7 +492,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     Many(fun: Function) {
-        if (!this.checkMethodCanExec){
+        if (!this.checkMethodCanExec) {
             return
         }
         this.checkContinueExec();

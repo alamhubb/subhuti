@@ -361,7 +361,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.checkTokensAndContinueMatch()
         }
         if (this.orBreakFlag || lastBreakFlag) {
-            this.setOrBreakFlag(lastBreakFlag)
+            this.setOrBreakFlag(true)
         }
         //push了，需要pop
         this.setAllowErrorLastStateAndPop()
@@ -447,7 +447,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const funLength = subhutiParserOrs.length
         let index = 0;
 
-        let preOrBreakFlag = this.orBreakFlag
+        let lastBreakFlag = this.orBreakFlag
 
         for (const subhutiParserOr of subhutiParserOrs) {
             index++;
@@ -461,27 +461,27 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
 
             //考虑到执行空的话，如果执行了空元素，应该是跳出的
-            this.setContinueMatch(true)
             this.setOrBreakFlag(false)
             subhutiParserOr.alt();
 
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
-            if (this.orBreakFlag) {
+            if (this.continueForAndNoBreak) {
                 // console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
+            } else if (!this.continueForAndNoBreak) {
+                //匹配失败
+                if (index !== funLength) {
+                    //只要不为最后一次，都设为true
+                    //没逃出，则重置数据，继续执行
+                    this.setTokensAndParentChildren(tokensBackup, parentChildrenBack)
+                }
             }
-            if (index !== funLength) {
-                //只要不为最后一次，都设为true
-                //没逃出，则重置数据，继续执行
-                this.setTokensAndParentChildren(tokensBackup, parentChildrenBack)
-            }
-
         }
         //本级和上级有一个为true则改为true
-        if (this.orBreakFlag || preOrBreakFlag) {
+        if (this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true)
         }
         //必须放这里，放this.continueExec可能不执行，放index === funLength  也有可能this.continueExec 时不执行，俩地方都放可能执行两次，只能放这里
@@ -505,7 +505,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //不需要 再循环内部修改，因为如果子节点改了，退出子节点时也会重置回来的
         this.setAllowErrorNewState()
 
-        let lastBreakState = this.orBreakFlag
+        let lastBreakFlag = this.orBreakFlag
 
         let tokensBackup = JsonUtil.cloneDeep(this.tokens);
         let parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
@@ -541,7 +541,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!breakFlag) {
             throw new Error('不可能的情况')
         }
-        if (this.orBreakFlag || lastBreakState) {
+        if (this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true);
         }
         //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题

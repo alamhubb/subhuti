@@ -174,10 +174,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     checkMethodCanExec(newTargetFun: any, args: any[]) {
-        if (newTargetFun.name === 'subhutiRule') {
-            console.log(args[1])
-            console.log('zhixingle')
-        }
         //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
         if (!this.continueMatch) {
             if (this.allowError) {

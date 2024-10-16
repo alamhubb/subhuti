@@ -169,7 +169,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!this.continueMatch) {
             throw new Error('syntax error');
         }
-        if (this.tokenIsEmpty) {
+        if (this.tokenCanUse) {
             throw new Error('tokens is empty, please set tokens');
         }
         // this.checkTokens()
@@ -185,7 +185,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             return this.generateCst(this.curCst);
         } else if (this.continueMatch) {
             //如果可以匹配，
-            if (this.tokenIsEmpty) {
+            if (this.tokenCanUse) {
                 if (this.allowError) {
                     return this.generateCst(this.curCst);
                 }
@@ -195,7 +195,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return newTargetFun.apply(this, args);
     }
 
+    get tokenCanUse(){
+        return !this.tokenIsEmpty
+    }
+
     get tokenIsEmpty() {
+        //子类重写了
         return !this._tokens || !this._tokens.length
     }
 
@@ -528,7 +533,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.continueForAndNoBreak) {
                 //校验可执行没问题，因为肯定是可执行
                 //如果上一次把token处理空了，应该跳出，否则会再次进入
-                if (this.tokenIsEmpty) {
+                if (!this.tokenCanUse) {
                     //如果没有tokens需要处理了，则跳出
                     //如果while一次也未执行成功，则会执行这个,处理的是 this.tokenIsEmpty 的情况
                     //这里不要 setTokensAndParentChildren ，执行成功没有tokens，了不需要重置

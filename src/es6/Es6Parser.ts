@@ -724,14 +724,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     LexicalDeclaration() {
         this.LetOrConst();
+        this.printTokens()
         this.BindingList();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
+    }
+
+    EmptySemicolon(){
+        this.Option(()=>{
+            this.tokenConsumer.Semicolon()
+        })
     }
 
 
     @SubhutiRule
     LetOrConst() {
-        console.log('fuyuansu LetOrConst')
         this.Or([
             {alt: () => this.Let()},
             {alt: () => this.tokenConsumer.ConstTok()}
@@ -837,7 +843,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     VariableStatement() {
         this.tokenConsumer.VarTok();
         this.VariableDeclarationList();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -990,14 +996,14 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     EmptyStatement() {
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
     ExpressionStatement() {
         // TODO: Implement lookahead check
         this.Expression();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1031,7 +1037,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.LParen();
         this.Expression();
         this.tokenConsumer.RParen();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1052,9 +1058,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.Option(() => this.Expression());
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                     this.Option(() => this.Expression());
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                     this.Option(() => this.Expression());
                 }
             },
@@ -1062,9 +1068,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.tokenConsumer.VarTok();
                     this.VariableDeclarationList();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                     this.Option(() => this.Expression());
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                     this.Option(() => this.Expression());
                 }
             },
@@ -1072,7 +1078,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.LexicalDeclaration();
                     this.Option(() => this.Expression());
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                     this.Option(() => this.Expression());
                 }
             }
@@ -1171,7 +1177,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             // TODO: Implement [no LineTerminator here] check
             this.LabelIdentifier();
         });
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1181,7 +1187,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             // TODO: Implement [no LineTerminator here] check
             this.LabelIdentifier();
         });
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1191,7 +1197,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             // TODO: Implement [no LineTerminator here] check
             this.Expression();
         });
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1263,7 +1269,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.ThrowTok();
         // TODO: Implement [no LineTerminator here] check
         this.Expression();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
     @SubhutiRule
@@ -1307,7 +1313,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     DebuggerStatement() {
         this.tokenConsumer.DebuggerTok();
-        this.tokenConsumer.Semicolon();
+        this.EmptySemicolon();
     }
 
 
@@ -1583,7 +1589,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.MethodDefinition();
                 }
             },
-            {alt: () => this.tokenConsumer.Semicolon()}
+            {alt: () => this.EmptySemicolon()}
         ]);
     }
 
@@ -1639,13 +1645,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.ImportClause();
                     this.FromClause();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                 }
             },
             {
                 alt: () => {
                     this.ModuleSpecifier();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                 }
             }
         ]);
@@ -1754,20 +1760,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.tokenConsumer.Asterisk();
                     this.FromClause();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                 }
             },
             {
                 alt: () => {
                     this.ExportClause();
                     this.FromClause();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                 }
             },
             {
                 alt: () => {
                     this.ExportClause();
-                    this.tokenConsumer.Semicolon();
+                    this.EmptySemicolon();
                 }
             },
             {alt: () => this.VariableStatement()},
@@ -1782,7 +1788,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                             alt: () => {
                                 // TODO: Implement lookahead check
                                 this.AssignmentExpression();
-                                this.tokenConsumer.Semicolon();
+                                this.EmptySemicolon();
                             }
                         }
                     ]);

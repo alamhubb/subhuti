@@ -229,9 +229,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     @CheckMethodCanExec
     subhutiRule(targetFun: any, ruleName: string) {
-        if (ruleName === 'Program') {
-            console.log('zhixingle ')
-        }
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
@@ -381,7 +378,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     @CheckMethodCanExec
     consume(tokenName: SubhutiCreateToken) {
-        // console.log('zhixingle CheckMethodCanExec consume')
         this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
@@ -480,7 +476,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
             if (this.continueForAndNoBreak) {
-                // console.log('跳出：' + this.curCst.name)
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             } else if (!this.continueForAndNoBreak) {

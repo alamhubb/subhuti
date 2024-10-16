@@ -723,10 +723,15 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     LexicalDeclaration() {
+        console.log('zhixingle LexicalDeclaration')
         this.LetOrConst();
+        this.printCst()
         this.printTokens()
+        this.printCst()
         this.BindingList();
+        this.printCst()
         this.EmptySemicolon();
+        return this.getCurCst()
     }
 
     EmptySemicolon(){

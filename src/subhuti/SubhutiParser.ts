@@ -273,11 +273,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     processCst(ruleName: string, targetFun: Function) {
         let cst = new SubhutiCst();
         cst.name = ruleName;
-        if (this.curCst) {
-            cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
-        } else {
-            cst.pathName = ruleName
-        }
+        // if (this.curCst) {
+        //     cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
+        // } else {
+        //     cst.pathName = ruleName
+        // }
         cst.children = [];
         cst.tokens = [];
 
@@ -410,7 +410,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
-        cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
+        // cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
         this.curCst.children.push(cst);
         this.curCst.pushCstToken(popToken);
         return this.generateCst(cst);

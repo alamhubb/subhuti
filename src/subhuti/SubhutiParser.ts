@@ -225,6 +225,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         }
         this.allStack.push(ast)
 
+        console.log('zhixingle:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
 
         if (this.allStack.length > 1) {
@@ -393,8 +394,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     consumeMatchToken(tokenName: string) {
         const token = this.tokens.shift();
-        console.log(777)
-        console.log(this.curCst.name)
         this.printTokens()
         return token;
     }
@@ -439,8 +438,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             const tokens = JsonUtil.cloneDeep(tokensBackup);
             this.setTokens(tokens);
+            //考虑到执行空的话，如果执行了空元素，应该是跳出的
             this.setContinueMatch(true)
-            this.setOrBreakFlag(false)
+            this.setOrBreakFlag(true)
             subhutiParserOr.alt();
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出

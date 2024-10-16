@@ -1314,31 +1314,50 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     FunctionDeclaration() {
         this.tokenConsumer.FunctionTok();
+        console.log(this.continueMatch)
         this.BindingIdentifier();
+        console.log(this.continueMatch)
         this.tokenConsumer.LParen();
+        console.log(this.continueMatch)
         this.Option(() => {
-            this.FormalParameterList();
-        });
+            this.FormalParameters();
+        })
+        console.log(this.continueMatch)
         this.tokenConsumer.RParen();
-        this.tokenConsumer.LBrace();
-        this.FunctionBody();
-        this.tokenConsumer.RBrace();
+        console.log(this.continueMatch)
+        // this.tokenConsumer.LBrace();
+        // this.FunctionBody();
+        // this.tokenConsumer.RBrace();
     }
 
     @SubhutiRule
     FunctionExpression() {
         this.tokenConsumer.FunctionTok();
-        this.Option(() => this.BindingIdentifier());
+        // this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
-        this.Option(() => {
-            this.FormalParameterList();
-        });
+
         this.tokenConsumer.RParen();
-        this.tokenConsumer.LBrace();
-        this.printTokens()
-        this.printCstStacks()
-        this.FunctionBody();
-        this.tokenConsumer.RBrace();
+        // this.tokenConsumer.LBrace();
+
+    }
+
+    FormalParameters() {
+        this.Or([
+            {
+                alt: () => {
+                    this.FormalParameterList()
+                }
+            },
+            {
+                alt: () => {
+                    this.Empty()
+                }
+            }
+        ])
+    }
+
+    Empty() {
+
     }
 
     @SubhutiRule

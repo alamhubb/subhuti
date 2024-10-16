@@ -393,13 +393,40 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     CallExpression() {
-        QqqqUtil.test('jinrule zhixing')
-        this.MemberExpression();
-        QqqqUtil.test(this.continueMatch)
-        this.Arguments();
-        QqqqUtil.test(111111)
-        QqqqUtil.test(this.continueMatch)
+        this.Or([
+            {
+                alt: () => {
+                    this.MemberExpression();
+                    this.Arguments();
+                }
+            },
+            {
+                alt: () => {
+                    this.SuperCall()
+                }
+            }
+        ]);
+        this.Many(() => {
+            this.Or([
+                {alt: () => this.Arguments()},
+                {
+                    alt: () => {
+                        this.tokenConsumer.LBracket();
+                        this.Expression();
+                        this.tokenConsumer.RBracket();
+                    }
+                },
+                {
+                    alt: () => {
+                        this.tokenConsumer.Dot();
+                        this.tokenConsumer.IdentifierName();
+                    }
+                },
+                {alt: () => this.TemplateLiteral()}
+            ]);
+        });
     }
+
 
     @SubhutiRule
     SuperCall() {
@@ -409,7 +436,10 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Arguments() {
+        console.log('zhixingle Arguments')
+        QqqqUtil.test(this.continueMatch)
         this.tokenConsumer.LParen();
+        QqqqUtil.test(this.continueMatch)
         this.Option(() => this.ArgumentList());
         this.tokenConsumer.RParen();
     }

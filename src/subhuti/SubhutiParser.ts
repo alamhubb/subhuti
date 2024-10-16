@@ -103,11 +103,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     printTokens() {
-        QqqqUtil.log(this.tokens.map(item => item.tokenName).join(','))
+        QqqqUtil.test(this.tokens.map(item => item.tokenName).join(','))
     }
 
     printCstStacks() {
-        QqqqUtil.log(this.cstStack.map(item => item.name).join(','))
+        QqqqUtil.test(this.cstStack.map(item => item.name).join(','))
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -134,7 +134,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     setTokens(tokens?: SubhutiMatchToken[]) {
         this._tokens = tokens;
         //这考虑的是什么情况，option、many，都有可能token处理完了，执行option、many，设置token时，需要为可匹配状态
-        this.checkTokensAndContinueMatch();
+        //如果可以匹配，
+        //如果可以匹配，
+        if (this.tokenIsEmpty) {
+            if (!this.allowError) {
+                throw new Error('tokens is empty, please set tokens');
+            }
+        }
     }
 
     reSetParentChildren(parentTokensBackup: SubhutiMatchToken[], children: SubhutiCst[]) {
@@ -153,35 +159,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this._allowError = allowError;
     }
 
-    //随便调用，就是重复校验，这个暂时确认不需要动了
-    checkContinueExec() {
-        //continueExec should be true, because CheckMethodCanExec makes a judgment
-        if (!this.continueMatch) {
-            throw new Error('syntax error');
-        }
-        if (this.tokenNotUse) {
-            throw new Error('tokens is empty, please set tokens');
-        }
-        // this.checkTokens()
-    }
-
     get checkMethodCanExec() {
         //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
-        if (!this.continueMatch) {
-            //为什么删除了抛出错误，因为many，允许不执行，但是仅仅是获取一下tokens，或者已经不可执行时，执行了一下many就报粗了，应该是many内部判断，已经不可执行则不执行，这里判断会导致方法都无法调用
-            return false
-        } else if (this.continueMatch) {
-            //如果可以匹配，
-            if (this.tokenNotUse) {
-                QqqqUtil.log('return tokenNotUse')
-                return false
-            }
-        }
-        return true
-    }
-
-    get tokenNotUse() {
-        return this.tokenIsEmpty
+        return this.continueMatch;
     }
 
     get tokenIsEmpty() {
@@ -189,29 +169,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return !this._tokens || !this._tokens.length
     }
 
-    onlyCheckTokens() {
-        //如果可以匹配，
-        if (this.tokenIsEmpty) {
-            if (!this.allowError) {
-                throw new Error('tokens is empty, please set tokens');
-            }
-        }
-    }
-
-    //设置token时，需要为可匹配状态
-    checkTokensAndContinueMatch() {
-        //如果可以匹配，
-        this.onlyCheckTokens()
-        if (!this.continueMatch) {
-            if (!this.allowError) {
-                throw new Error('匹配失败');
-            }
-        }
-    }
-
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     subhutiRule(targetFun: any, ruleName: string) {
-        QqqqUtil.log('zhixing1111:' + ruleName)
+        QqqqUtil.test('zhixing1111:' + ruleName)
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
@@ -278,7 +238,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!this.checkMethodCanExec) {
             return
         }
-        this.checkContinueExec();
         let index = 0
         while (this.continueMatch) {
             if (index > 0) {
@@ -335,7 +294,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             return
         }
         let lastBreakFlag = this.orBreakFlag
-        this.checkContinueExec();
         this.setAllowErrorNewState()
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
         const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
@@ -344,9 +302,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //If the match fails, the tokens are reset.
         if (!this.continueMatch) {
             this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack);
-        } else if (this.continueMatch) {
-            //防御性编程，肯定没问题的代码，因为这里是setAllowError(true)
-            this.checkTokensAndContinueMatch()
         }
         if (this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true)
@@ -361,7 +316,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!this.checkMethodCanExec) {
             return
         }
-        this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
 
@@ -437,7 +391,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             return
         }
         QqqqUtil.log('zhixingor kaishi111')
-        this.checkContinueExec();
         this.setAllowErrorNewState()
         const funLength = subhutiParserOrs.length
         let index = 0;
@@ -500,7 +453,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!this.checkMethodCanExec) {
             return
         }
-        this.checkContinueExec();
         //不需要 再循环内部修改，因为如果子节点改了，退出子节点时也会重置回来的
         this.setAllowErrorNewState()
 
@@ -520,16 +472,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             fun();
             //If the match fails, the tokens are reset.
             breakFlag = false
-            if (this.continueForAndNoBreak) {
-                //校验可执行没问题，因为肯定是可执行
-                //如果上一次把token处理空了，应该跳出，否则会再次进入
-                if (this.tokenNotUse) {
-                    //如果没有tokens需要处理了，则跳出
-                    //如果while一次也未执行成功，则会执行这个,处理的是 this.tokenIsEmpty 的情况
-                    //这里不要 setTokensAndParentChildren ，执行成功没有tokens，了不需要重置
-                    breakFlag = true
-                }
-            } else if (!this.continueForAndNoBreak) {
+            if (!this.continueForAndNoBreak) {
                 this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack);
                 //如果匹配失败则跳出
                 breakFlag = true

@@ -187,8 +187,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
         }
+        console.log('zhixingru:'+ruleName)
         let cst = this.processCst(ruleName, targetFun);
-
+        console.log('chuqu:'+ruleName)
+        console.log(this.continueMatch)
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;

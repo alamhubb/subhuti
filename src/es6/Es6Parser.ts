@@ -396,15 +396,12 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.MemberExpression();
-                    console.log('zhixing MemberExpression')
                     this.Arguments();
-                    console.log('zhixing Arguments')
                 }
             },
             {
                 alt: () => {
                     this.SuperCall()
-                    console.log('zhixing SuperCall')
                 }
             }
         ]);
@@ -452,11 +449,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ArgumentList() {
         this.StringLiteral()
-        console.log(this.continueMatch)
         this.tokenConsumer.Comma();
-        console.log(this.continueMatch)
         this.StringLiteral()
-        console.log(this.continueMatch)
     }
 
     /*
@@ -1719,7 +1713,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     NamedImports() {
         this.tokenConsumer.LBrace();
         this.Or([
-            {alt: () => this.tokenConsumer.RBrace()},
+            {
+                alt: () => {
+                    this.tokenConsumer.RBrace()
+                }
+            },
             {
                 alt: () => {
                     this.ImportsList();

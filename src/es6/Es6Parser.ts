@@ -1577,6 +1577,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Program() {
+        console.log('zhixngle program')
         this.Or([
             {
                 alt: () => {

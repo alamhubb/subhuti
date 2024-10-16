@@ -136,6 +136,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //这考虑的是什么情况，option、many，都有可能token处理完了，执行option、many，设置token时，需要为可匹配状态
         //如果可以匹配，
         //如果可以匹配，
+        this.checkTokensOnly();
+    }
+
+    private checkTokensOnly() {
         if (this.tokenIsEmpty) {
             if (!this.allowError) {
                 throw new Error('tokens is empty, please set tokens');
@@ -393,6 +397,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         let lastBreakFlag = this.orBreakFlag
 
+        const uuid = generateUUID()
+
+        let backup = JsonUtil.cloneDeep(this.tokens)
+
+
         for (const subhutiParserOr of subhutiParserOrs) {
             index++;
             //If it is the last round of the for loop, an error will be reported if it fails.
@@ -407,12 +416,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             //考虑到执行空的话，如果执行了空元素，应该是跳出的
             this.setOrBreakFlag(false)
             subhutiParserOr.alt();
-
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
             if (this.continueForAndNoBreak) {
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
+                this.printTokens()
                 break;
             } else if (!this.continueForAndNoBreak) {
                 //匹配失败
@@ -421,6 +430,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                     //没逃出，则重置数据，继续执行
                     this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack)
                 }
+                // this.printTokens()
             }
         }
         //本级和上级有一个为true则改为true

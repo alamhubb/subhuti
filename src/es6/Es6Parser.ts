@@ -397,12 +397,15 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {
                 alt: () => {
                     this.MemberExpression();
+                    console.log('zhixing MemberExpression')
                     this.Arguments();
+                    console.log('zhixing Arguments')
                 }
             },
             {
                 alt: () => {
                     this.SuperCall()
+                    console.log('zhixing SuperCall')
                 }
             }
         ]);

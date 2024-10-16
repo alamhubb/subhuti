@@ -192,22 +192,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ObjectLiteral() {
         this.tokenConsumer.LBrace();
-        this.Or([
-            {alt: () => this.tokenConsumer.RBrace()},
-            {
-                alt: () => {
-                    this.PropertyDefinitionList();
-                    this.tokenConsumer.RBrace();
-                }
-            },
-            {
-                alt: () => {
-                    this.PropertyDefinitionList();
-                    this.tokenConsumer.Comma();
-                    this.tokenConsumer.RBrace();
-                }
-            }
-        ]);
+        this.Option(() => this.PropertyDefinitionList())
+        this.Option(() => this.tokenConsumer.Comma())
+        this.tokenConsumer.RBrace()
     }
 
     @SubhutiRule
@@ -1316,9 +1303,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.FunctionTok();
         this.BindingIdentifier();
         this.tokenConsumer.LParen();
-        this.Option(() => {
-            this.FormalParameters();
-        })
+        this.FormalParameters()
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.FunctionBody();
@@ -1330,37 +1315,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.FunctionTok();
         this.Option(() => this.BindingIdentifier());
         this.tokenConsumer.LParen();
-        this.Option(() => {
-            this.FormalParameterList();
-        });
+        this.FormalParameters()
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.FunctionBody();
         this.tokenConsumer.RBrace();
     }
 
-    FormalParameters() {
-        this.Or([
-            {
-                alt: () => {
-                    this.FormalParameterList()
-                }
-            },
-            {
-                alt: () => {
-                    this.Empty()
-                }
-            }
-        ])
-    }
-
-    Empty() {
-
-    }
-
     @SubhutiRule
-    StrictFormalParameters() {
-        this.FormalParameterList();
+    FormalParameters() {
+        this.Option(() => {
+            this.FormalParameterList();
+        });
     }
 
     @SubhutiRule
@@ -1446,7 +1412,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     ArrowFormalParameters() {
         this.tokenConsumer.LParen();
-        this.StrictFormalParameters();
+        this.FormalParameters();
         this.tokenConsumer.RParen();
     }
 
@@ -1457,7 +1423,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.PropertyName();
                     this.tokenConsumer.LParen();
-                    this.StrictFormalParameters();
+                    this.FormalParameters();
                     this.tokenConsumer.RParen();
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
@@ -1501,7 +1467,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.tokenConsumer.Asterisk();
         this.PropertyName();
         this.tokenConsumer.LParen();
-        this.StrictFormalParameters();
+        this.FormalParameters();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.GeneratorBody();

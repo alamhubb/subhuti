@@ -146,6 +146,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkTokens();
     }
 
+    reSetParentChildren(children: SubhutiCst[]) {
+        this.curCst.children = children
+    }
+
 
     get allowError() {
         return this._allowError;
@@ -244,6 +248,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 if (!cst.tokens.length) {
                     cst.tokens = undefined
                 }
+                console.log('push:' + parentCst.name)
+                console.log(cst.name)
                 parentCst.children.push(cst);
             }
             this.setCurCst(parentCst);
@@ -280,13 +286,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (index > 0) {
                 this.setAllowErrorNewState()
                 const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+                const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
                 fun();
                 //必须放这里，会循环push，所以需要循环pop
                 this.setAllowErrorLastStateAndPop()
                 //If the match fails, the tokens are reset.
                 if (!this.continueMatch) {
                     this.setContinueMatch(true);
-                    this.setTokens(tokensBackup);
+                    this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
                     break;
                 } else if (this.continueMatch) {
                     //校验可执行没问题，因为肯定是可执行
@@ -318,6 +325,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.getCurCst();
     }
 
+    private setTokensAndParentChildren(tokensBackup: SubhutiMatchToken[], parentChildrenBack: SubhutiCst[]) {
+        this.setTokens(tokensBackup);
+        this.reSetParentChildren(parentChildrenBack);
+    }
+
     @CheckMethodCanExec
     //匹配0次或者1次
     Option(fun: Function) {
@@ -325,11 +337,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+        const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
         fun();
         //If the match fails, the tokens are reset.
         if (!this.continueMatch) {
             this.setContinueMatch(true);
-            this.setTokens(tokensBackup);
+            this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
+
         } else if (this.continueMatch) {
             //防御性编程，肯定没问题的代码，因为这里是setAllowError(true)
             this.checkTokens()
@@ -422,8 +436,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     Or(subhutiParserOrs: SubhutiParserOr[]) {
         this.checkContinueExec();
         this.setAllowErrorNewState()
-        const tokens = this.tokens
-        const tokensBackup = JsonUtil.cloneDeep(tokens);
         const funLength = subhutiParserOrs.length
         let index = 0;
 
@@ -437,12 +449,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             } else {
                 this.setAllowError(true);
             }
-            const tokens = JsonUtil.cloneDeep(tokensBackup);
-            this.setTokens(tokens);
+            const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+            const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
+
             //考虑到执行空的话，如果执行了空元素，应该是跳出的
             this.setContinueMatch(true)
             this.setOrBreakFlag(false)
             subhutiParserOr.alt();
+
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
@@ -451,6 +465,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break;
             }
+            //没逃出，则重置数据，继续执行
+            this.setTokensAndParentChildren(tokensBackup, parentChildrenBack)
         }
         //本级和上级有一个为true则改为true
         if (this.orBreakFlag || preOrBreakFlag) {
@@ -473,10 +489,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         while (this.orBreakFlag) {
             this.setOrBreakFlag(false)
             const tokensBackup = JsonUtil.cloneDeep(this.tokens);
+            const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
             fun();
             //If the match fails, the tokens are reset.
             if (!this.continueMatch) {
-                this.setTokens(tokensBackup);
+                this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
                 break
             } else if (this.continueMatch) {
                 //校验可执行没问题，因为肯定是可执行

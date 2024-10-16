@@ -1,5 +1,9 @@
 export default class QqqqUtil {
-    static log(str: string) {
-        // console.log(str)
+    static log(str: any) {
+        // console.log(String(str))
+    }
+
+    static test(str: any) {
+        console.log(String(str))
     }
 }

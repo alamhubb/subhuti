@@ -393,8 +393,12 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     CallExpression() {
+        QqqqUtil.test('jinrule zhixing')
         this.MemberExpression();
+        QqqqUtil.test(this.continueMatch)
         this.Arguments();
+        QqqqUtil.test(111111)
+        QqqqUtil.test(this.continueMatch)
     }
 
     @SubhutiRule
@@ -758,7 +762,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     AssignmentExpression() {
-        QqqqUtil.log('jinrule zhixing')
         this.Or([
             {alt: () => this.ConditionalExpression()},
             {

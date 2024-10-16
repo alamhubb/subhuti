@@ -452,6 +452,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ArgumentList() {
+        this.StringLiteral()
+        console.log(this.continueMatch)
+        this.tokenConsumer.Comma();
+        console.log(this.continueMatch)
+        this.StringLiteral()
+        console.log(this.continueMatch)
+    }
+
+    /*
+
+    @SubhutiRule
+    ArgumentList() {
         this.Or([
             {
                 alt: () => {
@@ -471,7 +483,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 {alt: () => this.EllipsisAssignmentExpression()}
             ]);
         });
-    }
+    }*/
 
     @SubhutiRule
     LeftHandSideExpression() {

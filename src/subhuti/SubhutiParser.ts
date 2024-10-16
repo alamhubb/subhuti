@@ -7,6 +7,8 @@ import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
 import {Es5TokensName} from "../es5/Es5Tokens";
 import {Function} from "acorn";
 
+const pathNameSymbol = '$$'
+
 export class SubhutiParserOr {
     alt: Function;
 }
@@ -32,7 +34,7 @@ export function SubhutiRule(targetFun: any, context) {
 }
 
 //为什么没有放SubhutiRule里，因为你不是所有的都会执行SubhutiRule
-function CheckMethodCanExec(newTargetFun: any, context) {
+export function CheckMethodCanExec(newTargetFun: any, context) {
     const ruleName = newTargetFun.name;
     // 创建一个新的函数并显式指定函数的名称
     const wrappedFunction = function (...args: any[]) {
@@ -271,6 +273,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     processCst(ruleName: string, targetFun: Function) {
         let cst = new SubhutiCst();
         cst.name = ruleName;
+        if (this.curCst) {
+            cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
+        } else {
+            cst.pathName = ruleName
+        }
         cst.children = [];
         cst.tokens = [];
 
@@ -367,6 +374,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     @CheckMethodCanExec
     consume(tokenName: SubhutiCreateToken) {
+        // console.log('zhixingle CheckMethodCanExec consume')
         this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
@@ -402,6 +410,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const cst = new SubhutiCst();
         cst.name = popToken.tokenName;
         cst.value = popToken.tokenValue;
+        cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
         this.curCst.children.push(cst);
         this.curCst.pushCstToken(popToken);
         return this.generateCst(cst);

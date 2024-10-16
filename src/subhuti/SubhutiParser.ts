@@ -247,6 +247,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         let cst = this.processCst(ruleName, targetFun);
 
+
         if (this.allStack.length > 1) {
             this.allStack.pop()
         }
@@ -266,6 +267,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 }
                 parentCst.children.push(cst);
             }
+            console.log('zhixingwancheng:' + ruleName)
+            console.log(cst)
+            console.log('parentCst.name:' + parentCst.name)
+            console.log('parentCst.length:' + parentCst.children.length)
+            console.log(parentCst)
             this.setCurCst(parentCst);
         }
     }
@@ -525,16 +531,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 if (this.tokenIsEmpty) {
                     //如果没有tokens需要处理了，则跳出
                     //如果while一次也未执行成功，则会执行这个,处理的是 this.tokenIsEmpty 的情况
+                    //这里不要 setTokensAndParentChildren ，执行成功没有tokens，了不需要重置
                     breakFlag = true
                 }
             } else if (!this.continueForAndNoBreak) {
+                this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
                 //如果匹配失败则跳出
                 breakFlag = true
             }
             //如果跳出，则重置
             if (breakFlag) {
                 //orBreakFlag 为false则 continueMatch 也肯定为false，肯定会触发这里
-                this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
                 break
             }
         }

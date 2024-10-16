@@ -2,6 +2,7 @@ import {Es5Parser} from "../es5/Es5Parser";
 import {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 import Es6TokenConsumer from "./Es6Tokens";
+import JsonUtil from "../utils/JsonUtil";
 
 export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> extends Es5Parser<T> {
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -699,12 +700,17 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.ReturnStatement();
                 }
             },
-            {alt: () => this.WithStatement()},
+            {
+                alt: () => {
+                    this.WithStatement()
+                }
+            },
             {alt: () => this.LabelledStatement()},
             {alt: () => this.ThrowStatement()},
             {alt: () => this.TryStatement()},
             {alt: () => this.DebuggerStatement()}
         ]);
+        console.log('zhixingwanbile return')
     }
 
     @SubhutiRule
@@ -1174,12 +1180,19 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ReturnStatement() {
+        console.log('zhixingle return666')
+        this.printTokens()
         this.tokenConsumer.ReturnTok();
+        this.printTokens()
+        console.log('zhixingle return777')
         this.Option(() => {
             // TODO: Implement [no LineTerminator here] check
             this.Expression();
         });
+        this.printTokens()
+        console.log('zhixingle return8888')
         this.tokenConsumer.Semicolon();
+        console.log('zhixingle return9999')
     }
 
     @SubhutiRule
@@ -1607,14 +1620,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementList() {
         this.Many(() => this.StatementListItem());
+        JsonUtil.log(this.curCst)
+        console.log('zhixingwanb StatementList')
     }
 
     @SubhutiRule
     StatementListItem() {
         this.Or([
             {alt: () => this.Statement()},
-            {alt: () => this.Declaration()}
+            {alt: () => {
+                    this.Declaration()
+                }}
         ]);
+        // JsonUtil.log(this.curCst)
+        console.log('zhixingwanb StatementListItem')
     }
 
 

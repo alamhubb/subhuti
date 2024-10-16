@@ -436,10 +436,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Arguments() {
-        console.log('zhixingle Arguments')
-        QqqqUtil.test(this.continueMatch)
         this.tokenConsumer.LParen();
-        QqqqUtil.test(this.continueMatch)
         this.Option(() => this.ArgumentList());
         this.tokenConsumer.RParen();
     }
@@ -752,7 +749,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Let() {
-        QqqqUtil.log('zhixingle fuyuansude ')
         this.tokenConsumer.LetTok()
     }
 

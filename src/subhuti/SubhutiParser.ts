@@ -99,7 +99,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 //many中，无线循环，什么时候终止呢， 执行时有个flag，  执行前改为false，如果 执行成功变为true了则可以再次进去，再次进入后将他改为false
 
     printCst() {
-        QqqqUtil.log(this.getCurCst())
+        QqqqUtil.test(this.getCurCst())
     }
 
     printTokens() {
@@ -171,7 +171,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     subhutiRule(targetFun: any, ruleName: string) {
-        QqqqUtil.test('zhixing1111:' + ruleName)
         const initFlag = this.initFlag;
         if (initFlag) {
             this.initFlag = false;
@@ -184,7 +183,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
         }
-        QqqqUtil.log('zhixing222:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
 
         if (initFlag) {
@@ -386,11 +384,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]) {
-        QqqqUtil.log('zhixingor kaishi')
         if (!this.checkMethodCanExec) {
             return
         }
-        QqqqUtil.log('zhixingor kaishi111')
         this.setAllowErrorNewState()
         const funLength = subhutiParserOrs.length
         let index = 0;

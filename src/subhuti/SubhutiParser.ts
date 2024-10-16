@@ -501,8 +501,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     setContinueMatchAndNoBreak(value: boolean) {
-        this.setOrBreakFlag(value)
+        //一个控制是否继续匹配
+        //一个控制是否跳出循环，while，or
         this.setContinueMatch(value)
+        this.setOrBreakFlag(value)
+        //为什么需要两个，因为or进入时会把跳出标识设为false，为ture跳出，否则继续下一次
+        //如果用一个标识，设为false，之后匹配就不执行了
     }
 
     //匹配0次或者N次

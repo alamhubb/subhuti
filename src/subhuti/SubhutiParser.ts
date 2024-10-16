@@ -92,6 +92,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     setContinueMatch(flag: boolean) {
+        console.trace('setContinueMatch:' + flag)
         this._continueMatch = flag;
     }
 
@@ -179,6 +180,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     checkMethodCanExec(newTargetFun: any, args: any[]) {
         //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
+        console.log(77777)
+        console.log(this.continueMatch)
         if (!this.continueMatch) {
             if (this.allowError) {
                 return this.generateCst(this.curCst);
@@ -186,6 +189,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             //为什么删除了抛出错误，因为many，允许不执行，但是仅仅是获取一下tokens，或者已经不可执行时，执行了一下many就报粗了，应该是many内部判断，已经不可执行则不执行，这里判断会导致方法都无法调用
             return this.generateCst(this.curCst);
         } else if (this.continueMatch) {
+            console.log(this.tokenNotUse)
             //如果可以匹配，
             if (this.tokenNotUse) {
                 if (this.allowError) {
@@ -194,6 +198,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return this.generateCst(this.curCst);
             }
         }
+        console.log(8888)
         return newTargetFun.apply(this, args);
     }
 

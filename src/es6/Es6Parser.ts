@@ -1,7 +1,7 @@
 import {Es5Parser} from "../es5/Es5Parser";
 import {SubhutiRule} from "../subhuti/SubhutiParser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
-import Es6TokenConsumer from "./Es6Tokens";
+import Es6TokenConsumer, {Es6TokenName} from "./Es6Tokens";
 import JsonUtil from "../utils/JsonUtil";
 
 export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> extends Es5Parser<T> {
@@ -731,10 +731,17 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     LetOrConst() {
+        console.log('fuyuansu LetOrConst')
         this.Or([
-            {alt: () => this.tokenConsumer.LetTok()},
+            {alt: () => this.Let()},
             {alt: () => this.tokenConsumer.ConstTok()}
         ]);
+    }
+
+    @SubhutiRule
+    Let() {
+        console.log('zhixingle fuyuansude ')
+        this.tokenConsumer.LetTok()
     }
 
     @SubhutiRule

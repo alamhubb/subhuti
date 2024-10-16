@@ -493,6 +493,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.getCurCst();
     }
 
+    get continueForAndNoBreak() {
+        return this.orBreakFlag && this.continueMatch
+    }
+
+    setContinueMatchAndNoBreak(value: boolean) {
+        this.setOrBreakFlag(value)
+        this.setContinueMatch(value)
+    }
+
     //匹配0次或者N次
     @CheckMethodCanExec
     Many(fun: Function) {
@@ -505,19 +514,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         let tokensBackup = JsonUtil.cloneDeep(this.tokens);
         let parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
 
-        this.setOrBreakFlag(true)
-        while (this.orBreakFlag) {
+        this.setContinueMatchAndNoBreak(true)
+        let breakFlag = false
+        while (this.continueForAndNoBreak) {
             this.setOrBreakFlag(false)
             tokensBackup = JsonUtil.cloneDeep(this.tokens);
             parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
             fun();
             //If the match fails, the tokens are reset.
-
-            let breakFlag = false
-            if (!this.continueMatch) {
-                //如果不继续匹配则跳出
-                breakFlag = true
-            } else if (this.continueMatch) {
+            breakFlag = false
+            if (this.continueForAndNoBreak) {
                 //校验可执行没问题，因为肯定是可执行
                 //如果上一次把token处理空了，应该跳出，否则会再次进入
                 if (this.tokenIsEmpty) {
@@ -525,12 +531,19 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                     //如果while一次也未执行成功，则会执行这个,处理的是 this.tokenIsEmpty 的情况
                     breakFlag = true
                 }
+            } else if (!this.continueForAndNoBreak) {
+                //如果匹配失败则跳出
+                breakFlag = true
             }
+            //如果跳出，则重置
             if (breakFlag) {
                 //orBreakFlag 为false则 continueMatch 也肯定为false，肯定会触发这里
                 this.setTokensAndParentChildren(tokensBackup, parentChildrenBack);
                 break
             }
+        }
+        if (!breakFlag) {
+            throw new Error('不可能的情况')
         }
         if (this.orBreakFlag || lastBreakState) {
             this.setOrBreakFlag(true);

@@ -225,7 +225,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         }
         this.allStack.push(ast)
 
-        console.log('zhixingle:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
 
         if (this.allStack.length > 1) {
@@ -236,8 +235,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             //执行完毕，改为true
             this.initFlag = true;
         } else {
+            const parentCst = this.cstStack[this.cstStack.length - 1];
             if (cst) {
-                const parentCst = this.cstStack[this.cstStack.length - 1];
                 //优化cst展示
                 if (!cst.children.length) {
                     cst.children = undefined
@@ -246,8 +245,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                     cst.tokens = undefined
                 }
                 parentCst.children.push(cst);
-                this.setCurCst(parentCst);
             }
+            this.setCurCst(parentCst);
         }
     }
 
@@ -362,6 +361,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return;
             }
+            console.log(tokenName)
+            console.log(popToken)
             throw new Error('syntax error');
         }
         this.setOrBreakFlag(true)
@@ -440,7 +441,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.setTokens(tokens);
             //考虑到执行空的话，如果执行了空元素，应该是跳出的
             this.setContinueMatch(true)
-            this.setOrBreakFlag(true)
+            this.setOrBreakFlag(false)
             subhutiParserOr.alt();
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出

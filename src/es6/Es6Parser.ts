@@ -710,7 +710,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.TryStatement()},
             {alt: () => this.DebuggerStatement()}
         ]);
-        console.log('zhixingwanbile return')
     }
 
     @SubhutiRule
@@ -1180,19 +1179,12 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ReturnStatement() {
-        console.log('zhixingle return666')
-        this.printTokens()
         this.tokenConsumer.ReturnTok();
-        this.printTokens()
-        console.log('zhixingle return777')
         this.Option(() => {
             // TODO: Implement [no LineTerminator here] check
             this.Expression();
         });
-        this.printTokens()
-        console.log('zhixingle return8888')
         this.tokenConsumer.Semicolon();
-        console.log('zhixingle return9999')
     }
 
     @SubhutiRule
@@ -1590,7 +1582,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Program() {
-        console.log('zhixngle program')
         this.Or([
             {
                 alt: () => {
@@ -1620,8 +1611,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementList() {
         this.Many(() => this.StatementListItem());
-        JsonUtil.log(this.curCst)
-        console.log('zhixingwanb StatementList')
     }
 
     @SubhutiRule
@@ -1632,8 +1621,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.Declaration()
                 }}
         ]);
-        // JsonUtil.log(this.curCst)
-        console.log('zhixingwanb StatementListItem')
     }
 
 

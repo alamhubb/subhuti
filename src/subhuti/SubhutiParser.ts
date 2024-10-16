@@ -267,11 +267,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 }
                 parentCst.children.push(cst);
             }
-            console.log('zhixingwancheng:' + ruleName)
-            console.log(cst)
-            console.log('parentCst.name:' + parentCst.name)
-            console.log('parentCst.length:' + parentCst.children.length)
-            console.log(parentCst)
             this.setCurCst(parentCst);
         }
     }

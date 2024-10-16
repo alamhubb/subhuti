@@ -222,6 +222,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.MethodDefinition()},
             {
                 alt: () => {
+                    throw new Error('不应该执行这里')
                     this.IdentifierReference()
                 }
             },
@@ -729,8 +730,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         return this.getCurCst()
     }
 
-    EmptySemicolon(){
-        this.Option(()=>{
+    EmptySemicolon() {
+        this.Option(() => {
             this.tokenConsumer.Semicolon()
         })
     }
@@ -1443,13 +1444,20 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.PropertyName();
                     this.tokenConsumer.LParen();
                     this.FormalParameters();
+                    console.log(this.continueMatch)
                     this.tokenConsumer.RParen();
+                    //这里改为了false，后面年度没执行
                     this.tokenConsumer.LBrace();
                     this.FunctionBody();
                     this.tokenConsumer.RBrace();
                 }
             },
-            {alt: () => this.GeneratorMethod()},
+            {
+                alt: () => {
+                    throw new Error('不应该执行这里1111')
+                    this.GeneratorMethod()
+                }
+            },
             {
                 alt: () => {
                     this.tokenConsumer.GetTok();
@@ -1630,9 +1638,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     StatementListItem() {
         this.Or([
             {alt: () => this.Statement()},
-            {alt: () => {
+            {
+                alt: () => {
                     this.Declaration()
-                }}
+                }
+            }
         ]);
     }
 

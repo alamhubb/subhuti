@@ -33,19 +33,6 @@ export function SubhutiRule(targetFun: any, context) {
     return wrappedFunction
 }
 
-//为什么没有放SubhutiRule里，因为你不是所有的都会执行SubhutiRule
-export function CheckMethodCanExec(newTargetFun: any, context) {
-    const ruleName = newTargetFun.name;
-    // 创建一个新的函数并显式指定函数的名称
-    const wrappedFunction = function (...args: any[]) {
-        this.checkMethodCanExec(newTargetFun, args);
-        return this.generateCst(this.curCst);
-    }
-    // 为新函数显式设置名称
-    Object.defineProperty(wrappedFunction, 'name', {value: ruleName});
-    return wrappedFunction
-}
-
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0;
@@ -63,7 +50,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     private _continueMatch = true;
     thisClassName: string;
     uuid: string;
-    allStack: SubhutiCst[] = [];
 
     //只针对or，特殊，many有可能没匹配就触发true导致不执行下面的，避免这种情况
     private _orBreakFlag = false
@@ -177,24 +163,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         // this.checkTokens()
     }
 
-    checkMethodCanExec(newTargetFun: any, args: any[]) {
+    get checkMethodCanExec() {
         //如果不能匹配，测判断允许错误，则直接返回，无法继续匹配只能返回，避免递归
         if (!this.continueMatch) {
-            if (this.allowError) {
-                return this.generateCst(this.curCst);
-            }
             //为什么删除了抛出错误，因为many，允许不执行，但是仅仅是获取一下tokens，或者已经不可执行时，执行了一下many就报粗了，应该是many内部判断，已经不可执行则不执行，这里判断会导致方法都无法调用
-            return this.generateCst(this.curCst);
+            return false
         } else if (this.continueMatch) {
             //如果可以匹配，
             if (this.tokenNotUse) {
-                if (this.allowError) {
-                    return this.generateCst(this.curCst);
-                }
-                return this.generateCst(this.curCst);
+                return false
             }
         }
-        return newTargetFun.apply(this, args);
+        return true
     }
 
     get tokenNotUse() {
@@ -227,7 +207,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
-    @CheckMethodCanExec
     subhutiRule(targetFun: any, ruleName: string) {
         const initFlag = this.initFlag;
         if (initFlag) {
@@ -236,23 +215,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.setContinueMatch(true);
             this.cstStack = [];
             this.ruleExecErrorStack = [];
+        } else {
+            if (!this.checkMethodCanExec){
+                return
+            }
         }
-        const ast = new SubhutiCst()
-        ast.name = ruleName
-        ast.children = []
-        if (this.allStack.length) {
-            const parent = this.allStack[this.allStack.length - 1]
-            parent.children.push(ast)
-            // ast.stack = parent.stack + '->' + ruleName
-        }
-        this.allStack.push(ast)
-
         let cst = this.processCst(ruleName, targetFun);
-
-
-        if (this.allStack.length > 1) {
-            this.allStack.pop()
-        }
 
         if (initFlag) {
             //执行完毕，改为true
@@ -299,9 +267,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return null;
     }
 
-    @CheckMethodCanExec
     //匹配1次或者N次
     AT_LEAST_ONE(fun: Function) {
+        if (!this.checkMethodCanExec){
+            return
+        }
         this.checkContinueExec();
         let index = 0
         while (this.continueMatch) {
@@ -352,9 +322,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.reSetParentChildren(parentChildrenBack);
     }
 
-    @CheckMethodCanExec
     //匹配0次或者1次
     Option(fun: Function) {
+        if (!this.checkMethodCanExec){
+            return
+        }
         let lastBreakFlag = this.orBreakFlag
         this.checkContinueExec();
         this.setAllowErrorNewState()
@@ -376,8 +348,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.getCurCst();
     }
 
-    @CheckMethodCanExec
+
     consume(tokenName: SubhutiCreateToken) {
+        if (!this.checkMethodCanExec){
+            return
+        }
         this.checkContinueExec()
         return this.consumeToken(tokenName.name);
     }
@@ -447,9 +422,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.allowErrorStack.push(true);
     }
 
-    @CheckMethodCanExec
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]) {
+        if (!this.checkMethodCanExec){
+            return
+        }
         this.checkContinueExec();
         this.setAllowErrorNewState()
         const funLength = subhutiParserOrs.length
@@ -509,9 +486,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //如果用一个标识，设为false，之后匹配就不执行了
     }
 
-    //匹配0次或者N次
-    @CheckMethodCanExec
     Many(fun: Function) {
+        if (!this.checkMethodCanExec){
+            return
+        }
         this.checkContinueExec();
         //不需要 再循环内部修改，因为如果子节点改了，退出子节点时也会重置回来的
         this.setAllowErrorNewState()

@@ -223,7 +223,6 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.MethodDefinition()},
             {
                 alt: () => {
-                    throw new Error('不应该执行这里')
                     this.IdentifierReference()
                 }
             },

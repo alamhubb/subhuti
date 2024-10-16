@@ -380,19 +380,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
-            this.setContinueMatch(false);
             //内部consume,也需要把标识设为false，有可能深层子设为了true，但是后来又改为了false，如果不同步改就会没同步
-            this.setOrBreakFlag(false);
+            this.setContinueMatchAndNoBreak(false)
             // this.setContinueFor(false);
             if (this.allowError) {
                 return;
             }
-            console.log(tokenName)
-            console.log(popToken)
             throw new Error('syntax error');
         }
-        this.setOrBreakFlag(true)
-        this.setContinueMatch(true)
+        this.setContinueMatchAndNoBreak(true)
         //性能优化先不管
         // this.setAllowError(this.allowErrorStack.length > 1)
         //如果成功匹配了一个，则将允许错误状态，改为上一个

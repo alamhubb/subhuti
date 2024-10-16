@@ -217,6 +217,8 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.AssignmentExpression();
                 }
             },
+            //顺序问题MethodDefinition 需要在 IdentifierReference 之上，否则会触发IdentifierReference ，而 不执行MethodDefinition，应该执行最长匹配
+            {alt: () => this.MethodDefinition()},
             {
                 alt: () => {
                     this.IdentifierReference()
@@ -226,8 +228,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                 alt: () => {
                     this.CoverInitializedName()
                 }
-            },
-            {alt: () => this.MethodDefinition()}
+            }
         ]);
     }
 

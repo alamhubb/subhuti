@@ -54,8 +54,16 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     PrimaryExpression() {
         this.Or([
             {alt: () => this.tokenConsumer.ThisTok()},
-            {alt: () => this.IdentifierReference()},
-            {alt: () => this.Literal()},
+            {
+                alt: () => {
+                    this.IdentifierReference()
+                }
+            },
+            {
+                alt: () => {
+                    this.Literal()
+                }
+            },
             {alt: () => this.ArrayLiteral()},
             {alt: () => this.ObjectLiteral()},
             {alt: () => this.FunctionExpression()},
@@ -448,9 +456,18 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ArgumentList() {
-        this.StringLiteral()
-        this.tokenConsumer.Comma();
-        this.StringLiteral()
+        this.Or([
+            {alt: () => this.AssignmentExpression()},
+            {alt: () => this.EllipsisAssignmentExpression()}
+        ]);
+        // throw new Error('cjvla')
+        this.Many(() => {
+            this.tokenConsumer.Comma();
+            this.Or([
+                {alt: () => this.AssignmentExpression()},
+                {alt: () => this.EllipsisAssignmentExpression()}
+            ]);
+        });
     }
 
     /*
@@ -708,7 +725,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.BreakStatement()},
             {
                 alt: () => {
+                    this.printTokens()
                     this.ReturnStatement();
+                    this.printTokens()
                 }
             },
             {
@@ -1638,13 +1657,23 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     StatementList() {
-        this.Many(() => this.StatementListItem());
+        this.Many(() => {
+            this.printTokens()
+            this.StatementListItem()
+            this.printTokens()
+        });
     }
 
     @SubhutiRule
     StatementListItem() {
         this.Or([
-            {alt: () => this.Statement()},
+            {
+                alt: () => {
+                    this.printTokens()
+                    this.Statement()
+                    this.printTokens()
+                }
+            },
             {
                 alt: () => {
                     this.Declaration()

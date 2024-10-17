@@ -1712,25 +1712,30 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     NamedImports() {
         this.tokenConsumer.LBrace();
+        //应该消耗多的在前面，因为不是按顺序匹配的
         this.Or([
-            {
-                alt: () => {
-                    this.tokenConsumer.RBrace()
-                }
-            },
-            {
-                alt: () => {
-                    this.ImportsList();
-                    this.tokenConsumer.RBrace();
-                }
-            },
             {
                 alt: () => {
                     this.ImportsList();
                     this.tokenConsumer.Comma();
                     this.tokenConsumer.RBrace();
                 }
-            }
+            },
+            {
+                alt: () => {
+                    console.log('zhixingle ImportsList')
+                    this.ImportsList();
+                    this.tokenConsumer.RBrace();
+                }
+            },
+            {
+                alt: () => {
+                    console.log('zhixingle111 RBrace')
+                    console.log(this.continueMatch)
+                    this.tokenConsumer.RBrace()
+                    console.log(this.continueMatch)
+                }
+            },
         ]);
     }
 

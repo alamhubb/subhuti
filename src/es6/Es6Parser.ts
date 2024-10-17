@@ -17,9 +17,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Or([
             {
                 alt: () => {
-                    this.printTokens()
+
                     this.Identifier()
-                    this.printTokens()
+
                 }
             },
             {alt: () => this.tokenConsumer.YieldTok()}
@@ -52,9 +52,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Identifier() {
-        this.printTokens()
+
         this.tokenConsumer.IdentifierName();
-        this.printTokens()
+
         // TODO: Implement logic to exclude ReservedWord
     }
 
@@ -686,9 +686,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ConditionalExpression() {
-        this.printTokens()
+
         this.LogicalORExpression();
-        this.printTokens()
+
         //这个把orbreak改为了false
         /*this.Option(() => {
             this.tokenConsumer.Question();
@@ -718,7 +718,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Expression() {
+        this.printTokens()
         this.AssignmentExpression();
+        this.printTokens()
         this.Many(() => {
             this.tokenConsumer.Comma();
             this.AssignmentExpression();
@@ -728,7 +730,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     Statement() {
         this.Or([
-            {alt: () => this.AssignmentExpression()},
+            // {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
             {alt: () => this.VariableStatement()},
             {alt: () => this.EmptyStatement()},
@@ -739,9 +741,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             {alt: () => this.BreakStatement()},
             {
                 alt: () => {
-                    this.printTokens()
+
                     this.ReturnStatement();
-                    this.printTokens()
+
                 }
             },
             {
@@ -1672,9 +1674,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     StatementList() {
         this.Many(() => {
-            this.printTokens()
+
             this.StatementListItem()
-            this.printTokens()
+
         });
     }
 
@@ -1683,9 +1685,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.Or([
             {
                 alt: () => {
-                    this.printTokens()
+
                     this.Statement()
-                    this.printTokens()
+
                 }
             },
             {

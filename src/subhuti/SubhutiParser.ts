@@ -450,7 +450,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     // backData: any
 
     setBackData(backData: SubhutiBackData) {
-        console.log('chongzhile shuju')
+        // console.log('chongzhile shuju')
         this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
     }
 

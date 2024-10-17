@@ -34,6 +34,12 @@ export function SubhutiRule(targetFun: any, context) {
     return wrappedFunction
 }
 
+export class SubhutiBackData {
+    tokens: SubhutiMatchToken[]
+    curCstChildren: SubhutiCst[]
+    curCstTokens: SubhutiMatchToken[]
+}
+
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0;
@@ -187,9 +193,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
         }
-        console.log('zhixingru:'+ruleName)
+        console.log('zhixingru:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
-        console.log('chuqu:'+ruleName)
+        console.log('chuqu:' + ruleName)
         console.log(this.continueMatch)
         if (initFlag) {
             //执行完毕，改为true
@@ -246,15 +252,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         while (this.continueMatch) {
             if (index > 0) {
                 this.setAllowErrorNewState()
-                const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-                const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
-                const parentTokensBack = JsonUtil.cloneDeep(this.curCst.tokens);
+                let backData = JsonUtil.cloneDeep(this.backData);
                 fun();
                 //必须放这里，会循环push，所以需要循环pop
                 this.setAllowErrorLastStateAndPop()
                 //If the match fails, the tokens are reset.
                 if (!this.continueMatch) {
-                    this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack);
+                    this.setBackData(backData);
                     break;
                 } else if (this.continueMatch) {
                     //校验可执行没问题，因为肯定是可执行
@@ -286,12 +290,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.getCurCst();
     }
 
-    private setTokensAndParentChildren(tokensBackup: SubhutiMatchToken[], parentTokensBackup: SubhutiMatchToken[], parentChildrenBack: SubhutiCst[]) {
-        this.setContinueMatch(true)
-        this.setTokens(tokensBackup);
-        this.reSetParentChildren(parentTokensBackup, parentChildrenBack);
-    }
-
     //匹配0次或者1次
     Option(fun: Function) {
         if (!this.checkMethodCanExec) {
@@ -299,13 +297,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         }
         let lastBreakFlag = this.orBreakFlag
         this.setAllowErrorNewState()
-        const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-        const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
-        const parentTokensBack = JsonUtil.cloneDeep(this.curCst.tokens);
+        let backData = JsonUtil.cloneDeep(this.backData);
         fun();
         //If the match fails, the tokens are reset.
         if (!this.continueMatch) {
-            this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack);
+            this.setBackData(backData)
         }
         if (this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true)
@@ -401,9 +397,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         const uuid = generateUUID()
 
-        let backup = JsonUtil.cloneDeep(this.tokens)
-
-
         for (const subhutiParserOr of subhutiParserOrs) {
             index++;
             //If it is the last round of the for loop, an error will be reported if it fails.
@@ -412,9 +405,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             } else {
                 this.setAllowError(true);
             }
-            const tokensBackup = JsonUtil.cloneDeep(this.tokens);
-            const parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
-            const parentTokensBack = JsonUtil.cloneDeep(this.curCst.tokens);
+            let backData = JsonUtil.cloneDeep(this.backData);
             //考虑到执行空的话，如果执行了空元素，应该是跳出的
             this.setOrBreakFlag(false)
             subhutiParserOr.alt();
@@ -430,7 +421,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 if (index !== funLength) {
                     //只要不为最后一次，都设为true
                     //没逃出，则重置数据，继续执行
-                    this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack)
+                    this.setBackData(backData)
                 }
                 // this.printTokens()
             }
@@ -457,6 +448,28 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         //如果用一个标识，设为false，之后匹配就不执行了
     }
 
+    // backData: any
+
+    setBackData(backData: SubhutiBackData) {
+        console.log('chognshe backda')
+        this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
+    }
+
+    get backData() {
+        const backData: SubhutiBackData = {
+            tokens: this.tokens,
+            curCstChildren: this.curCst.children,
+            curCstTokens: this.curCst.tokens,
+        }
+        return backData
+    }
+
+    private setTokensAndParentChildren(tokensBackup: SubhutiMatchToken[], parentTokensBackup: SubhutiMatchToken[], parentChildrenBack: SubhutiCst[]) {
+        this.setContinueMatch(true)
+        this.setTokens(tokensBackup);
+        this.reSetParentChildren(parentTokensBackup, parentChildrenBack);
+    }
+
     Many(fun: Function) {
         if (!this.checkMethodCanExec) {
             return
@@ -466,22 +479,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         let lastBreakFlag = this.orBreakFlag
 
-        let tokensBackup = JsonUtil.cloneDeep(this.tokens);
-        let parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
-        let parentTokensBack = JsonUtil.cloneDeep(this.curCst.tokens);
+        let backData = JsonUtil.cloneDeep(this.backData);
 
         this.setContinueMatchAndNoBreak(true)
         let breakFlag = false
         while (this.continueForAndNoBreak) {
             this.setOrBreakFlag(false)
-            tokensBackup = JsonUtil.cloneDeep(this.tokens);
-            parentChildrenBack = JsonUtil.cloneDeep(this.curCst.children);
-            parentTokensBack = JsonUtil.cloneDeep(this.curCst.tokens);
+            backData = JsonUtil.cloneDeep(this.backData);
             fun();
             //If the match fails, the tokens are reset.
             breakFlag = false
             if (!this.continueForAndNoBreak) {
-                this.setTokensAndParentChildren(tokensBackup, parentTokensBack, parentChildrenBack);
+                this.setBackData(backData);
                 //如果匹配失败则跳出
                 breakFlag = true
             }

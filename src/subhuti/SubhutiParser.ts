@@ -148,7 +148,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.checkTokensOnly();
     }
 
-    private checkTokensOnly() {
+    checkTokensOnly() {
         if (this.tokenIsEmpty) {
             if (!this.allowError) {
                 throw new Error('tokens is empty, please set tokens');

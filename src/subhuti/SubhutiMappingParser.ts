@@ -4,14 +4,12 @@ import {SubhutiCreateToken} from "./struct/SubhutiCreateToken"
 import {es6TokensObj} from "../syntax/es6/Es6Tokens"
 import SubhutiMatchToken from "./struct/SubhutiMatchToken"
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
+import QqqqUtil from "../utils/qqqqUtil";
 
 export class MappingBackData extends SubhutiBackData {
     mappingCst: SubhutiCst
 }
 
-const mappingTokenMap: { [key in string]: SubhutiCreateToken } = {
-    [es6TokensObj.ConstTok.name]: es6TokensObj.LetTok
-}
 
 function traverse(currentNode: SubhutiCst, map = new Map<string, SubhutiCst>) {
     if (!currentNode || !currentNode.name)
@@ -146,6 +144,13 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         return true
     }
 
+
+    printTokens() {
+        this.printMatchState()
+        console.log(this.mappingCst.name)
+        QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
+    }
+
     get tokens() {
         if (this.isParserMode) return super.tokens
         if (this.tokenIsEmpty) return []
@@ -175,11 +180,6 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
             return
         }
         // let
-        const genTokenName = tokenName // 保存原始token名称
-        let childTokenName = mappingTokenMap[tokenName] // 从映射表中获取子token名称
-        if (childTokenName) { // 如果存在子token名称
-            tokenName = childTokenName.name // 更新token名称为子token名称
-        }
         // 在子节点中找到并删除
         const mappingTokens = this.mappingCst.tokens // 获取映射CST的子节点
         if (!mappingTokens || !mappingTokens.length) { // 如果没有子节点
@@ -217,27 +217,10 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
 
         this.setContinueMatchAndNoBreak(true)
 
-        let popToken
-
-        if (childTokenName) { // 如果存在子token名称
-            const genToken: SubhutiCreateToken = es6TokensObj[genTokenName]
-            if (genToken.isKeyword) {
-                popToken = new SubhutiMatchToken({ // 创建一个新的匹配token
-                    tokenName: genToken.name, // 设置token名称为CST节点名称
-                    tokenValue: genToken.pattern?.source // 设置token值为CST节点值
-                })
-            } else {
-                popToken = new SubhutiMatchToken({ // 创建一个新的匹配token
-                    tokenName: genToken.name, // 设置token名称为CST节点名称
-                    tokenValue: childToken.tokenValue // 设置token值为CST节点值
-                })
-            }
-        } else {
-            popToken = new SubhutiMatchToken({ // 创建一个新的匹配token
-                tokenName: childToken.tokenName, // 设置token名称为CST节点名称
-                tokenValue: childToken.tokenValue // 设置token值为CST节点值
-            })
-        }
+        let popToken = new SubhutiMatchToken({ // 创建一个新的匹配token
+            tokenName: childToken.tokenName, // 设置token名称为CST节点名称
+            tokenValue: childToken.tokenValue // 设置token值为CST节点值
+        })
         return popToken
     }
 
@@ -245,6 +228,7 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         if (this.isParserMode) {
             return super.consumeToken(tokenName)
         }
+        console.log('zhixingle xiaohao:' + tokenName)
         let popToken = this.generateToken(tokenName)
         if (popToken) {
             return this.generateCstByToken(popToken)

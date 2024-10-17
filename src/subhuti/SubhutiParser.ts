@@ -5,10 +5,7 @@ import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
 import Es5TokenConsumer from "../syntax/es5/Es5TokenConsume";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
 import {Es5TokensName} from "../syntax/es5/Es5Tokens";
-import {Function} from "acorn";
 import QqqqUtil from "../utils/qqqqUtil";
-
-const pathNameSymbol = '$$'
 
 export class SubhutiParserOr {
     alt: Function;
@@ -105,15 +102,20 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 //many中，无线循环，什么时候终止呢， 执行时有个flag，  执行前改为false，如果 执行成功变为true了则可以再次进去，再次进入后将他改为false
 
     printCst() {
-        QqqqUtil.test(this.getCurCst())
+        QqqqUtil.log(this.getCurCst())
+    }
+
+    printMatchState(){
+        QqqqUtil.log(this.continueMatch)
     }
 
     printTokens() {
-        QqqqUtil.test('tokens:' + this.tokens.map(item => item.tokenName).join(','))
+        this.printMatchState()
+        QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
 
     printCstStacks() {
-        QqqqUtil.test(this.cstStack.map(item => item.name).join(','))
+        QqqqUtil.log(this.cstStack.map(item => item.name).join(','))
     }
 
     constructor(tokens?: SubhutiMatchToken[]) {
@@ -318,6 +320,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
+
         let popToken = this.getMatchToken(tokenName);
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {

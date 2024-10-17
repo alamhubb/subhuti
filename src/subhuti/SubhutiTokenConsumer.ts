@@ -1,6 +1,5 @@
 import SubhutiParser, {SubhutiParserOr} from "./SubhutiParser";
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
-import {Es5TokensName} from "../syntax/es5/Es5Tokens";
 
 export default class SubhutiTokenConsumer {
     instance: SubhutiParser

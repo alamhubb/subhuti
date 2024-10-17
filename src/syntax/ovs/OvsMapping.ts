@@ -2,6 +2,12 @@ import SubhutiMappingParser from '../../subhuti/SubhutiMappingParser'
 import { SubhutiRule } from '../../subhuti/SubhutiParser'
 import { es6TokensObj } from '../es6/Es6Tokens'
 import OvsParser from "./OvsParser";
+import {SubhutiCreateToken} from "../../subhuti/struct/SubhutiCreateToken";
+
+//let 转 const，这时候就是在寻找一个let，没问题
+const mappingTokenMap: { [key in string]: SubhutiCreateToken } = {
+    [es6TokensObj.ConstTok.name]: es6TokensObj.LetTok
+}
 
 export default class OvsMappingParser extends OvsParser {
   /*@SubhutiRule

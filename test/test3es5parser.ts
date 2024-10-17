@@ -1,8 +1,8 @@
 import SubhutiLexer from "../src/subhuti/SubhutiLexer";
-import {es6Tokens} from "../src/es6/Es6Tokens";
+import {es6Tokens} from "../src/syntax/es6/Es6Tokens";
 import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
-import {es5Tokens, es5TokensObj} from "../src/es5/Es5Tokens";
-import {Es5Parser} from "../src/es5/Es5Parser";
+import {es5Tokens, es5TokensObj} from "../src/syntax/es5/Es5Tokens";
+import {Es5Parser} from "../src/syntax/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
 import SubhutiGenerator from "../src/subhuti/SubhutiGenerator";
 

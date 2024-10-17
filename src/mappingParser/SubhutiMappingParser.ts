@@ -1,7 +1,7 @@
 import SubhutiCst from "../subhuti/struct/SubhutiCst";
 import SubhutiParser, { SubhutiParserOr, SubhutiRule } from "../subhuti/SubhutiParser";
-import { Es6TokenName } from "../es6/Es6Tokens";
-import Es6Parser from "../es6/Es6Parser";
+import { Es6TokenName } from "../syntax/es6/Es6Tokens";
+import Es6Parser from "../syntax/es6/Es6Parser";
 import SubhutiMatchToken from "../subhuti/struct/SubhutiMatchToken";
 const mappingTokenMap = {
     const: 'let'

@@ -1,4 +1,4 @@
-import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../subhuti/struct/SubhutiCreateToken";
+import {createKeywordToken, createToken, SubhutiCreateTokenGroupType} from "../../subhuti/struct/SubhutiCreateToken";
 import {Es6TokenName} from "../es6/old/Es6Tokens";
 
 export const Es5TokensName = {

@@ -1,6 +1,6 @@
 import Es5TokenConsumer from "../es5/Es5TokenConsume";
 import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens";
-import {createKeywordToken} from "../subhuti/struct/SubhutiCreateToken";
+import {createKeywordToken} from "../../subhuti/struct/SubhutiCreateToken";
 
 export const Es6TokenName = {
     ...Es5TokensName,

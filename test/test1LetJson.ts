@@ -13,7 +13,7 @@ TestUtil.test({
         const lexer = new SubhutiLexer(es6Tokens);
         const tokens = lexer.lexer(input);
         const parser = new Es6Parser(tokens);
-        const res = parser.program();
+        const res = parser.Program();
         return JsonUtil.toJson(res)
     },
 });

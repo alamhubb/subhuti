@@ -1,10 +1,11 @@
 {
   "name": "subhuti",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "tsx test/HelloWorldGrammarParser.ts"
+    "test": "tsx test/HelloWorldGrammarParser.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

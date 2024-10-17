@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    /*"paths": {
-      "@*//*": [
-        "./src*//*"
-      ]
-    }*/
+    "target": "ES5",
+    "include": ["src/**/*"]
   }
 }

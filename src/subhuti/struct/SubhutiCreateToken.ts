@@ -21,6 +21,18 @@ export class SubhutiCreateToken {
     }
 }
 
+const RegularEscapeMap = {
+    '(':'\\(',
+    ')':'\\)',
+    '[':'\\[',
+    '+':'\\+',
+    '++':'\\+\\+',
+    '+=':'\\+=',
+    '?':'\\?',
+    '*':'\\*',
+    '*=':'\\*=',
+}
+
 export function createToken(osvToken: SubhutiCreateToken) {
     return new SubhutiCreateToken(osvToken);
 }
@@ -32,6 +44,10 @@ export function createKeywordToken(name: string, value: string) {
 }
 
 export function createStringToken(name: string, value: string) {
+    const getEscapeChar = RegularEscapeMap[value]
+    if (getEscapeChar){
+        value = getEscapeChar
+    }
     const token = new SubhutiCreateToken({name: name, pattern: new RegExp(value)});
     return token;
 }

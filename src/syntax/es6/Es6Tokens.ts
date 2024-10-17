@@ -1,6 +1,6 @@
 import Es5TokenConsumer from "../es5/Es5TokenConsume";
 import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens";
-import {createKeywordToken} from "../../subhuti/struct/SubhutiCreateToken";
+import {createKeywordToken, createToken} from "../../subhuti/struct/SubhutiCreateToken";
 
 export const Es6TokenName = {
     ...Es5TokensName,
@@ -43,13 +43,17 @@ export const es6TokensObj = {
     ExtendsTok: createKeywordToken({name: Es6TokenName.ExtendsTok, pattern: /ExtendsTok/}),
     Arrow: createKeywordToken({name: Es6TokenName.Arrow, pattern: /=>/}),
     Ellipsis: createKeywordToken({name: Es6TokenName.Ellipsis, pattern: /\.\.\./}),
-    NoSubstitutionTemplate: createKeywordToken({
+
+
+
+
+    NoSubstitutionTemplate: createToken({
         name: Es6TokenName.NoSubstitutionTemplate,
         pattern: /`[^`\\]*(?:\\.[^`\\]*)*`/
     }),
-    TemplateHead: createKeywordToken({name: Es6TokenName.TemplateHead, pattern: /`[^`\\$]*(?:\\.[^`\\$]*)*\$\{/}),
-    TemplateTail: createKeywordToken({name: Es6TokenName.TemplateTail, pattern: /[^`\\]*(?:\\.[^`\\]*)*`/}),
-    TemplateMiddle: createKeywordToken({
+    TemplateHead: createToken({name: Es6TokenName.TemplateHead, pattern: /`[^`\\$]*(?:\\.[^`\\$]*)*\$\{/}),
+    TemplateTail: createToken({name: Es6TokenName.TemplateTail, pattern: /[^`\\]*(?:\\.[^`\\]*)*`/}),
+    TemplateMiddle: createToken({
         name: Es6TokenName.TemplateMiddle,
         pattern: /(?<=\$\{[^}]*})([^`\\]*(?:\\.[^`\\]*)*)(?=\$\{)/
     }),

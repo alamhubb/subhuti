@@ -41,6 +41,7 @@ export default class SubhutiLexer {
             if (!matchTokens.length) { // 如果没有匹配到任何token
                 throw new Error('无法匹配token:' + input); // 抛出错误
             }
+            console.log(matchTokens)
             //获取长度最长的
             let maxLength = 0
             const map: Map<number, SubhutiMatchToken[]> = new Map()
@@ -68,6 +69,9 @@ export default class SubhutiLexer {
             } else {
                 resToken = maxLengthTokens[0]
             }
+            console.log(input)
+            console.log(resToken.tokenName)
+            console.log(666666)
             input = input.substring(resToken.tokenValue.length); // 从输入字符串中移除已匹配的部分
             const createToken = this.tokenMap.get(resToken.tokenName); // 获取创建token的配置信息
             if (createToken.group === SubhutiCreateTokenGroupType.skip) { // 如果token属于跳过组

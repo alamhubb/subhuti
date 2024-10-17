@@ -135,7 +135,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     ////校验可执行没问题，因为肯定是可执行
-    get tokens() {
+    public get tokens() {
         return this._tokens;
     }
 
@@ -176,7 +176,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.continueMatch;
     }
 
-    get tokenIsEmpty() {
+    public get tokenIsEmpty() {
         //子类重写了
         return !this._tokens || !this._tokens.length
     }
@@ -453,7 +453,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
     }
 
-    get backData() {
+    public get backData() {
         const backData: SubhutiBackData = {
             tokens: this.tokens,
             curCstChildren: this.curCst.children,

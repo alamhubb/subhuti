@@ -29,7 +29,7 @@ export default class OvsMappingParser extends OvsParser {
     })
     this.appendToken({
       tokenName: es6TokensObj.LParen.name,
-      tokenValue: es6TokensObj.LParen.pattern.source,
+      tokenValue: es6TokensObj.LParen.value,
     })
     if (functionNameToken) {
       this.appendToken({
@@ -39,12 +39,12 @@ export default class OvsMappingParser extends OvsParser {
     }
     this.appendToken({
       tokenName: es6TokensObj.Comma.name,
-      tokenValue: es6TokensObj.Comma.pattern.source,
+      tokenValue: es6TokensObj.Comma.value,
     })
     this.onlyConsume(es6TokensObj.LBrace)
     this.appendToken({
       tokenName: es6TokensObj.LBracket.name,
-      tokenValue: es6TokensObj.LBracket.pattern.source,
+      tokenValue: es6TokensObj.LBracket.value,
     })
     this.Option(() => {
       this.ElementList()
@@ -52,11 +52,11 @@ export default class OvsMappingParser extends OvsParser {
     this.onlyConsume(es6TokensObj.RBrace)
     this.appendToken({
       tokenName: es6TokensObj.RBracket.name,
-      tokenValue: es6TokensObj.RBracket.pattern.source,
+      tokenValue: es6TokensObj.RBracket.value,
     })
     this.appendToken({
       tokenName: es6TokensObj.RParen.name,
-      tokenValue: es6TokensObj.RParen.pattern.source,
+      tokenValue: es6TokensObj.RParen.value,
     })
   }
 }

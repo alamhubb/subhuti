@@ -1,6 +1,12 @@
 import Es5TokenConsumer from "../es5/Es5TokenConsume";
 import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens";
-import {createKeywordToken, createToken} from "../../subhuti/struct/SubhutiCreateToken";
+import {
+    createEmptyValueRegToken,
+    createKeywordToken,
+    createRegToken,
+    createToken,
+    createValueRegToken
+} from "../../subhuti/struct/SubhutiCreateToken";
 
 export const Es6TokenName = {
     ...Es5TokensName,
@@ -28,21 +34,30 @@ export const Es6TokenName = {
 
 export const es6TokensObj = {
     ...es5TokensObj,
-    ImportTok: createKeywordToken({name: Es6TokenName.ImportTok, pattern: /import/,value:}),
-    AsTok: createKeywordToken({name: Es6TokenName.AsTok, pattern: /as/}),
-    FromTok: createKeywordToken({name: Es6TokenName.FromTok, pattern: /from/}),
-    ExportTok: createKeywordToken({name: Es6TokenName.ExportTok, pattern: /export/}),
-    YieldTok: createKeywordToken({name: Es6TokenName.YieldTok, pattern: /yield/}),
-    SuperTok: createKeywordToken({name: Es6TokenName.SuperTok, pattern: /super/}),
-    TargetTok: createKeywordToken({name: Es6TokenName.TargetTok, pattern: /target/}),
-    LetTok: createKeywordToken({name: Es6TokenName.LetTok, pattern: /let/}),
-    ConstTok: createKeywordToken({name: Es6TokenName.ConstTok, pattern: /const/}),
-    OfTok: createKeywordToken({name: Es6TokenName.OfTok, pattern: /of/}),
-    ClassTok: createKeywordToken({name: Es6TokenName.ClassTok, pattern: /class/}),
-    StaticTok: createKeywordToken({name: Es6TokenName.StaticTok, pattern: /static/}),
-    ExtendsTok: createKeywordToken({name: Es6TokenName.ExtendsTok, pattern: /ExtendsTok/}),
-    Arrow: createKeywordToken({name: Es6TokenName.Arrow, pattern: /=>/}),
-    Ellipsis: createKeywordToken({name: Es6TokenName.Ellipsis, pattern: /\.\.\./}),
+    ImportTok: createKeywordToken(Es6TokenName.ImportTok, "import"),
+    AsTok: createKeywordToken(Es6TokenName.AsTok, "as"),
+    FromTok: createKeywordToken(Es6TokenName.FromTok, "from"),
+    ExportTok: createKeywordToken(Es6TokenName.ExportTok, "export"),
+    YieldTok: createKeywordToken(Es6TokenName.YieldTok, "yield"),
+    SuperTok: createKeywordToken(Es6TokenName.SuperTok, "super"),
+    TargetTok: createKeywordToken(Es6TokenName.TargetTok, "target"),
+    LetTok: createKeywordToken(Es6TokenName.LetTok, "let"),
+    ConstTok: createKeywordToken(Es6TokenName.ConstTok, "const"),
+    OfTok: createKeywordToken(Es6TokenName.OfTok, "of"),
+    ClassTok: createKeywordToken(Es6TokenName.ClassTok, "class"),
+    StaticTok: createKeywordToken(Es6TokenName.StaticTok, "static"),
+    ExtendsTok: createKeywordToken(Es6TokenName.ExtendsTok, "extends"),
+
+    Arrow: createRegToken(Es6TokenName.Arrow, /=>/),
+
+    Ellipsis: createValueRegToken(Es6TokenName.Ellipsis, /\.\.\./, '...'),
+
+    NoSubstitutionTemplate: createEmptyValueRegToken(
+        Es6TokenName.NoSubstitutionTemplate, /`[^`\\]*(?:\\.[^`\\]*)*`/
+    ),
+    TemplateHead: createEmptyValueRegToken(Es6TokenName.TemplateHead, /`[^`\\$]*(?:\\.[^`\\$]*)*\$\{/),
+    TemplateTail: createEmptyValueRegToken(Es6TokenName.TemplateTail, /[^`\\]*(?:\\.[^`\\]*)*`/),
+    TemplateMiddle: createEmptyValueRegToken(Es6TokenName.TemplateMiddle, /(?<=\$\{[^}]*})([^`\\]*(?:\\.[^`\\]*)*)(?=\$\{)/),
 };
 export const es6Tokens = Object.values(es6TokensObj);
 

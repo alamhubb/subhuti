@@ -15,16 +15,15 @@ export class SubhutiCreateToken {
     constructor(ovsToken: SubhutiCreateToken) {
         this.name = ovsToken.name;
         this.pattern = ovsToken.pattern
-        if (!ovsToken.value) {
-            this.value = ovsToken.pattern.source
-        } else {
+        if (ovsToken.value) {
             this.value = ovsToken.value
+        } else {
+            this.value = emptyValue
         }
         this.isKeyword = false;
         this.group = ovsToken.group;
     }
 }
-
 
 export const emptyValue = 'Error:CannotUseValue'
 
@@ -33,14 +32,22 @@ export function createToken(osvToken: SubhutiCreateToken) {
 }
 
 export function createKeywordToken(name: string, pattern: string) {
-    const token = new SubhutiCreateToken({name: name, pattern: new RegExp(pattern)});
+    const token = new SubhutiCreateToken({name: name, pattern: new RegExp(pattern), value: pattern});
     token.isKeyword = true;
-    token.value = pattern;
     return token;
 }
 
-export function createValueRegToken(name: string, pattern: RegExp, value: string = emptyValue) {
+export function createRegToken(name: string, pattern: RegExp) {
+    const token = new SubhutiCreateToken({name: name, pattern: pattern, value: pattern.source});
+    return token;
+}
+
+export function createValueRegToken(name: string, pattern: RegExp, value: string) {
     const token = new SubhutiCreateToken({name: name, pattern: pattern, value: value});
-    token.value = value
+    return token;
+}
+
+export function createEmptyValueRegToken(name: string, pattern: RegExp) {
+    const token = new SubhutiCreateToken({name: name, pattern: pattern});
     return token;
 }

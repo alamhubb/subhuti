@@ -154,7 +154,7 @@ export default class Es6MappingParser extends Es6Parser {
   }
 
   //语法token
-  generateToken(tokenName: string) {
+  generateToken(tokenName: string): SubhutiMatchToken {
     //内部consume,也需要把标识设为false，有可能深层子设为了true，但是后来又改为了false，如果不同步改就会没同步
     this.setContinueMatchAndNoBreak(false)
     if (!this.mappingCst) {
@@ -227,7 +227,7 @@ export default class Es6MappingParser extends Es6Parser {
         tokenValue: childToken.tokenValue // 设置token值为CST节点值
       })
     }
-    return this.generateCstByToken(popToken)
+    return popToken
   }
 
   consume(tokenName: SubhutiCreateToken): SubhutiCst {
@@ -235,10 +235,19 @@ export default class Es6MappingParser extends Es6Parser {
       return
     }
     if (this.generatorMode) {
-      return this.generateToken(tokenName.name)
+      let popToken = this.generateToken(tokenName.name)
+      if (popToken) {
+        return this.generateCstByToken(popToken)
+      }
+      return
     } else {
       return super.consumeToken(tokenName.name)
     }
+  }
+
+  onlyConsume(tokenName: SubhutiCreateToken) {
+    let popToken = this.generateToken(tokenName.name)
+    return popToken
   }
 
   exec(cst: SubhutiCst = this.getCurCst(), code = '') {

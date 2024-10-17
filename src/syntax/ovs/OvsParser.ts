@@ -6,13 +6,7 @@ export default class OvsParser extends Es6Parser {
     @SubhutiRule
     OvsRenderDom() {
         this.consume(es6TokensObj.IdentifierName)
-        this.Option(() => {
-            this.Arguments()
-        })
         this.consume(es6TokensObj.LBrace)
-        this.Option(() => {
-            this.ElementList()
-        })
         this.consume(es6TokensObj.RBrace)
     }
 
@@ -20,7 +14,11 @@ export default class OvsParser extends Es6Parser {
     AssignmentExpression() {
         this.Or([
             {alt: () => this.OvsRenderDom()},
-            {alt: () => this.ConditionalExpression()},
+            {
+                alt: () => {
+                    this.ConditionalExpression()
+                }
+            },
             {
                 alt: () => {
                     this.YieldExpression();

@@ -5,6 +5,14 @@ import { es6TokensObj } from '../es6/Es6Tokens'
 export default class OvsMappingParser extends Es6MappingParser {
   @SubhutiRule
   OvsRenderDom() {
+    this.consume(es6TokensObj.IdentifierName)
+    this.consume(es6TokensObj.LBrace)
+    this.consume(es6TokensObj.RBrace)
+  }
+
+  /*
+  @SubhutiRule
+  OvsRenderDom() {
     let functionNameToken = this.onlyConsume(es6TokensObj.IdentifierName)
     // this.Option(() => {
     //   this.Arguments()
@@ -44,5 +52,5 @@ export default class OvsMappingParser extends Es6MappingParser {
       tokenName: es6TokensObj.RParen.name,
       tokenValue: es6TokensObj.RParen.pattern.source,
     })
-  }
+  }*/
 }

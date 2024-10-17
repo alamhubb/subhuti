@@ -11,7 +11,7 @@
   "homepage": "https://github.com/alamhubb/subhuti",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alamhubb/subhuti.git"
+    "url": "git+https://github.com/alamhubb/subhuti.git"
   },
   "contributors": [
     {

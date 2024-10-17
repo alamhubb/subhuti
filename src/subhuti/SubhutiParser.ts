@@ -193,10 +193,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
         }
-        console.log('zhixingru:' + ruleName)
         let cst = this.processCst(ruleName, targetFun);
-        console.log('chuqu:' + ruleName)
-        console.log(this.continueMatch)
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true;
@@ -414,7 +411,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
             if (this.continueForAndNoBreak) {
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
-                this.printTokens()
                 break;
             } else if (!this.continueForAndNoBreak) {
                 //匹配失败
@@ -451,7 +447,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     // backData: any
 
     setBackData(backData: SubhutiBackData) {
-        console.log('chognshe backda')
         this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
     }
 

@@ -10,7 +10,6 @@ export default class SubhutiTokenConsumer {
     }
 
     consume(token: SubhutiCreateToken) {
-        console.log('xiaohao222:' + token.name)
         this.instance.consume(token)
     }
 

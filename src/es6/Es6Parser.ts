@@ -1723,17 +1723,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
             },
             {
                 alt: () => {
-                    console.log('zhixingle ImportsList')
                     this.ImportsList();
                     this.tokenConsumer.RBrace();
                 }
             },
             {
                 alt: () => {
-                    console.log('zhixingle111 RBrace')
-                    console.log(this.continueMatch)
                     this.tokenConsumer.RBrace()
-                    console.log(this.continueMatch)
                 }
             },
         ]);

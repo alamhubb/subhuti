@@ -17,7 +17,7 @@ export default class OvsMappingParser extends OvsParser {
     this.consume(es6TokensObj.RBrace)
   }*/
 
-  @SubhutiRule
+  /*@SubhutiRule
   OvsRenderDom() {
     let functionNameToken = this.onlyConsume(es6TokensObj.IdentifierName)
     // this.Option(() => {
@@ -58,5 +58,5 @@ export default class OvsMappingParser extends OvsParser {
       tokenName: es6TokensObj.RParen.name,
       tokenValue: es6TokensObj.RParen.value,
     })
-  }
+  }*/
 }

@@ -20,16 +20,19 @@
       "url": "https://github.com/alamhubb"
     }
   ],
-  "keywords": [],
-  "author": "",
-  "description": "",
-  "dependencies": {
-    "@types/lodash": "^4.17.10",
-    "acorn": "^8.12.1",
+  "keywords": [
+    "parser",
+    "auto-parser",
+    "generator",
+    "auto-generator",
+    "transformer",
+    "auto-transfomer"
+  ],
+  "author": "alamhubb",
+  "description": "Automatic conversion between two different programming languages through two grammar files that define the same grammar structure and grammar name",
+  "devDependencies": {
+    "@types/node": "^22.7.6",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.7.6"
   }
 }

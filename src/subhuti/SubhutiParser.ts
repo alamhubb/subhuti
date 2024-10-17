@@ -109,9 +109,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     printTokens() {
-        console.log(this.curCst.name)
-        console.log(this.continueMatch)
-        console.log(this.tokens.length)
         QqqqUtil.test('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
 

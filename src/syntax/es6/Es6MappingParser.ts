@@ -71,7 +71,6 @@ export default class Es6MappingParser extends Es6Parser {
     }
 
     processCst(ruleName: string, targetFun: Function) {
-        console.log('zhixingguize :' + ruleName)
         // this.printTokens()
         if (!this.mappingCst) {
             throw new Error('aflsdfdsa')
@@ -95,15 +94,9 @@ export default class Es6MappingParser extends Es6Parser {
         const parentCst = this.mappingCstStack.pop()
         //没元素了，则在父节点中删除此元素
         if (!this.mappingCst.children?.length) {
-            console.log('chenggong shanchu child')
             parentCst.children?.splice(findIndex, 1)
         }
         this.setMappingCst(parentCst)
-        console.log(parentCst.name)
-        console.log(parentCst?.tokens?.length)
-        console.log(parentCst?.children?.length)
-        console.log('44444')
-        JsonUtil.log(parentCst)
         return cst;
     }
 
@@ -193,10 +186,6 @@ export default class Es6MappingParser extends Es6Parser {
         const childToken = mappingTokens.splice(findChildTokenIndex, 1)[0]; // 从子节点中删除匹配的节点并获取
         const child = mappingChildren.splice(findChildIndex, 1)[0]; // 从子节点中删除匹配的节点并获取
 
-        console.log('chenggongshanchu' + childToken.tokenName)
-        console.log('chenggongshanchu' + this.mappingCst.name)
-        JsonUtil.log(this.mappingCst)
-
         //子token中删除，子child中也删除，没问题，即使token中不是全量，也是当前节点的全量
         if (!childToken || !child) { // 如果删除的节点不存在
             //因为CheckMethodCanExec 中组织了空token，所以这里不会触发
@@ -247,13 +236,10 @@ export default class Es6MappingParser extends Es6Parser {
 
     exec(cst: SubhutiCst = this.getCurCst(), code = '') {
         if (this.generatorMode) {
-            console.log(cst.name)
-            console.log(this.thisClassName)
             const newCst = this[cst.name]();
             if (!newCst) {
                 throw new Error('语法错误');
             }
-            console.log(newCst)
             this.setGeneratorMode(false)
             return super.exec(newCst, code);
         }

@@ -85,6 +85,14 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         return this.generateCstByToken(popToken)
     }
 
+    appendStringToken(value: string) {
+        const popToken = {
+            tokenName: es6TokensObj.StringLiteral.name,
+            tokenValue: '"' + value + '"',
+        }
+        return this.appendToken(popToken)
+    }
+
     processCst(ruleName: string, targetFun: Function) {
         if (this.isParserMode) {
             return super.processCst(ruleName, targetFun)

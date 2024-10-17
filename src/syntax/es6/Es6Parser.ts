@@ -716,9 +716,7 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Expression() {
-        this.printTokens()
         this.AssignmentExpression();
-        this.printTokens()
         this.Many(() => {
             this.tokenConsumer.Comma();
             this.AssignmentExpression();

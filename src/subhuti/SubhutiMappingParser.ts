@@ -144,10 +144,7 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         return true
     }
 
-
     printTokens() {
-        this.printMatchState()
-        console.log(this.mappingCst.name)
         QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
 
@@ -228,7 +225,6 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         if (this.isParserMode) {
             return super.consumeToken(tokenName)
         }
-        console.log('zhixingle xiaohao:' + tokenName)
         let popToken = this.generateToken(tokenName)
         if (popToken) {
             return this.generateCstByToken(popToken)

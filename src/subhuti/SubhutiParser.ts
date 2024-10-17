@@ -320,7 +320,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //消耗token，将token加入父语法
     consumeToken(tokenName: string) {
-
         let popToken = this.getMatchToken(tokenName);
         //容错代码
         if (!popToken || popToken.tokenName !== tokenName) {

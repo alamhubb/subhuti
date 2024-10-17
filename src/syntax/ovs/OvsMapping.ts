@@ -30,7 +30,7 @@ export default class OvsMappingParser extends Es6MappingParser {
     this.onlyConsume(es6TokensObj.LBrace)
     this.appendToken({
       tokenName: es6TokensObj.LBracket.name,
-      tokenValue: es6TokensObj.Comma.pattern.source,
+      tokenValue: es6TokensObj.LBracket.pattern.source,
     })
     this.Option(() => {
       this.ElementList()
@@ -38,7 +38,7 @@ export default class OvsMappingParser extends Es6MappingParser {
     this.onlyConsume(es6TokensObj.RBrace)
     this.appendToken({
       tokenName: es6TokensObj.RBracket.name,
-      tokenValue: es6TokensObj.Comma.pattern.source,
+      tokenValue: es6TokensObj.RBracket.pattern.source,
     })
     this.appendToken({
       tokenName: es6TokensObj.RParen.name,

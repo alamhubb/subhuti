@@ -15,7 +15,13 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
     @SubhutiRule
     IdentifierReference() {
         this.Or([
-            {alt: () => this.Identifier()},
+            {
+                alt: () => {
+                    this.printTokens()
+                    this.Identifier()
+                    this.printTokens()
+                }
+            },
             {alt: () => this.tokenConsumer.YieldTok()}
         ]);
     }
@@ -46,7 +52,9 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     Identifier() {
+        this.printTokens()
         this.tokenConsumer.IdentifierName();
+        this.printTokens()
         // TODO: Implement logic to exclude ReservedWord
     }
 
@@ -64,7 +72,11 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
                     this.Literal()
                 }
             },
-            {alt: () => this.ArrayLiteral()},
+            {
+                alt: () => {
+                    this.ArrayLiteral()
+                }
+            },
             {alt: () => this.ObjectLiteral()},
             {alt: () => this.FunctionExpression()},
             {alt: () => this.ClassExpression()},
@@ -674,14 +686,16 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
 
     @SubhutiRule
     ConditionalExpression() {
+        this.printTokens()
         this.LogicalORExpression();
+        this.printTokens()
         //这个把orbreak改为了false
-        this.Option(() => {
+        /*this.Option(() => {
             this.tokenConsumer.Question();
             this.AssignmentExpression();
             this.tokenConsumer.Colon();
             this.AssignmentExpression();
-        });
+        });*/
     }
 
 

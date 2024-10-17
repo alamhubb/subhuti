@@ -210,7 +210,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 if (!cst.tokens.length) {
                     cst.tokens = undefined
                 } else {
-                    parentCst.tokens.push(...cst.tokens);
+                    // parentCst.tokens.push(...cst.tokens);
                 }
                 parentCst.children.push(cst);
             }
@@ -450,6 +450,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     // backData: any
 
     setBackData(backData: SubhutiBackData) {
+        console.log('chongzhile shuju')
         this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
     }
 

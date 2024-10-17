@@ -28,7 +28,7 @@ export const Es6TokenName = {
 
 export const es6TokensObj = {
     ...es5TokensObj,
-    ImportTok: createKeywordToken({name: Es6TokenName.ImportTok, pattern: /import/}),
+    ImportTok: createKeywordToken({name: Es6TokenName.ImportTok, pattern: /import/,value:}),
     AsTok: createKeywordToken({name: Es6TokenName.AsTok, pattern: /as/}),
     FromTok: createKeywordToken({name: Es6TokenName.FromTok, pattern: /from/}),
     ExportTok: createKeywordToken({name: Es6TokenName.ExportTok, pattern: /export/}),
@@ -43,31 +43,6 @@ export const es6TokensObj = {
     ExtendsTok: createKeywordToken({name: Es6TokenName.ExtendsTok, pattern: /ExtendsTok/}),
     Arrow: createKeywordToken({name: Es6TokenName.Arrow, pattern: /=>/}),
     Ellipsis: createKeywordToken({name: Es6TokenName.Ellipsis, pattern: /\.\.\./}),
-
-
-
-
-    NoSubstitutionTemplate: createToken({
-        name: Es6TokenName.NoSubstitutionTemplate,
-        pattern: /`[^`\\]*(?:\\.[^`\\]*)*`/
-    }),
-    TemplateHead: createToken({name: Es6TokenName.TemplateHead, pattern: /`[^`\\$]*(?:\\.[^`\\$]*)*\$\{/}),
-    TemplateTail: createToken({name: Es6TokenName.TemplateTail, pattern: /[^`\\]*(?:\\.[^`\\]*)*`/}),
-    TemplateMiddle: createToken({
-        name: Es6TokenName.TemplateMiddle,
-        pattern: /(?<=\$\{[^}]*})([^`\\]*(?:\\.[^`\\]*)*)(?=\$\{)/
-    }),
-    // let: createKeywordToken({name: Es6TokenName.let, pattern: /let/}),
-    // const: createKeywordToken({name: Es6TokenName.const, pattern: /const/}),
-    // whitespace: createKeywordToken({
-    //     name: Es6TokenName.whitespace,
-    //     pattern: /\s+/,
-    //     group: SubhutiCreateTokenGroupType.skip
-    // }),
-    // identifier: createToken({name: Es6TokenName.identifier, pattern: /[a-zA-Z$_]\w*!/}),
-    // integer: createToken({name: Es6TokenName.integer, pattern: /0|[1-9]\d*/}),
-    // //匹配非'\,和转义字符
-    // string: createToken({name: Es6TokenName.string, pattern: /'([^'\\]|\\.)*'/}),
 };
 export const es6Tokens = Object.values(es6TokensObj);
 

@@ -12,42 +12,35 @@ export class SubhutiCreateToken {
     value?: string;
     categories?: any;
 
-    constructor(osvToken: SubhutiCreateToken) {
-        this.name = osvToken.name;
-        this.pattern = osvToken.pattern;
-        this.value = osvToken.pattern.source;
+    constructor(ovsToken: SubhutiCreateToken) {
+        this.name = ovsToken.name;
+        this.pattern = ovsToken.pattern
+        if (!ovsToken.value) {
+            this.value = ovsToken.pattern.source
+        } else {
+            this.value = ovsToken.value
+        }
         this.isKeyword = false;
-        this.group = osvToken.group;
+        this.group = ovsToken.group;
     }
 }
 
-const RegularEscapeMap = {
-    '(':'\\(',
-    ')':'\\)',
-    '[':'\\[',
-    '+':'\\+',
-    '++':'\\+\\+',
-    '+=':'\\+=',
-    '?':'\\?',
-    '*':'\\*',
-    '*=':'\\*=',
-}
+
+export const emptyValue = 'Error:CannotUseValue'
 
 export function createToken(osvToken: SubhutiCreateToken) {
     return new SubhutiCreateToken(osvToken);
 }
 
-export function createKeywordToken(name: string, value: string) {
-    const token = new SubhutiCreateToken({name: name, pattern: new RegExp(value)});
+export function createKeywordToken(name: string, pattern: string) {
+    const token = new SubhutiCreateToken({name: name, pattern: new RegExp(pattern)});
     token.isKeyword = true;
+    token.value = pattern;
     return token;
 }
 
-export function createStringToken(name: string, value: string) {
-    const getEscapeChar = RegularEscapeMap[value]
-    if (getEscapeChar){
-        value = getEscapeChar
-    }
-    const token = new SubhutiCreateToken({name: name, pattern: new RegExp(value)});
+export function createValueRegToken(name: string, pattern: RegExp, value: string = emptyValue) {
+    const token = new SubhutiCreateToken({name: name, pattern: pattern, value: value});
+    token.value = value
     return token;
 }

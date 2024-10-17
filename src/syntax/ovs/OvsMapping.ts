@@ -1,10 +1,12 @@
-import Es6MappingParser from '../es6/Es6MappingParser'
+import SubhutiMappingParser from '../../subhuti/SubhutiMappingParser'
 import { SubhutiRule } from '../../subhuti/SubhutiParser'
 import { es6TokensObj } from '../es6/Es6Tokens'
+import OvsParser from "./OvsParser";
 
-export default class OvsMappingParser extends Es6MappingParser {
+export default class OvsMappingParser extends OvsParser {
   @SubhutiRule
   OvsRenderDom() {
+    console.log('zhixingle')
     this.consume(es6TokensObj.IdentifierName)
     this.consume(es6TokensObj.LBrace)
     this.consume(es6TokensObj.RBrace)

@@ -690,12 +690,12 @@ export default class Es6Parser<T extends Es6TokenConsumer = Es6TokenConsumer> ex
         this.LogicalORExpression();
 
         //这个把orbreak改为了false
-        /*this.Option(() => {
+        this.Option(() => {
             this.tokenConsumer.Question();
             this.AssignmentExpression();
             this.tokenConsumer.Colon();
             this.AssignmentExpression();
-        });*/
+        });
     }
 
 

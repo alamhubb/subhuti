@@ -247,10 +247,13 @@ export default class Es6MappingParser extends Es6Parser {
 
     exec(cst: SubhutiCst = this.getCurCst(), code = '') {
         if (this.generatorMode) {
+            console.log(cst.name)
+            console.log(this.thisClassName)
             const newCst = this[cst.name]();
             if (!newCst) {
                 throw new Error('语法错误');
             }
+            console.log(newCst)
             this.setGeneratorMode(false)
             return super.exec(newCst, code);
         }

@@ -6,9 +6,16 @@ export default class OvsParser extends Es6Parser {
     @SubhutiRule
     OvsRenderDom() {
         this.consume(es6TokensObj.IdentifierName)
+        this.Option(() => {
+            this.Arguments()
+        })
         this.consume(es6TokensObj.LBrace)
+        this.Option(() => {
+            this.ElementList()
+        })
         this.consume(es6TokensObj.RBrace)
     }
+
 
     @SubhutiRule
     AssignmentExpression() {

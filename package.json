@@ -1,15 +1,27 @@
 {
   "name": "subhuti",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "test": "tsx test/HelloWorldGrammarParser.ts",
     "build": "tsc"
   },
+  "homepage": "https://github.com/alamhubb/subhuti",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alamhubb/subhuti.git"
+  },
+  "contributors": [
+    {
+      "name": "alamhubb",
+      "githubUsername": "alamhubb",
+      "url": "https://github.com/alamhubb"
+    }
+  ],
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "description": "",
   "dependencies": {
     "@types/lodash": "^4.17.10",

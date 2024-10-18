@@ -1,6 +1,6 @@
 /*
-import SubhutiParser from "./SubhutiParser";
-import SubhutiMatchToken from "./struct/SubhutiMatchToken";
+import SubhutiParser from "./SubhutiParser.ts";
+import SubhutiMatchToken from "./struct/SubhutiMatchToken.ts";
 
 export default class SubhutiAstMapping extends SubhutiParser {
     //消耗token，将token加入父语法

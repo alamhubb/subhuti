@@ -5,12 +5,23 @@
   ],
   "compilerOptions": {
     "allowJs": true,
-    "moduleResolution": "Node",
-    "module": "ES2022",
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "module": "NodeNext",
     "target": "ES5",
     "rootDir": "./src",
     "outDir": "./lib",
     "baseUrl": ".",
+    "strict": false,
+    // 启用所有严格类型检查选项，提供更严格的类型检查。
+    "verbatimModuleSyntax": true,
+    // 保持 ES 模块的导入和导出语法，避免转换成 CommonJS 语法。
+    "declaration": true,
+    // 生成相应的 `.d.ts` 声明文件，便于其他 TypeScript 文件引用。
+    "sourceMap": true,
+    // 生成源映射文件，使调试时可以追踪到 TypeScript 源代码。
+    "declarationMap": true,
     "lib": [
       "ES2020"
     ],

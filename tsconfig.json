@@ -3,16 +3,23 @@
     "src/**/*"
   ],
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "moduleResolution": "Node",
     "module": "ES2022",
     "target": "ES5",
     "outDir": "./lib",
+    "baseUrl": ".",
     "lib": [
       "es2015"
     ],
     "types": [
       "node"
     ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
     "esModuleInterop": true
   }
 }

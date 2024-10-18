@@ -1,6 +1,6 @@
 {
   "name": "subhuti",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "index.js",
   "type": "module",
   "license": "MIT",
@@ -8,7 +8,7 @@
     "lib"
   ],
   "exports": {
-    "./*": "./lib/*"
+    "./*": "./lib/subhuti/*"
   },
   "scripts": {
     "test": "tsx test/HelloWorldGrammarParser.ts",

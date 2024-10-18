@@ -1,6 +1,5 @@
 import {createToken} from "../src/subhuti/struct/SubhutiCreateToken";
 import SubhutiParser, {SubhutiRule} from "../src/subhuti/SubhutiParser";
-import SubhutiLexer from "../src/subhuti/SubhutiLexer";
 import JsonUtil from "../src/utils/JsonUtil";
 
 //第一行代码，1.定义token，print函数token，匹配print字符串

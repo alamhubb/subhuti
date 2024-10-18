@@ -1,5 +1,5 @@
-import {SubhutiCreateToken, SubhutiCreateTokenGroupType} from "./struct/SubhutiCreateToken.ts";
-import SubhutiMatchToken, {createMatchToken} from "./struct/SubhutiMatchToken.ts";
+import {SubhutiCreateToken, SubhutiCreateTokenGroupType} from "./struct/SubhutiCreateToken.js";
+import SubhutiMatchToken, {createMatchToken} from "./struct/SubhutiMatchToken.js";
 
 export default class SubhutiLexer {
     constructor(tokens: SubhutiCreateToken[]) {

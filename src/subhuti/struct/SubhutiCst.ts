@@ -1,4 +1,4 @@
-import SubhutiMatchToken from "./SubhutiMatchToken.ts";
+import SubhutiMatchToken from "./SubhutiMatchToken.js";
 
 export default class SubhutiCst {
     // pathName: string;

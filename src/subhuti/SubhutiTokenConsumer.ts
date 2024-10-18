@@ -1,5 +1,5 @@
-import SubhutiParser, {SubhutiParserOr} from "./SubhutiParser.ts";
-import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.ts";
+import SubhutiParser, {SubhutiParserOr} from "./SubhutiParser.js";
+import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.js";
 
 export default class SubhutiTokenConsumer {
     instance: SubhutiParser

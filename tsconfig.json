@@ -6,7 +6,6 @@
   "compilerOptions": {
     "allowJs": true,
     "composite": true,
-    "allowImportingTsExtensions": true,
     "moduleResolution": "Node16",
     "module": "Node16",
     "target": "ES2015",

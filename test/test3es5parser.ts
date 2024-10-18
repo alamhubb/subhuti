@@ -1,8 +1,7 @@
 import SubhutiLexer from "../src/subhuti/SubhutiLexer";
-import {es6Tokens} from "../src/syntax/es6/Es6Tokens";
-import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
-import {es5Tokens, es5TokensObj} from "../src/syntax/es5/Es5Tokens";
-import {Es5Parser} from "../src/syntax/es5/Es5Parser";
+import {es6Tokens} from "../src/subhuti/syntax/es6/Es6Tokens";
+import {es5Tokens, es5TokensObj} from "../src/subhuti/syntax/es5/Es5Tokens";
+import {Es5Parser} from "../src/subhuti/syntax/es5/Es5Parser";
 import JsonUtil from "../src/utils/JsonUtil";
 import SubhutiGenerator from "../src/subhuti/SubhutiGenerator";
 
@@ -18,13 +17,12 @@ let input = `function GetQueryString(name)
 // const res = newPattern.test(input)
 //
 // console.log(res)
-Error.stackTraceLimit = 70
 const lexer = new SubhutiLexer(es5Tokens);
 const tokens = lexer.lexer(input);
 // console.log(tokens)
 const parser = new Es5Parser(tokens);
 try {
-    let res = parser.program();
+    let res = parser.Program();
     const gen = new SubhutiGenerator()
     const resc = gen.generator(res)
     console.log(resc)

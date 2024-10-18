@@ -1,7 +1,7 @@
 import SubhutiCst from "./struct/SubhutiCst"
 import SubhutiParser, {SubhutiBackData, SubhutiRule} from "./SubhutiParser"
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken"
-import {es6TokensObj} from "../syntax/es6/Es6Tokens"
+import {es6TokensObj} from "./syntax/es6/Es6Tokens"
 import SubhutiMatchToken from "./struct/SubhutiMatchToken"
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
 import QqqqUtil from "../utils/qqqqUtil";

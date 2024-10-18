@@ -1,9 +1,9 @@
 import SubhutiLexer from "../src/subhuti/SubhutiLexer";
-import {es6Tokens} from "../src/syntax/es6/Es6Tokens";
+import {es6Tokens} from "../src/subhuti/syntax/es6/Es6Tokens";
 import subhutiMappingParser from "../src/mappingParser/SubhutiMappingParser";
 import {subhutiMappingGenerator} from "../src/mappingParser/SubhutiMappingGenerator";
 import TestUtil from "./TestUtil";
-import Es6Parser from "../src/syntax/es6/Es6Parser";
+import Es6Parser from "../src/subhuti/syntax/es6/Es6Parser";
 
 TestUtil.test({
     input: `let a = 1`,

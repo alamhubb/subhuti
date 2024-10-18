@@ -1,5 +1,5 @@
 import Es6Parser from "../es6/Es6Parser";
-import {SubhutiRule} from "../../subhuti/SubhutiParser";
+import {SubhutiRule} from "../../SubhutiParser";
 import {es6TokensObj} from "../es6/Es6Tokens";
 
 export default class OvsParser extends Es6Parser {

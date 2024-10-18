@@ -2,9 +2,9 @@ import SubhutiMatchToken from "./struct/SubhutiMatchToken";
 import SubhutiCst from "./struct/SubhutiCst";
 import JsonUtil from "../utils/JsonUtil";
 import {SubhutiCreateToken} from "./struct/SubhutiCreateToken";
-import Es5TokenConsumer from "../syntax/es5/Es5TokenConsume";
+import Es5TokenConsumer from "./syntax/es5/Es5TokenConsume";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
-import {Es5TokensName} from "../syntax/es5/Es5Tokens";
+import {Es5TokensName} from "./syntax/es5/Es5Tokens";
 import QqqqUtil from "../utils/qqqqUtil";
 
 export class SubhutiParserOr {

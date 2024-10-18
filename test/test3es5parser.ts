@@ -1,9 +1,9 @@
-import SubhutiLexer from "../src/subhuti/SubhutiLexer";
-import {es6Tokens} from "../src/subhuti/syntax/es6/Es6Tokens";
-import {es5Tokens, es5TokensObj} from "../src/subhuti/syntax/es5/Es5Tokens";
-import {Es5Parser} from "../src/subhuti/syntax/es5/Es5Parser";
-import JsonUtil from "../src/utils/JsonUtil";
-import SubhutiGenerator from "../src/subhuti/SubhutiGenerator";
+import SubhutiLexer from "@/subhuti/SubhutiLexer.ts";
+import {es6Tokens} from "@/subhuti/syntax/es6/Es6Tokens.ts";
+import {es5Tokens, es5TokensObj} from "@/subhuti/syntax/es5/Es5Tokens.ts";
+import {Es5Parser} from "@/subhuti/syntax/es5/Es5Parser.ts";
+import JsonUtil from "@/utils/JsonUtil.ts";
+import SubhutiGenerator from "@/subhuti/SubhutiGenerator.ts";
 
 // let input = 'var a = '
 // let input = 'var a = 1'

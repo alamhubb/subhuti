@@ -4,8 +4,6 @@
     "test/**/*"
   ],
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "allowJs": true,
     "moduleResolution": "Node",
     "module": "ES2022",

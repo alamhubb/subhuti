@@ -1,10 +1,10 @@
-import SubhutiCst from "./struct/SubhutiCst"
-import SubhutiParser, {SubhutiBackData, SubhutiRule} from "./SubhutiParser"
-import {SubhutiCreateToken} from "./struct/SubhutiCreateToken"
-import {es6TokensObj} from "./syntax/es6/Es6Tokens"
-import SubhutiMatchToken from "./struct/SubhutiMatchToken"
-import SubhutiTokenConsumer from "./SubhutiTokenConsumer";
-import QqqqUtil from "../utils/qqqqUtil";
+import SubhutiCst from "./struct/SubhutiCst.ts"
+import SubhutiParser, {SubhutiBackData, SubhutiRule} from "./SubhutiParser.ts"
+import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.ts"
+import {es6TokensObj} from "./syntax/es6/Es6Tokens.ts"
+import SubhutiMatchToken from "./struct/SubhutiMatchToken.ts"
+import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
+import QqqqUtil from "../utils/qqqqUtil.ts";
 
 export class MappingBackData extends SubhutiBackData {
     mappingCst: SubhutiCst

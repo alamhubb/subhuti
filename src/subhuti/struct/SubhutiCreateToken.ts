@@ -1,5 +1,3 @@
-import {Es5TokensName} from "../syntax/es5/Es5Tokens";
-
 export enum SubhutiCreateTokenGroupType {
     skip = 'skip'
 }

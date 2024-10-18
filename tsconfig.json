@@ -6,9 +6,9 @@
     "moduleResolution": "Node",
     "module": "ES2022",
     "target": "ES5",
+    "outDir": "./lib",
     "lib": [
-      "es2015",
-      "dom"
+      "es2015"
     ],
     "types": [
       "node"

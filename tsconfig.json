@@ -4,14 +4,19 @@
     "test/**/*"
   ],
   "compilerOptions": {
-    "allowJs": true,
-    "moduleResolution": "Node16",
     "module": "Node16",
+    "moduleResolution": "Node16",
     "target": "ES2015",
+    "baseUrl": ".",
     "rootDir": "./src",
     "outDir": "./lib",
-    "baseUrl": ".",
     "strict": false,
+    "allowJs": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "lib": [
       "ES2015"
     ],
@@ -22,7 +27,6 @@
       "@/*": [
         "src/*"
       ]
-    },
-    "esModuleInterop": true
+    }
   }
 }

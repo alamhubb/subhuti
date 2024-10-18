@@ -1,4 +1,4 @@
-import SubhutiCst from "./struct/SubhutiCst.ts";
+import SubhutiCst from "./struct/SubhutiCst.js";
 export default class SubhutiGenerator {
     //默认就是遍历生成
     generator(cst: SubhutiCst, code = '') {

@@ -1,7 +1,7 @@
-import { SubhutiRule } from '../../SubhutiParser.ts'
-import { es6TokensObj } from '../es6/Es6Tokens.ts'
-import OvsParser from "./OvsParser.ts";
-import {SubhutiCreateToken} from "../../struct/SubhutiCreateToken.ts";
+import { SubhutiRule } from "../../SubhutiParser.js";
+import { es6TokensObj } from "../es6/Es6Tokens.js";
+import OvsParser from "./OvsParser.js";
+import {SubhutiCreateToken} from "../../struct/SubhutiCreateToken.js";
 
 //let 转 const，这时候就是在寻找一个let，没问题
 const mappingTokenMap: { [key in string]: SubhutiCreateToken } = {

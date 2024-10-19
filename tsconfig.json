@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "module": "ES2022",
     "useDefineForClassFields": true,
     "moduleResolution": "Node",
@@ -14,11 +13,6 @@
     ],
     "types": [
       "node"
-    ],
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    }
+    ]
   }
 }

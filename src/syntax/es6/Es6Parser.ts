@@ -1,7 +1,7 @@
-import Es6TokenConsumer from "@/syntax/es6/Es6Tokens.ts";
-import {Es5Parser} from "@/syntax/es5/Es5Parser.ts";
-import SubhutiMatchToken from "@/struct/SubhutiMatchToken.ts";
-import {SubhutiRule} from "@/parser/SubhutiParser.ts";
+import Es6TokenConsumer from "../../syntax/es6/Es6Tokens.ts";
+import {Es5Parser} from "../es5/Es5Parser.ts";
+import SubhutiMatchToken from "../../struct/SubhutiMatchToken.ts";
+import {SubhutiRule} from "../../parser/SubhutiParser.ts";
 
 export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> {
     constructor(tokens?: SubhutiMatchToken[]) {

@@ -3,7 +3,7 @@ import {
     createKeywordToken,
     createRegToken,
     SubhutiCreateTokenGroupType, createValueRegToken, createToken
-} from "@/struct/SubhutiCreateToken.ts";
+} from "../../struct/SubhutiCreateToken.ts";
 
 export const Es5TokensName = {
     // Keywords

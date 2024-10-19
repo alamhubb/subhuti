@@ -7,9 +7,7 @@
     "noEmit": true,
     "target": "ES2015",
     "strict": false,
-    "allowJs": true,
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true,
     "lib": [
       "ES2015"
     ],

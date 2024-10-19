@@ -10,7 +10,6 @@
     "noEmit": true,
     "target": "ES2015",
     "baseUrl": ".",
-    "rootDir": "./src",
     "outDir": "./lib",
     "strict": false,
     "allowJs": true,

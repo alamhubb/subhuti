@@ -6,7 +6,7 @@ import {
     createRegToken,
     createToken,
     createValueRegToken
-} from "../../struct/SubhutiCreateToken.ts";
+} from "@/struct/SubhutiCreateToken.ts";
 
 export const Es6TokenName = {
     ...Es5TokensName,

@@ -1,11 +1,11 @@
-import SubhutiMatchToken from "./struct/SubhutiMatchToken.js";
-import SubhutiCst from "./struct/SubhutiCst.js";
-import JsonUtil from "../utils/JsonUtil.js";
-import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.js";
-import Es5TokenConsumer from "./syntax/es5/Es5TokenConsume.js";
-import SubhutiTokenConsumer from "./SubhutiTokenConsumer.js";
-import {Es5TokensName} from "./syntax/es5/Es5Tokens.js";
-import QqqqUtil from "../utils/qqqqUtil.js";
+import SubhutiMatchToken from "./struct/SubhutiMatchToken.ts";
+import SubhutiCst from "./struct/SubhutiCst.ts";
+import JsonUtil from "../utils/JsonUtil.ts";
+import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.ts";
+import Es5TokenConsumer from "./syntax/es5/Es5TokenConsume.ts";
+import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
+import {Es5TokensName} from "./syntax/es5/Es5Tokens.ts";
+import QqqqUtil from "../utils/qqqqUtil.ts";
 
 export class SubhutiParserOr {
     alt: Function;

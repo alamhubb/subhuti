@@ -1,12 +1,12 @@
-import Es5TokenConsumer from "../es5/Es5TokenConsume.js";
-import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens.js";
+import Es5TokenConsumer from "../es5/Es5TokenConsume.ts";
+import {Es5TokensName, es5TokensObj} from "../es5/Es5Tokens.ts";
 import {
     createEmptyValueRegToken,
     createKeywordToken,
     createRegToken,
     createToken,
     createValueRegToken
-} from "../../struct/SubhutiCreateToken.js";
+} from "../../struct/SubhutiCreateToken.ts";
 
 export const Es6TokenName = {
     ...Es5TokensName,

@@ -4,7 +4,7 @@ import {SubhutiCreateToken} from "@/struct/SubhutiCreateToken.ts";
 import {es6TokensObj} from "@/syntax/es6/Es6Tokens.ts";
 import SubhutiMatchToken from "@/struct/SubhutiMatchToken.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
-import QqqqUtil from "./utils/qqqqUtil.ts";
+import QqqqUtil from "../utils/qqqqUtil.ts";
 
 export class MappingBackData extends SubhutiBackData {
     mappingCst: SubhutiCst

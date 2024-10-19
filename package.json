@@ -4,12 +4,6 @@
   "main": "index.js",
   "type": "module",
   "license": "MIT",
-  "files": [
-    "lib"
-  ],
-  "exports": {
-    "./*": "./lib/subhuti/*"
-  },
   "scripts": {
     "test": "tsx test/HelloWorldGrammarParser.ts",
     "build": "tsc"

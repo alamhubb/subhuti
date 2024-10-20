@@ -60,8 +60,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this._orBreakFlag
     }
 
-    setOrBreakFlag(value: boolean) {
-        this._orBreakFlag = value
+    setOrBreakFlag(flag: boolean) {
+        this._orBreakFlag = flag
+    }
+
+    get continueMatch() {
+        return this._continueMatch
+    }
+
+    setContinueMatch(flag: boolean) {
+        this._continueMatch = flag
     }
 
 //必须两个一个不够用，
@@ -75,13 +83,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //是否继续匹配
     //是否有错误
     // 最新问题，如果一个or里面只有一个many，
-    get continueMatch() {
-        return this._continueMatch
-    }
 
-    setContinueMatch(flag: boolean) {
-        this._continueMatch = flag
-    }
 
     /*  private _continueExec = true
 
@@ -421,6 +423,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
+            if (this.getCurCst().name === 'StatementListItem') {
+                console.log(this.getCurCst().name)
+                console.log(this.continueMatch)
+                console.log(this.orBreakFlag)
+            }
             if (this.continueForAndNoBreak) {
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break
@@ -463,7 +470,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     // backData: any
 
     setBackData(backData: SubhutiBackData) {
-        // console.log('chongzhile shuju')
         this.setTokensAndParentChildren(backData.tokens, backData.curCstTokens, backData.curCstChildren)
     }
 

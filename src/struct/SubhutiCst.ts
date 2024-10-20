@@ -4,7 +4,6 @@ export default class SubhutiCst {
     // pathName: string;
     name: string;
     children?: SubhutiCst[]
-    stack?: string
     tokens?: SubhutiMatchToken[]
     value?: string;
 

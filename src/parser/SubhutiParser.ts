@@ -4,6 +4,7 @@ import JsonUtil from "../utils/JsonUtil.ts"
 import { SubhutiCreateToken } from "../struct/SubhutiCreateToken.ts"
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts"
 import QqqqUtil from "../utils/qqqqUtil.ts"
+import SubhutiLChaining from '../struct/SubhutiLChaining.ts'
 
 export class SubhutiParserOr {
   alt: Function
@@ -20,9 +21,8 @@ export function SubhutiRule(targetFun: any, context) {
   //这部分是初始化时执行
   const ruleName = targetFun.name
   // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
-  const wrappedFunction = function () {
-    this.subhutiRule(targetFun, ruleName)
-    return this.generateCst(this.curCst)
+  const wrappedFunction = function (): SubhutiLChaining {
+    return this.subhutiRule(targetFun, ruleName)
   }
   // 为新函数显式设置名称
   Object.defineProperty(wrappedFunction, 'name', { value: ruleName })
@@ -213,6 +213,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
       }
       this.setCurCst(parentCst)
     }
+    if (!cst) {
+      return new SubhutiLChaining()
+    }
+    return new SubhutiLChaining(this.getCurCst())
   }
 
   //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
@@ -288,9 +292,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
   }
 
   //匹配0次或者1次
-  Option(fun: Function): SubhutiCst {
+  Option(fun: Function): SubhutiLChaining {
     if (!this.checkMethodCanExec) {
-      return
+      return new SubhutiLChaining()
     }
     let lastBreakFlag = this.orBreakFlag
     this.setAllowErrorNewState()
@@ -307,9 +311,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //push了，需要pop
     this.setAllowErrorLastStateAndPop()
     if (!curFlag) {
-      return
+      return new SubhutiLChaining()
     }
-    return this.getCurCst()
+    return new SubhutiLChaining(this.getCurCst())
   }
 
 
@@ -386,9 +390,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
   }
 
   //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
-  Or(subhutiParserOrs: SubhutiParserOr[]): SubhutiCst {
+  Or(subhutiParserOrs: SubhutiParserOr[]): SubhutiLChaining {
     if (!this.checkMethodCanExec) {
-      return
+      return new SubhutiLChaining()
     }
     this.setAllowErrorNewState()
     const funLength = subhutiParserOrs.length
@@ -434,9 +438,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //必须放这里，放this.continueExec可能不执行，放index === funLength  也有可能this.continueExec 时不执行，俩地方都放可能执行两次，只能放这里
     this.setAllowErrorLastStateAndPop()
     if (!curFlag) {
-      return
+      return new SubhutiLChaining()
     }
-    return this.getCurCst()
+    return new SubhutiLChaining(this.getCurCst())
   }
 
   get continueForAndNoBreak() {
@@ -474,9 +478,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     this.reSetParentChildren(parentTokensBackup, parentChildrenBack)
   }
 
-  Many(fun: Function) {
+  Many(fun: Function): SubhutiLChaining {
     if (!this.checkMethodCanExec) {
-      return
+      return new SubhutiLChaining()
     }
     //不需要 再循环内部修改，因为如果子节点改了，退出子节点时也会重置回来的
     this.setAllowErrorNewState()
@@ -508,9 +512,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题
     this.setAllowErrorLastStateAndPop()
     if (!matchCount) {
-      return
+      return new SubhutiLChaining()
     }
-    return this.getCurCst()
+    return new SubhutiLChaining(this.getCurCst())
   }
 
   generateCst(cst: SubhutiCst) {

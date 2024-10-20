@@ -133,7 +133,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     getCurSubhutiChaine() {
-        return new SubhutiLChaining(this.getCurSubhutiChaine())
+        return new SubhutiLChaining(this.getCurCst())
     }
 
     ////校验可执行没问题，因为肯定是可执行

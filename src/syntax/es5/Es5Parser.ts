@@ -451,7 +451,6 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         });
     }
 
-    @SubhutiRule
     VariableDeclarationListNoIn() {
         let numOfVars = 1;
         this.VariableDeclarationNoIn();
@@ -805,14 +804,14 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.AT_LEAST_ONE(() => {
             this.SourceElements();
         });
-        return this.getCurCst();
+        return this.getCurSubhutiChaine();
     }
 
     // 14 源元素
     @SubhutiRule
     SourceElements() {
         this.SourceElement()
-        return this.getCurCst();
+        return this.getCurSubhutiChaine();
     }
 
     @SubhutiRule

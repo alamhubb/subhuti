@@ -769,7 +769,6 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     this.LetOrConst()
     this.BindingList()
     this.EmptySemicolon()
-    return this.getCurCst()
   }
 
   EmptySemicolon() {

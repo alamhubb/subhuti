@@ -220,7 +220,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!cst) {
             return new SubhutiLChaining()
         }
-        return new SubhutiLChaining(this.getCurCst())
+        return this.getCurSubhutiChaine()
     }
 
     //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
@@ -317,7 +317,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!curFlag) {
             return new SubhutiLChaining()
         }
-        return new SubhutiLChaining(this.getCurCst())
+        return this.getCurSubhutiChaine()
     }
 
 
@@ -444,7 +444,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!curFlag) {
             return new SubhutiLChaining()
         }
-        return new SubhutiLChaining(this.getCurCst())
+        return this.getCurSubhutiChaine()
     }
 
     get continueForAndNoBreak() {
@@ -518,7 +518,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!matchCount) {
             return new SubhutiLChaining()
         }
-        return new SubhutiLChaining(this.getCurCst())
+        return this.getCurSubhutiChaine()
     }
 
     generateCst(cst: SubhutiCst) {

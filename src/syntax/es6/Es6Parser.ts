@@ -1652,7 +1652,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         }
       },
     ])
-    return new SubhutiLChaining(this.getCurCst())
+    return this.getCurSubhutiChaine()
   }
 
   @SubhutiRule

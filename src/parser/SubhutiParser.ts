@@ -134,8 +134,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.curCst
     }
 
-    getCurSubhutiChaine() {
-        return new SubhutiLChaining(this.getCurCst())
+    getCurSubhutiChaine(cst: SubhutiCst) {
+        return new SubhutiLChaining(cst)
     }
 
     ////校验可执行没问题，因为肯定是可执行
@@ -222,7 +222,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!cst) {
             return new SubhutiLChaining()
         }
-        return this.getCurSubhutiChaine()
+        return this.getCurSubhutiChaine(cst)
     }
 
     //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
@@ -319,7 +319,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!curFlag) {
             return new SubhutiLChaining()
         }
-        return this.getCurSubhutiChaine()
+        return this.getCurSubhutiChaine(this.getCurCst())
     }
 
 
@@ -364,7 +364,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         // cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
         this.curCst.children.push(cst)
         this.curCst.pushCstToken(popToken)
-        return popToken
+        return this.getCurSubhutiChaine(cst)
     }
 
     getMatchToken(tokenName: string) {
@@ -446,7 +446,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!curFlag) {
             return new SubhutiLChaining()
         }
-        return this.getCurSubhutiChaine()
+        return this.getCurSubhutiChaine(this.getCurCst())
     }
 
     get continueForAndNoBreak() {
@@ -519,7 +519,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!matchCount) {
             return new SubhutiLChaining()
         }
-        return this.getCurSubhutiChaine()
+        return this.getCurSubhutiChaine(this.getCurCst())
     }
 
     generateCst(cst: SubhutiCst) {

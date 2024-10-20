@@ -222,7 +222,7 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         return popToken
     }
 
-    consumeToken(tokenName: string): SubhutiMatchToken {
+    consumeToken(tokenName: string): SubhutiLChaining {
         if (this.isParserMode) {
             return super.consumeToken(tokenName)
         }

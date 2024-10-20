@@ -423,11 +423,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             // If the processing is successful, then exit the loop
             // 执行成功，则完成任务，做多一次，则必须跳出
             // 只有有成功的匹配才跳出循环，否则就一直执行，直至循环结束
-            if (this.getCurCst().name === 'StatementListItem') {
-                console.log(this.getCurCst().name)
-                console.log(this.continueMatch)
-                console.log(this.orBreakFlag)
-            }
             if (this.continueForAndNoBreak) {
                 //别的while都是，没token，才break，这个满足一次就必须break，无论有没有tokens还
                 break
@@ -516,7 +511,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             matchCount++
         }
-        if (this.orBreakFlag || lastBreakFlag) {
+        if (matchCount || this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true)
         }
         //只能放这里，放循环里会重复pop，，many允许多次 if (this.continueExec)，第一次执行后有tokens，就会触发了，会有问题

@@ -5,6 +5,7 @@ import {es6TokensObj} from "../syntax/es6/Es6Tokens.ts";
 import SubhutiMatchToken from "../struct/SubhutiMatchToken.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import QqqqUtil from "../utils/qqqqUtil.ts";
+import SubhutiLChaining from "../struct/SubhutiLChaining.ts";
 
 export class MappingBackData extends SubhutiBackData {
     mappingCst: SubhutiCst
@@ -241,11 +242,11 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         if (this.isParserMode) {
             return super.exec(cst, code)
         }
-        const newCst = this[cst.name]()
+        const newCst: SubhutiLChaining = this[cst.name]()
         if (!newCst) {
             throw new Error('语法错误')
         }
         this.setGeneratorMode(false)
-        return super.exec(newCst, code)
+        return super.exec(newCst.curCst, code)
     }
 }

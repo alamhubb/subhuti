@@ -260,10 +260,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.cstStack.pop()
         this.ruleExecErrorStack.pop()
         if (this.continueMatch) {
-            if (res) {
-                if (!res.curCst) {
-                    throw new Error('语法规则的返回参数必须为：SubhutiLChaining类型')
-                }
+            if (res && res.curCst) {
                 return this.getCurSubhutiChaine(res.curCst)
             }
             return this.getCurSubhutiChaine(cst)

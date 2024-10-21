@@ -225,10 +225,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             const parentCst = this.cstStack[this.cstStack.length - 1]
             if (cst) {
                 //优化cst展示
-                if (!cst.children.length) {
+                if (!cst.children?.length) {
                     cst.children = undefined
                 }
-                if (!cst.tokens.length) {
+                if (!cst.tokens?.length) {
                     cst.tokens = undefined
                 } else {
                     // parentCst.tokens.push(...cst.tokens);
@@ -261,11 +261,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         // 规则解析，如果自定义了返回内容，则有返回，则用自定义返回覆盖默认节点
         if (ruleName === 'OvsRenderDomViewDeclaration') {
             console.log('kaishi zhixing 9999999')
-            console.log(targetFun)
-            console.log(this.thisClassName)
         }
         let res: SubhutiLChaining = targetFun.apply(this)
         if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log(res)
             console.log('jieshu zhxing 9999999')
         }
         this.cstStack.pop()

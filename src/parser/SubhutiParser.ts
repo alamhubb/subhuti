@@ -199,7 +199,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
         }
-        let cst = this.processCst(ruleName, targetFun)
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('zhiicing fu subhuti')
+        }
+        let cstChain = this.processCst(ruleName, targetFun)
+        let cst = cstChain.curCst
         if (initFlag) {
             //执行完毕，改为true
             this.initFlag = true
@@ -219,14 +223,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             this.setCurCst(parentCst)
         }
-        if (!cst) {
-            return new SubhutiLChaining()
+        if (cst) {
+            return cstChain
         }
-        return this.getCurSubhutiChaine(cst)
+        return new SubhutiLChaining()
     }
 
     //执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈
-    processCst(ruleName: string, targetFun: Function) {
+    processCst(ruleName: string, targetFun: Function): SubhutiLChaining {
         let cst = new SubhutiCst()
         cst.name = ruleName
         // if (this.curCst) {
@@ -240,8 +244,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.setCurCst(cst)
         this.cstStack.push(cst)
         this.ruleExecErrorStack.push(ruleName)
-        // 规则解析
+        // 规则解析，如果自定义了返回内容，则有返回，则用自定义返回覆盖默认节点
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('kaishi zhixing 9999999')
+            console.log(targetFun)
+            console.log(this.thisClassName)
+        }
         let res: SubhutiLChaining = targetFun.apply(this)
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('jieshu zhxing 9999999')
+        }
         this.cstStack.pop()
         this.ruleExecErrorStack.pop()
         if (this.continueMatch) {
@@ -249,10 +261,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 if (!res.curCst) {
                     throw new Error('语法规则的返回参数必须为：SubhutiLChaining类型')
                 }
+                if (ruleName === 'OvsRenderDomViewDeclaration') {
+                    console.log('OvsRenderDomViewDeclaration77778888')
+                    console.log(res.curCst)
+                }
+                return this.getCurSubhutiChaine(res.curCst)
             }
-            return cst
+            return this.getCurSubhutiChaine(cst)
         }
-        return null
+        return this.getCurSubhutiChaine(null)
     }
 
     //匹配1次或者N次

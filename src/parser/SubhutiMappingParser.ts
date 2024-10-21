@@ -6,6 +6,7 @@ import SubhutiMatchToken from "../struct/SubhutiMatchToken.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import QqqqUtil from "../utils/qqqqUtil.ts";
 import SubhutiLChaining from "../struct/SubhutiLChaining.ts";
+import JsonUtil from "../utils/JsonUtil.ts";
 
 export class MappingBackData extends SubhutiBackData {
     mappingCst: SubhutiCst
@@ -92,22 +93,28 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         return this.appendToken(popToken)
     }
 
-    processCst(ruleName: string, targetFun: Function) {
+    processCst(ruleName: string, targetFun: Function): SubhutiLChaining {
         if (this.isParserMode) {
             return super.processCst(ruleName, targetFun)
+        }
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('zhixing zi  processCst')
         }
         // this.printTokens()
         if (!this.mappingCst) {
             throw new Error('aflsdfdsa')
         }
         if (!this.mappingCst || !this.mappingCst.children || !this.mappingCst.children?.length) {
+            console.log('zh.setContinueMatchAndNoBreak(false)')
             this.setContinueMatchAndNoBreak(false)
-            return
+            return this.getCurSubhutiChaine(null)
         }
+        console.log(this.mappingCst.children)
         const findIndex = this.mappingCst.children?.findIndex(item => item.name === ruleName)
         if (findIndex < 0) {
+            console.log('z this.setContinueMatchAndNoBreak(false))')
             this.setContinueMatchAndNoBreak(false)
-            return
+            return this.getCurSubhutiChaine(null)
         }
         //删除子元素内容
         let mappingCst = this.mappingCst.children[findIndex]
@@ -115,7 +122,13 @@ export default class SubhutiMappingParser<T extends SubhutiTokenConsumer = Subhu
         this.setMappingCst(mappingCst)
         // this.setOrBreakFlag(lastBreakFlag)
         // this.setContinueMatch(true)
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('kaishi zi  processCst')
+        }
         const cst = super.processCst(ruleName, targetFun)
+        if (ruleName === 'OvsRenderDomViewDeclaration') {
+            console.log('jieshu zi  processCst')
+        }
         const parentCst = this.mappingCstStack.pop()
         //没元素了，则在父节点中删除此元素
         if (!this.mappingCst.children?.length) {

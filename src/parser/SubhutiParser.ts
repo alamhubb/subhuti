@@ -17,30 +17,20 @@ enum LogicType {
     option = 'option'
 }
 
-const map = new Map()
 
-export function Subhuti(target, context) {
-    const classPrototype = target.prototype
-    const methodNames = Object.getOwnPropertyNames(classPrototype)
-    const className = target.name
-    console.log('zhixingle:' + className)
-    for (const methodName of methodNames) {
-        // 为新函数显式设置名称
-        Object.defineProperty(classPrototype[methodName], 'className', {value: className})
-        map.set(classPrototype[methodName], 'ture')
-        console.log(classPrototype[methodName])
-        console.log(classPrototype[methodName].className)
-    }
+export function Subhuti(target: typeof SubhutiParser, context: ClassDecoratorContext) {
+    context.metadata.className = target.name
 }
 
-export function SubhutiRule(targetFun: any, context) {
+export function SubhutiRule(targetFun: any, context: ClassMethodDecoratorContext) {
     //这部分是初始化时执行
     const ruleName = targetFun.name
-    const className = targetFun.className
-    console.log(898989)
-    console.log(className)
     // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
     const wrappedFunction = function (): SubhutiLChaining {
+        const className = context.metadata.className
+        if (className !== this.thisClassName) {
+            return this.getCurSubhutiChaine()
+        }
         return this.subhutiRule(targetFun, ruleName)
     }
     // 为新函数显式设置名称
@@ -153,7 +143,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.curCst
     }
 
-    getCurSubhutiChaine(cst: SubhutiCst) {
+    getCurSubhutiChaine(cst: SubhutiCst = this.getCurCst()) {
         return new SubhutiLChaining(cst)
     }
 

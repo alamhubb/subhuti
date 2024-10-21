@@ -17,9 +17,28 @@ enum LogicType {
     option = 'option'
 }
 
+const map = new Map()
+
+export function Subhuti(target, context) {
+    const classPrototype = target.prototype
+    const methodNames = Object.getOwnPropertyNames(classPrototype)
+    const className = target.name
+    console.log('zhixingle:' + className)
+    for (const methodName of methodNames) {
+        // 为新函数显式设置名称
+        Object.defineProperty(classPrototype[methodName], 'className', {value: className})
+        map.set(classPrototype[methodName], 'ture')
+        console.log(classPrototype[methodName])
+        console.log(classPrototype[methodName].className)
+    }
+}
+
 export function SubhutiRule(targetFun: any, context) {
     //这部分是初始化时执行
     const ruleName = targetFun.name
+    const className = targetFun.className
+    console.log(898989)
+    console.log(className)
     // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
     const wrappedFunction = function (): SubhutiLChaining {
         return this.subhutiRule(targetFun, ruleName)
@@ -187,6 +206,19 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
     subhutiRule(targetFun: any, ruleName: string) {
+        const className = targetFun.className
+        console.log(66666)
+        console.log(map.get(targetFun))
+        console.log(this.thisClassName)
+        if (!className) {
+            console.log(targetFun)
+            console.log(targetFun.name)
+            console.log(targetFun.className)
+            throw new Error('请使用@Subhuti')
+        }
+        if (className !== this.thisClassName) {
+            return new SubhutiLChaining()
+        }
         const initFlag = this.initFlag
         if (initFlag) {
             this.initFlag = false
@@ -196,7 +228,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             this.ruleExecErrorStack = []
         } else {
             if (!this.checkMethodCanExec) {
-                return
+                return new SubhutiLChaining()
             }
         }
         if (ruleName === 'OvsRenderDomViewDeclaration') {

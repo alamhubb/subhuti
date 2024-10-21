@@ -1,9 +1,8 @@
 import SubhutiParser, {SubhutiRule} from "../../parser/SubhutiParser.ts";
 import Es5TokenConsumer from "./Es5TokenConsume.ts";
-import SubhutiMappingParser from "../../parser/SubhutiMappingParser.ts";
 import SubhutiMatchToken from '../../struct/SubhutiMatchToken.ts'
 
-export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends SubhutiMappingParser<T> {
+export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends SubhutiParser<T> {
     constructor(tokens?: SubhutiMatchToken[]) {
         super(tokens);
         this.tokenConsumer = new Es5TokenConsumer(this) as T
@@ -804,14 +803,12 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.AT_LEAST_ONE(() => {
             this.SourceElements();
         });
-        return this.getCurSubhutiChaine();
     }
 
     // 14 源元素
     @SubhutiRule
     SourceElements() {
         this.SourceElement()
-        return this.getCurSubhutiChaine();
     }
 
     @SubhutiRule

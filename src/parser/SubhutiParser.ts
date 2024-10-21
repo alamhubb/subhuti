@@ -31,15 +31,7 @@ export function SubhutiRule(targetFun: any, context: ClassMethodDecoratorContext
     const ruleName = targetFun.name
     // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
     const wrappedFunction = function (): SubhutiLChaining {
-        const className = context.metadata.className
-        console.log('rulename:' + ruleName)
-        console.log('className:' + className)
-        console.log('this.thisClassName:' + this.thisClassName)
-        if (className !== this.thisClassName) {
-            return this.getCurSubhutiChaine()
-        }
-        console.log('rulename2222:' + ruleName)
-        return this.subhutiRule(targetFun, ruleName)
+        return this.subhutiRule(targetFun, ruleName, context.metadata.className)
     }
     // 为新函数显式设置名称
     Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
@@ -151,7 +143,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this.curCst
     }
 
-    getCurSubhutiChaine(cst: SubhutiCst = this.getCurCst()) {
+    getCurSubhutiChaine(cst: SubhutiCst = null) {
         return new SubhutiLChaining(cst)
     }
 
@@ -203,18 +195,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     //首次执行，则初始化语法栈，执行语法，将语法入栈，执行语法，语法执行完毕，语法出栈，加入父语法子节点
-    subhutiRule(targetFun: any, ruleName: string) {
-        const className = targetFun.className
-        console.log(66666)
-        console.log(this.thisClassName)
-        if (!className) {
-            console.log(targetFun)
-            console.log(targetFun.name)
-            console.log(targetFun.className)
-            throw new Error('请使用@Subhuti')
-        }
-        if (className !== this.thisClassName) {
-            return new SubhutiLChaining()
+    subhutiRule(targetFun: any, ruleName: string, className: string) {
+        if (this.hasOwnProperty(ruleName)) {
+            if (className !== this.thisClassName) {
+                return this.getCurSubhutiChaine()
+            }
         }
         const initFlag = this.initFlag
         if (initFlag) {
@@ -298,7 +283,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             }
             return this.getCurSubhutiChaine(cst)
         }
-        return this.getCurSubhutiChaine(null)
+        return this.getCurSubhutiChaine()
     }
 
     //匹配1次或者N次

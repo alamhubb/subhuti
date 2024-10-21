@@ -143,24 +143,21 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     ArrayLiteral() {
         this.tokenConsumer.LBracket()
-        this.Option(() => this.Elision())
+        this.Many(() => {
+            this.Or([
+                {
+                    alt: () => {
+                        this.ElementList()
+                    }
+                },
+                {
+                    alt: () => {
+                        this.Elision()
+                    }
+                }
+            ])
+        })
         this.tokenConsumer.RBracket()
-        this.Or([
-            {
-                alt: () => {
-                    this.ElementList()
-                    this.tokenConsumer.RBracket()
-                }
-            },
-            {
-                alt: () => {
-                    this.ElementList()
-                    this.tokenConsumer.Comma()
-                    this.Option(() => this.Elision())
-                    this.tokenConsumer.RBracket()
-                }
-            }
-        ])
     }
 
     @SubhutiRule

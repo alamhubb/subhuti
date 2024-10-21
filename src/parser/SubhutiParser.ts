@@ -18,8 +18,12 @@ enum LogicType {
 }
 
 
-export function Subhuti(target: typeof SubhutiParser, context: ClassDecoratorContext) {
-    context.metadata.className = target.name
+export function Subhuti<E extends SubhutiTokenConsumer, T extends new (...args: any[]) => SubhutiParser<E>>(
+    target: T,
+    context: ClassDecoratorContext
+) {
+    context.metadata.className = target.name;
+    return target;
 }
 
 export function SubhutiRule(targetFun: any, context: ClassMethodDecoratorContext) {
@@ -28,9 +32,13 @@ export function SubhutiRule(targetFun: any, context: ClassMethodDecoratorContext
     // 创建一个新的函数并显式指定函数的名称，这部分是执行时执行
     const wrappedFunction = function (): SubhutiLChaining {
         const className = context.metadata.className
+        console.log('rulename:' + ruleName)
+        console.log('className:' + className)
+        console.log('this.thisClassName:' + this.thisClassName)
         if (className !== this.thisClassName) {
             return this.getCurSubhutiChaine()
         }
+        console.log('rulename2222:' + ruleName)
         return this.subhutiRule(targetFun, ruleName)
     }
     // 为新函数显式设置名称
@@ -198,7 +206,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     subhutiRule(targetFun: any, ruleName: string) {
         const className = targetFun.className
         console.log(66666)
-        console.log(map.get(targetFun))
         console.log(this.thisClassName)
         if (!className) {
             console.log(targetFun)

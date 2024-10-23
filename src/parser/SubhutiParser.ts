@@ -111,7 +111,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 //many中，无线循环，什么时候终止呢， 执行时有个flag，  执行前改为false，如果 执行成功变为true了则可以再次进去，再次进入后将他改为false
 
     printCst() {
-        QqqqUtil.log(this.getCurCst())
+        JsonUtil.log(this.getCurCst())
     }
 
     printMatchState() {
@@ -120,6 +120,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     printTokens() {
         this.printMatchState()
+        this.printCst()
         QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
 
@@ -360,6 +361,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (this.allowError) {
                 return
             }
+            this.printTokens()
             throw new Error('syntax error')
         }
         this.setContinueMatchAndNoBreak(true)

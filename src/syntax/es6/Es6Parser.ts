@@ -726,7 +726,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             // {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
-            {alt: () => this.VariableStatement()},
+            {alt: () => this.LexicalDeclaration()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.ExpressionStatement()},
             {alt: () => this.IfStatement()},
@@ -761,13 +761,6 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         ])
     }
 
-    @SubhutiRule
-    LexicalDeclaration() {
-        this.LetOrConst()
-        this.BindingList()
-        this.EmptySemicolon()
-    }
-
     EmptySemicolon() {
         this.Option(() => {
             this.tokenConsumer.Semicolon()
@@ -776,16 +769,12 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
 
 
     @SubhutiRule
-    LetOrConst() {
+    VariableLetOrConst() {
         this.Or([
-            {alt: () => this.Let()},
+            {alt: () => this.tokenConsumer.VarTok()},
+            {alt: () => this.tokenConsumer.LetTok()},
             {alt: () => this.tokenConsumer.ConstTok()}
         ])
-    }
-
-    @SubhutiRule
-    Let() {
-        this.tokenConsumer.LetTok()
     }
 
     @SubhutiRule
@@ -795,6 +784,13 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             this.tokenConsumer.Comma()
             this.LexicalBinding()
         })
+    }
+
+    @SubhutiRule
+    LexicalDeclaration() {
+        this.VariableLetOrConst()
+        this.BindingList()
+        this.EmptySemicolon()
     }
 
     @SubhutiRule
@@ -877,39 +873,6 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.tokenConsumer.RBrace()
     }
 
-    @SubhutiRule
-    VariableStatement() {
-        this.tokenConsumer.VarTok()
-        this.VariableDeclarationList()
-        this.EmptySemicolon()
-    }
-
-    @SubhutiRule
-    VariableDeclarationList() {
-        this.VariableDeclaration()
-        this.Many(() => {
-            this.tokenConsumer.Comma()
-            this.VariableDeclaration()
-        })
-    }
-
-    @SubhutiRule
-    VariableDeclaration() {
-        this.Or([
-            {
-                alt: () => {
-                    this.BindingIdentifier()
-                    this.Option(() => this.Initializer())
-                }
-            },
-            {
-                alt: () => {
-                    this.BindingPattern()
-                    this.Initializer()
-                }
-            }
-        ])
-    }
 
     @SubhutiRule
     BindingPattern() {
@@ -1104,16 +1067,6 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             },
             {
                 alt: () => {
-                    this.tokenConsumer.VarTok()
-                    this.VariableDeclarationList()
-                    this.EmptySemicolon()
-                    this.Option(() => this.Expression())
-                    this.EmptySemicolon()
-                    this.Option(() => this.Expression())
-                }
-            },
-            {
-                alt: () => {
                     this.LexicalDeclaration()
                     this.Option(() => this.Expression())
                     this.EmptySemicolon()
@@ -1134,26 +1087,6 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                 alt: () => {
                     // TODO: Implement lookahead check for 'let ['
                     this.LeftHandSideExpression()
-                    this.Or([
-                        {
-                            alt: () => {
-                                this.tokenConsumer.InTok()
-                                this.Expression()
-                            }
-                        },
-                        {
-                            alt: () => {
-                                this.tokenConsumer.OfTok()
-                                this.AssignmentExpression()
-                            }
-                        }
-                    ])
-                }
-            },
-            {
-                alt: () => {
-                    this.tokenConsumer.VarTok()
-                    this.ForBinding()
                     this.Or([
                         {
                             alt: () => {
@@ -1196,7 +1129,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
 
     @SubhutiRule
     ForDeclaration() {
-        this.LetOrConst()
+        this.VariableLetOrConst()
         this.ForBinding()
     }
 
@@ -1833,7 +1766,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                     this.EmptySemicolon()
                 }
             },
-            {alt: () => this.VariableStatement()},
+            {alt: () => this.LexicalDeclaration()},
             {alt: () => this.Declaration()},
             {
                 alt: () => {

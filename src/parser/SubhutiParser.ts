@@ -77,6 +77,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return this._continueMatch
     }
 
+    printOrBreakFlag() {
+        QqqqUtil.log("printOrBreakFlag:" + this.orBreakFlag)
+    }
+
+    printStateAndBreak() {
+        this.printMatchState()
+        this.printOrBreakFlag()
+    }
+
     setContinueMatch(flag: boolean) {
         this._continueMatch = flag
     }
@@ -115,11 +124,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     printMatchState() {
-        QqqqUtil.log(this.continueMatch)
+        QqqqUtil.log("continueMatch:" + this.continueMatch)
     }
 
     printTokens() {
-        this.printMatchState()
+        this.printStateAndBreak()
         this.printCst()
         QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
@@ -417,6 +426,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]): SubhutiLChaining {
+        if (this.curCst.name === 'OvsChildItem'){
+            console.log('zhixingle OvsChildItem')
+        }
         if (!this.checkMethodCanExec) {
             return new SubhutiLChaining()
         }

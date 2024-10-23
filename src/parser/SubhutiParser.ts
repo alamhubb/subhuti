@@ -342,7 +342,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (this.orBreakFlag || lastBreakFlag) {
             this.setOrBreakFlag(true)
         }
-        //push了，需要pop
         this.setAllowErrorLastStateAndPop()
         if (!curFlag) {
             return new SubhutiLChaining()
@@ -371,7 +370,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return
             }
             this.printTokens()
-            throw new Error('syntax error')
+            throw new Error('syntax error expect：' + tokenName)
         }
         this.setContinueMatchAndNoBreak(true)
         //性能优化先不管
@@ -421,14 +420,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
     setAllowErrorNewState() {
         this.setAllowError(true)
-        this.allowErrorStack.push(true)
+        this.allowErrorStack.push(this.curCst.name)
     }
 
     //or语法，遍历匹配语法，语法匹配成功，则跳出匹配，执行下一规则
     Or(subhutiParserOrs: SubhutiParserOr[]): SubhutiLChaining {
-        if (this.curCst.name === 'OvsChildItem'){
-            console.log('zhixingle OvsChildItem')
-        }
         if (!this.checkMethodCanExec) {
             return new SubhutiLChaining()
         }

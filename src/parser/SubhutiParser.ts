@@ -128,8 +128,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     }
 
     printTokens() {
-        this.printStateAndBreak()
-        this.printCst()
+        // this.printStateAndBreak()
+        // this.printCst()
         QqqqUtil.log('tokens:' + this.tokens.map(item => item.tokenName).join(','))
     }
 

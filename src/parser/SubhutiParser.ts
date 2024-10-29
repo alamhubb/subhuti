@@ -562,7 +562,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             if (cst.children) {
                 const childrenCode = cst.children
                     .map(child => this.exec(child, code))
-                    .join('')
+                    .join(' ')
                 code = (code + ' ' + childrenCode)
             }
         }

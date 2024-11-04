@@ -6,11 +6,12 @@ import type {
     Directive, Expression, ExpressionMap,
     Identifier,
     ModuleDeclaration,
-    Node, Pattern,
+    Node, NodeMap, Pattern,
     Program,
     Statement,
     VariableDeclaration, VariableDeclarator
 } from "estree";
+import {SubhutiRule} from "./SubhutiParser.ts";
 
 export function checkCstName(cst: SubhutiCst, cstName: string) {
     if (cst.name !== cstName) {
@@ -50,37 +51,34 @@ export default class SubhutiToAstUtil {
         const ast: Program = {
             type: astName as any,
             sourceType: sourceType as any,
-            body: cst.children as any[]
+            body: cst.children.map(item => SubhutiToAstUtil.createStatementAst(item)) as any[]
         }
         return ast
     }
 
 
-    static createStatementAst(cst: SubhutiCst): Node {
-        const ast: Node = {
-            type: astName as any,
-            sourceType: sourceType as any,
-            body: body as any
+    static createStatementAst(cst: SubhutiCst): NodeMap[keyof NodeMap] {
+
+        //直接返回声明
+        //                 this.Statement()
+        //                 this.Declaration()
+        const statementDetail = cst.children[0].children[0].children[0]
+        console.log(cst)
+        console.log(statementDetail)
+        if (statementDetail.name === Es6Parser.prototype.VariableStatement.name) {
+            return SubhutiToAstUtil.createVariableDeclarationAst(statementDetail)
         }
-        return ast
     }
 
-    static createImportOrExportDeclarationAst(cst: SubhutiCst): Node {
-        const ast: Node = {
-            type: astName as any,
-            sourceType: sourceType as any,
-            body: body as any
-        }
-        return ast
-    }
-
-    static createVariableDeclarationAst(cst: SubhutiCst): VariableDeclaration {
-        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclaration.name);
-        let kind = cst.children[0].name
+    static createVariableDeclarationAst(cst: SubhutiCst): NodeMap[keyof NodeMap] {
+        //直接返回声明
+        //                 this.Statement()
+        //                 this.Declaration()
+        const astName = checkCstName(cst, Es6Parser.prototype.VariableStatement.name);
         const ast: VariableDeclaration = {
             type: astName as any,
-            declarations: cst.children[1].children as any[],
-            kind: kind as any
+            declarations: cst.children[1].children.map(item => SubhutiToAstUtil.createVariableDeclaratorAst(item)) as any[],
+            kind: cst.children[0].children[0].value as any
         }
         return ast
     }
@@ -91,6 +89,15 @@ export default class SubhutiToAstUtil {
             type: astName as any,
             id: cst.children[0] as any,
             init: cst.children[1] as any,
+        }
+        return ast
+    }
+
+    static createImportOrExportDeclarationAst(cst: SubhutiCst): Node {
+        const ast: Node = {
+            type: astName as any,
+            sourceType: sourceType as any,
+            body: body as any
         }
         return ast
     }

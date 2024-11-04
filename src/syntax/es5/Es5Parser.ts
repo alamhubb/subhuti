@@ -398,7 +398,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     Statement() {
         this.Or([
             {alt: () => this.Block()},
-            {alt: () => this.LexicalDeclaration()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.LabelledStatement()},
             {alt: () => this.ExpressionStatement()},
@@ -435,7 +435,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.2 变量语句
     @SubhutiRule
-    LexicalDeclaration() {
+    VariableDeclaration() {
         this.tokenConsumer.VarTok();
         this.BindingList();
         this.tokenConsumer.Semicolon();

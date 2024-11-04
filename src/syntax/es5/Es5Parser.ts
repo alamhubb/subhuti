@@ -437,17 +437,17 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     VariableDeclaration() {
         this.tokenConsumer.VarTok();
-        this.BindingList();
+        this.VariableDeclarations();
         this.tokenConsumer.Semicolon();
     }
 
     // 12.2 变量声明列表
     @SubhutiRule
-    BindingList() {
-        this.LexicalBinding();
+    VariableDeclarations() {
+        this.VariableDeclarator();
         this.Many(() => {
             this.tokenConsumer.Comma();
-            this.LexicalBinding();
+            this.VariableDeclarator();
         });
     }
 
@@ -464,7 +464,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.2 变量声明
     @SubhutiRule
-    LexicalBinding() {
+    VariableDeclarator() {
         this.tokenConsumer.IdentifierName();
         this.Option(() => {
             this.Initialiser();

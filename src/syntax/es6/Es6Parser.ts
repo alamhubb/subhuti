@@ -2,6 +2,7 @@ import Es6TokenConsumer from "../../syntax/es6/Es6Tokens.ts"
 import {Es5Parser} from "../es5/Es5Parser.ts"
 import SubhutiMatchToken from "../../struct/SubhutiMatchToken.ts"
 import {Subhuti, SubhutiRule} from "../../parser/SubhutiParser.ts"
+import type {VariableDeclarator} from "estree";
 
 @Subhuti
 export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> {
@@ -778,23 +779,23 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     }
 
     @SubhutiRule
-    BindingList() {
-        this.LexicalBinding()
+    VariableDeclarations() {
+        this.VariableDeclarator()
         this.Many(() => {
             this.tokenConsumer.Comma()
-            this.LexicalBinding()
+            this.VariableDeclarator()
         })
     }
 
     @SubhutiRule
     VariableDeclaration() {
         this.VariableLetOrConst()
-        this.BindingList()
+        this.VariableDeclarations()
         this.EmptySemicolon()
     }
 
     @SubhutiRule
-    LexicalBinding() {
+    VariableDeclarator() {
         this.Or([
             {
                 alt: () => {

@@ -3,23 +3,23 @@ import {Es6TokenName} from "../syntax/es6/Es6Tokens.ts";
 import Es6Parser from "../syntax/es6/Es6Parser.ts";
 import type {
     Comment,
-    Directive,
+    Directive, Expression, ExpressionMap,
     Identifier,
     ModuleDeclaration,
-    Node,
+    Node, Pattern,
     Program,
     Statement,
     VariableDeclaration, VariableDeclarator
 } from "estree";
 
-function checkCstName(cst: SubhutiCst, cstName: string) {
+export function checkCstName(cst: SubhutiCst, cstName: string) {
     if (cst.name !== cstName) {
         throwNewError()
     }
     return cstName
 }
 
-function throwNewError(errorMsg: string = 'syntax error') {
+export function throwNewError(errorMsg: string = 'syntax error') {
     throw new Error(errorMsg)
 }
 
@@ -85,13 +85,32 @@ export default class SubhutiToAstUtil {
         return ast
     }
 
-    static createVariableDeclaratorAst(cst: SubhutiCst): VariableDeclaration {
-        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclaration.name);
-        let kind = cst.children[0].name
-        const ast: VariableDeclaration = {
+    static createVariableDeclaratorAst(cst: SubhutiCst): VariableDeclarator {
+        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclarator.name);
+        const ast: VariableDeclarator = {
             type: astName as any,
-            declarations: cst.children[1].children as any[],
-            kind: kind as any
+            id: cst.children[0] as any,
+            init: cst.children[1] as any,
+        }
+        return ast
+    }
+
+    static createExpressionAst(cst: SubhutiCst): keyof ExpressionMap {
+        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclarator.name);
+        const ast: VariableDeclarator = {
+            type: astName as any,
+            id: cst.children[0] as any,
+            init: cst.children[1] as any,
+        }
+        return ast
+    }
+
+    static createExpressionAst(cst: SubhutiCst): keyof ExpressionMap {
+        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclarator.name);
+        const ast: VariableDeclarator = {
+            type: astName as any,
+            id: cst.children[0] as any,
+            init: cst.children[1] as any,
         }
         return ast
     }

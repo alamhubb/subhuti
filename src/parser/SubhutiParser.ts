@@ -554,6 +554,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return cst
     }
 
+    toAst(cst: SubhutiCst = this.getCurCst(), code = ''){
+        cst.name
+
+    }
+
     //默认就是遍历生成
     exec(cst: SubhutiCst = this.getCurCst(), code = ''): string {
         if (cst.value) {

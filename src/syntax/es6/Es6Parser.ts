@@ -726,7 +726,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             // {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
-            {alt: () => this.LexicalDeclaration()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.ExpressionStatement()},
             {alt: () => this.IfStatement()},
@@ -757,7 +757,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             {alt: () => this.HoistableDeclaration()},
             {alt: () => this.ClassDeclaration()},
-            {alt: () => this.LexicalDeclaration()}
+            {alt: () => this.VariableDeclaration()}
         ])
     }
 
@@ -787,7 +787,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     }
 
     @SubhutiRule
-    LexicalDeclaration() {
+    VariableDeclaration() {
         this.VariableLetOrConst()
         this.BindingList()
         this.EmptySemicolon()
@@ -1067,7 +1067,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             },
             {
                 alt: () => {
-                    this.LexicalDeclaration()
+                    this.VariableDeclaration()
                     this.Option(() => this.Expression())
                     this.EmptySemicolon()
                     this.Option(() => this.Expression())
@@ -1766,7 +1766,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                     this.EmptySemicolon()
                 }
             },
-            {alt: () => this.LexicalDeclaration()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.Declaration()},
             {
                 alt: () => {

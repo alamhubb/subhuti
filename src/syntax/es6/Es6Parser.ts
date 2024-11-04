@@ -727,7 +727,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             // {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
-            {alt: () => this.VariableDeclaration()},
+            {alt: () => this.VariableStatement()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.ExpressionStatement()},
             {alt: () => this.IfStatement()},
@@ -758,7 +758,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             {alt: () => this.HoistableDeclaration()},
             {alt: () => this.ClassDeclaration()},
-            {alt: () => this.VariableDeclaration()}
+            {alt: () => this.VariableStatement()}
         ])
     }
 
@@ -779,7 +779,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     }
 
     @SubhutiRule
-    VariableDeclarations() {
+    VariableDeclarationList() {
         this.VariableDeclarator()
         this.Many(() => {
             this.tokenConsumer.Comma()
@@ -788,9 +788,9 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     }
 
     @SubhutiRule
-    VariableDeclaration() {
+    VariableStatement() {
         this.VariableLetOrConst()
-        this.VariableDeclarations()
+        this.VariableDeclarationList()
         this.EmptySemicolon()
     }
 
@@ -1068,7 +1068,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             },
             {
                 alt: () => {
-                    this.VariableDeclaration()
+                    this.VariableStatement()
                     this.Option(() => this.Expression())
                     this.EmptySemicolon()
                     this.Option(() => this.Expression())
@@ -1767,7 +1767,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                     this.EmptySemicolon()
                 }
             },
-            {alt: () => this.VariableDeclaration()},
+            {alt: () => this.VariableStatement()},
             {alt: () => this.Declaration()},
             {
                 alt: () => {

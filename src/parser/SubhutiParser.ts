@@ -434,7 +434,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         let lastBreakFlag = this.orBreakFlag
 
-        const uuid = generateUUID()
+        // const uuid = generateUUID()
 
         for (const subhutiParserOr of subhutiParserOrs) {
             index++

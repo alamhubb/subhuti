@@ -727,7 +727,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             // {alt: () => this.AssignmentExpression()},
             {alt: () => this.BlockStatement()},
-            {alt: () => this.VariableStatement()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.ExpressionStatement()},
             {alt: () => this.IfStatement()},
@@ -758,7 +758,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         this.Or([
             {alt: () => this.HoistableDeclaration()},
             {alt: () => this.ClassDeclaration()},
-            {alt: () => this.VariableStatement()}
+            {alt: () => this.VariableDeclaration()}
         ])
     }
 
@@ -787,8 +787,9 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
         })
     }
 
+    //VariableStatement
     @SubhutiRule
-    VariableStatement() {
+    VariableDeclaration() {
         this.VariableLetOrConst()
         this.VariableDeclarationList()
         this.EmptySemicolon()
@@ -1068,7 +1069,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             },
             {
                 alt: () => {
-                    this.VariableStatement()
+                    this.VariableDeclaration()
                     this.Option(() => this.Expression())
                     this.EmptySemicolon()
                     this.Option(() => this.Expression())
@@ -1767,7 +1768,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                     this.EmptySemicolon()
                 }
             },
-            {alt: () => this.VariableStatement()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.Declaration()},
             {
                 alt: () => {

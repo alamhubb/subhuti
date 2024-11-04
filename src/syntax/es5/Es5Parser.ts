@@ -398,7 +398,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     Statement() {
         this.Or([
             {alt: () => this.Block()},
-            {alt: () => this.VariableStatement()},
+            {alt: () => this.VariableDeclaration()},
             {alt: () => this.EmptyStatement()},
             {alt: () => this.LabelledStatement()},
             {alt: () => this.ExpressionStatement()},
@@ -435,7 +435,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     // 12.2 变量语句
     @SubhutiRule
-    VariableStatement() {
+    VariableDeclaration() {
         this.tokenConsumer.VarTok();
         this.VariableDeclarationList();
         this.tokenConsumer.Semicolon();

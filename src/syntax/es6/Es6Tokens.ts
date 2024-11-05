@@ -60,7 +60,7 @@ export const es6TokensObj = {
 };
 export const es6Tokens = Object.values(es6TokensObj);
 export const es6TokenMapObj: { [key in string]: SubhutiCreateToken } = Object.fromEntries(
-    es6Tokens.map(token => [token.value, token])
+    es6Tokens.map(token => [token.isKeyword ? token.value : token.name, token])
 );
 
 //想让他单例，那他就不能有属性。不能有状态。，有状态对象做不了多例

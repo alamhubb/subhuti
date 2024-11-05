@@ -1,12 +1,11 @@
 import SubhutiMatchToken from "./SubhutiMatchToken.ts";
-import type {Position} from "estree";
+import type {Position, SourceLocation} from "estree";
 
 export default class SubhutiCst {
     // pathName: string;
     name: string;
     children?: SubhutiCst[]
-    start: Position;
-    end: Position;
+    loc:SourceLocation
     tokens?: SubhutiMatchToken[]
     value?: string;
 

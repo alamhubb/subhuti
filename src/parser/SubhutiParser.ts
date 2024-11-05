@@ -262,14 +262,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.ruleExecErrorStack.push(ruleName)
         // 规则解析，如果自定义了返回内容，则有返回，则用自定义返回覆盖默认节点
         let res: SubhutiCst = targetFun.apply(this)
+        console.log(cst.name)
 
         this.cstStack.pop()
         this.ruleExecErrorStack.pop()
         if (this.continueMatch) {
-            if (res) {
-                cst.start = cst.children[0].start
-                cst.end = cst.children[cst.children.length - 1].end
-                return res
+            if (cst.children[0]) {
+                cst.loc = {
+                    start: cst.children[0].loc.start,
+                    end: cst.children[cst.children.length - 1].loc.end,
+                }
             }
             return cst
         }
@@ -387,13 +389,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const cst = new SubhutiCst()
         cst.name = popToken.tokenName
         cst.value = popToken.tokenValue
-        cst.start = {
-            line: popToken.rowNum,
-            column: popToken.columnStartNum
-        }
-        cst.end = {
-            line: popToken.rowNum,
-            column: popToken.columnEndNum
+        cst.loc = {
+            start: {
+                line: popToken.rowNum,
+                column: popToken.columnStartNum
+            },
+            end: {
+                line: popToken.rowNum,
+                column: popToken.columnEndNum
+            }
         }
         // cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
         this.curCst.children.push(cst)

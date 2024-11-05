@@ -29,9 +29,20 @@ export default class SubhutiToAstHandler {
     createIdentifierAst(cst: SubhutiCst): Identifier {
         const astName = checkCstName(cst, Es6Parser.prototype.Identifier.name);
         const IdentifierName = cst.children[0]
+        const token = cst.tokens[0]
         const ast: Identifier = {
             type: astName as any,
-            name: IdentifierName.value
+            name: IdentifierName.value,
+            loc: {
+                start: {
+                    line: token.rowNum,
+                    column: token.columnStartNum,
+                },
+                end: {
+                    line: token.rowNum,
+                    column: token.columnEndNum,
+                },
+            }
         }
         return ast
     }
@@ -281,9 +292,20 @@ export default class SubhutiToAstHandler {
     createLiteralAst(cst: SubhutiCst): Literal {
         const astName = checkCstName(cst, Es6Parser.prototype.Literal.name);
         const firstChild = cst.children[0]
+        const token = cst.tokens[0]
         const ast = {
             type: astName as any,
-            value: firstChild.value
+            value: firstChild.value,
+            loc: {
+                start: {
+                    line: token.rowNum,
+                    column: token.columnStartNum,
+                },
+                end: {
+                    line: token.rowNum,
+                    column: token.columnEndNum,
+                },
+            }
         }
         return ast
     }

@@ -29,7 +29,7 @@ export function createToken(osvToken: SubhutiCreateToken) {
     return new SubhutiCreateToken(osvToken);
 }
 
-export function createKeywordToken(name: string, pattern: string) {
+export function createKeywordToken(name: string, pattern: string): SubhutiCreateToken {
     const token = new SubhutiCreateToken({name: name, pattern: new RegExp(pattern), value: pattern});
     token.isKeyword = true;
     return token;

@@ -38,7 +38,7 @@ export const Es5TokensName = {
     TrueTok: 'TrueTok',
     FalseTok: 'FalseTok',
     // Identifiers
-    IdentifierName: 'IdentifierName',
+    Identifier: 'Identifier',
     SetTok: 'SetTok',
     GetTok: 'GetTok',
     // Punctuators
@@ -189,7 +189,7 @@ export const es5TokensObj = {
 
 
     // Identifiers
-    IdentifierName: createEmptyValueRegToken(Es5TokensName.IdentifierName, /[A-Za-z_$][A-Za-z0-9_$]*/),
+    Identifier: createEmptyValueRegToken(Es5TokensName.Identifier, /[A-Za-z_$][A-Za-z0-9_$]*/),
 
     // Literals
     NumericLiteral: createEmptyValueRegToken(Es5TokensName.NumericLiteral, /-?\d+(\.\d+)?/),

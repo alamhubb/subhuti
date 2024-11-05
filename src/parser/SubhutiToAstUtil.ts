@@ -27,12 +27,11 @@ export function throwNewError(errorMsg: string = 'syntax error') {
 
 export default class SubhutiToAstHandler {
     createIdentifierAst(cst: SubhutiCst): Identifier {
-        const astName = checkCstName(cst, Es6Parser.prototype.Identifier.name);
-        const IdentifierName = cst.children[0]
+        const astName = checkCstName(cst, Es6TokenConsumer.prototype.Identifier.name);
         const ast: Identifier = {
             type: astName as any,
-            name: IdentifierName.value,
-            loc: IdentifierName.loc
+            name: cst.value,
+            loc: cst.loc
         }
         return ast
     }

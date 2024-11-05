@@ -7,8 +7,8 @@ export default class Es5TokenConsumer extends SubhutiTokenConsumer {
         return this.consume(es5TokensObj.ThisTok);
     }
 
-    IdentifierName() {
-        return this.consume(es5TokensObj.IdentifierName);
+    Identifier() {
+        return this.consume(es5TokensObj.Identifier);
     }
 
     NullLiteral() {

@@ -15,7 +15,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     PrimaryExpression() {
         this.Or([
             {alt: () => this.tokenConsumer.ThisTok()},
-            {alt: () => this.tokenConsumer.IdentifierName()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.AbsLiteral()},
             {alt: () => this.Array()},
             {alt: () => this.Object()},
@@ -132,7 +132,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
         this.tokenConsumer.SetTok();
         this.PropertyName();
         this.tokenConsumer.LParen();
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.tokenConsumer.RParen();
         this.tokenConsumer.LBrace();
         this.SourceElements();
@@ -143,7 +143,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     PropertyName() {
         this.Or([
-            {alt: () => this.tokenConsumer.IdentifierName()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.tokenConsumer.StringLiteral()},
             {alt: () => this.tokenConsumer.NumericLiteral()},
         ]);
@@ -180,7 +180,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     DotMemberExpression() {
         this.tokenConsumer.Dot();
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
     }
 
     // 11.2.3 函数调用
@@ -464,7 +464,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 12.2 变量声明
     @SubhutiRule
     VariableDeclarator() {
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.Option(() => {
             this.Initialiser();
         });
@@ -472,7 +472,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
 
     @SubhutiRule
     VariableDeclarationNoIn() {
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.Option(() => {
             this.InitialiserNoIn();
         });
@@ -605,7 +605,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     ContinueStatement() {
         this.tokenConsumer.ContinueTok();
         this.Option(() => {
-            this.tokenConsumer.IdentifierName();
+            this.tokenConsumer.Identifier();
         });
         this.tokenConsumer.Semicolon();
     }
@@ -615,7 +615,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     BreakStatement() {
         this.tokenConsumer.BreakTok();
         this.Option(() => {
-            this.tokenConsumer.IdentifierName();
+            this.tokenConsumer.Identifier();
         });
         this.tokenConsumer.Semicolon();
     }
@@ -698,7 +698,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 12.12 标记语句
     @SubhutiRule
     LabelledStatement() {
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.tokenConsumer.Colon();
         this.Option(() => {
             this.Statement();
@@ -736,7 +736,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     Catch() {
         this.tokenConsumer.CatchTok();
         this.tokenConsumer.LParen();
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.tokenConsumer.RParen();
         this.Block();
     }
@@ -759,7 +759,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     @SubhutiRule
     FunctionDeclaration() {
         this.tokenConsumer.FunctionTok();
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.tokenConsumer.LParen();
         this.Option(() => {
             this.FormalParameterList();
@@ -775,7 +775,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     FunctionExpression() {
         this.tokenConsumer.FunctionTok();
         this.Option(() => {
-            this.tokenConsumer.IdentifierName();
+            this.tokenConsumer.Identifier();
         });
         this.tokenConsumer.LParen();
         this.Option(() => {
@@ -790,10 +790,10 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     // 13 形式参数列表
     @SubhutiRule
     FormalParameterList() {
-        this.tokenConsumer.IdentifierName();
+        this.tokenConsumer.Identifier();
         this.Many(() => {
             this.tokenConsumer.Comma();
-            this.tokenConsumer.IdentifierName();
+            this.tokenConsumer.Identifier();
         });
     }
 

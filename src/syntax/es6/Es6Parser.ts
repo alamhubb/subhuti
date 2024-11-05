@@ -15,7 +15,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     IdentifierReference() {
         this.Or([
-            {alt: () => this.Identifier()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.tokenConsumer.YieldTok()}
         ])
     }
@@ -23,7 +23,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     BindingIdentifier() {
         this.Or([
-            {alt: () => this.Identifier()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.tokenConsumer.YieldTok()}
         ])
     }
@@ -31,17 +31,9 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     LabelIdentifier() {
         this.Or([
-            {alt: () => this.Identifier()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.tokenConsumer.YieldTok()}
         ])
-    }
-
-    @SubhutiRule
-    Identifier() {
-
-        this.tokenConsumer.IdentifierName()
-
-        // TODO: Implement logic to exclude ReservedWord
     }
 
     @SubhutiRule
@@ -248,7 +240,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     LiteralPropertyName() {
         this.Or([
-            {alt: () => this.tokenConsumer.IdentifierName()},
+            {alt: () => this.tokenConsumer.Identifier()},
             {alt: () => this.tokenConsumer.StringLiteral()},
             {alt: () => this.tokenConsumer.NumericLiteral()}
         ])
@@ -324,7 +316,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                 {
                     alt: () => {
                         this.tokenConsumer.Dot()
-                        this.tokenConsumer.IdentifierName()
+                        this.tokenConsumer.Identifier()
                     }
                 },
                 {
@@ -358,7 +350,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                 alt: () => {
                     this.tokenConsumer.SuperTok()
                     this.tokenConsumer.Dot()
-                    this.tokenConsumer.IdentifierName()
+                    this.tokenConsumer.Identifier()
                 }
             }
         ])
@@ -421,7 +413,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
                 {
                     alt: () => {
                         this.tokenConsumer.Dot()
-                        this.tokenConsumer.IdentifierName()
+                        this.tokenConsumer.Identifier()
                     }
                 },
                 {alt: () => this.TemplateLiteral()}
@@ -1712,7 +1704,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
             {alt: () => this.ImportedBinding()},
             {
                 alt: () => {
-                    this.tokenConsumer.IdentifierName()
+                    this.tokenConsumer.Identifier()
                     this.tokenConsumer.AsTok()
                     this.ImportedBinding()
                 }
@@ -1807,10 +1799,10 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
 
     @SubhutiRule
     ExportSpecifier() {
-        this.tokenConsumer.IdentifierName()
+        this.tokenConsumer.Identifier()
         this.Option(() => {
             this.tokenConsumer.AsTok()
-            this.tokenConsumer.IdentifierName()
+            this.tokenConsumer.Identifier()
         })
     }
 }

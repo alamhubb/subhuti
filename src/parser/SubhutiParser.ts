@@ -389,6 +389,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         const cst = new SubhutiCst()
         cst.name = popToken.tokenName
         cst.value = popToken.tokenValue
+        cst.start = {
+            line: popToken.rowNum,
+            column: popToken.columnStartNum
+        }
+        cst.end = {
+            line: popToken.rowNum,
+            column: popToken.columnEndNum
+        }
         // cst.pathName = this.curCst.pathName + pathNameSymbol + cst.name
         this.curCst.children.push(cst)
         this.curCst.pushCstToken(popToken)
@@ -554,7 +562,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         return cst
     }
 
-    toAst(cst: SubhutiCst = this.getCurCst(), code = ''){
+    toAst(cst: SubhutiCst = this.getCurCst(), code = '') {
         cst.name
 
     }

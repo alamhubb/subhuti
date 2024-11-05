@@ -5,7 +5,7 @@ import type {
     AssignmentExpression, AssignmentOperator, CallExpression,
     Comment, ConditionalExpression,
     Directive, Expression, ExpressionMap,
-    Identifier, MemberExpression,
+    Identifier, Literal, MemberExpression,
     ModuleDeclaration,
     Node, NodeMap, Pattern,
     Program,
@@ -271,10 +271,21 @@ export default class SubhutiToAstHandler {
 
     createPrimaryExpressionAst(cst: SubhutiCst): Expression {
         const astName = checkCstName(cst, Es6Parser.prototype.PrimaryExpression.name);
+        console.log('执行了:' + astName)
         if (cst.children.length > 1) {
 
         }
-        return this.createExpressionAst(cst.children[0])
+        return this.createLiteralAst(cst.children[0])
+    }
+
+    createLiteralAst(cst: SubhutiCst): Literal {
+        const astName = checkCstName(cst, Es6Parser.prototype.Literal.name);
+        const firstChild = cst.children[0]
+        const ast = {
+            type: astName as any,
+            value: firstChild.value
+        }
+        return ast
     }
 
 

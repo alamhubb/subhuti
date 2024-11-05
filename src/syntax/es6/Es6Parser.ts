@@ -15,13 +15,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     @SubhutiRule
     IdentifierReference() {
         this.Or([
-            {
-                alt: () => {
-
-                    this.Identifier()
-
-                }
-            },
+            {alt: () => this.Identifier()},
             {alt: () => this.tokenConsumer.YieldTok()}
         ])
     }
@@ -30,11 +24,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     BindingIdentifier() {
         this.Or([
             {alt: () => this.Identifier()},
-            {
-                alt: () => {
-                    this.tokenConsumer.YieldTok()
-                }
-            }
+            {alt: () => this.tokenConsumer.YieldTok()}
         ])
     }
 
@@ -42,11 +32,7 @@ export default class Es6Parser<T extends Es6TokenConsumer> extends Es5Parser<T> 
     LabelIdentifier() {
         this.Or([
             {alt: () => this.Identifier()},
-            {
-                alt: () => {
-                    this.tokenConsumer.YieldTok()
-                }
-            }
+            {alt: () => this.tokenConsumer.YieldTok()}
         ])
     }
 

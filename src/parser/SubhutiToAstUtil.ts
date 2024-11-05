@@ -52,7 +52,8 @@ export default class SubhutiToAstHandler {
         const ast: Program = {
             type: astName as any,
             sourceType: sourceType as any,
-            body: cst.children.map(item => this.createStatementAst(item)) as any[]
+            body: cst.children.map(item => this.createStatementAst(item)) as any[],
+            loc: cst.loc
         }
         return ast
     }
@@ -77,7 +78,8 @@ export default class SubhutiToAstHandler {
         const ast: VariableDeclaration = {
             type: astName as any,
             declarations: cst.children[1].children.map(item => this.createVariableDeclaratorAst(item)) as any[],
-            kind: cst.children[0].children[0].value as any
+            kind: cst.children[0].children[0].value as any,
+            loc: cst.loc
         }
         return ast
     }
@@ -88,6 +90,7 @@ export default class SubhutiToAstHandler {
             type: astName as any,
             id: this.createIdentifierAst(cst.children[0].children[0]) as any,
             init: this.createAssignmentExpressionAst(cst.children[1].children[1]) as any,
+            loc: cst.loc
         }
         return ast
     }
@@ -317,7 +320,8 @@ export default class SubhutiToAstHandler {
             type: astName as any,
             // operator: AssignmentOperator;
             left: left,
-            right: right
+            right: right,
+            loc: cst.loc
         } as any
         return ast
     }
@@ -339,6 +343,7 @@ export default class SubhutiToAstHandler {
             test: test as any,
             alternate: alternate as any,
             consequent: consequent as any,
+            loc: cst.loc
         } as any
         return ast
     }

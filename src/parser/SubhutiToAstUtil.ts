@@ -1,5 +1,5 @@
 import type SubhutiCst from "../struct/SubhutiCst.ts";
-import {Es6TokenName} from "../syntax/es6/Es6Tokens.ts";
+import Es6TokenConsumer, {Es6TokenName} from "../syntax/es6/Es6Tokens.ts";
 import Es6Parser from "../syntax/es6/Es6Parser.ts";
 import type {
     AssignmentExpression, AssignmentOperator, CallExpression,
@@ -64,8 +64,6 @@ export default class SubhutiToAstHandler {
         //                 this.Statement()
         //                 this.Declaration()
         const statementDetail = cst.children[0].children[0].children[0]
-        console.log(cst)
-        console.log(statementDetail)
         if (statementDetail.name === Es6Parser.prototype.VariableDeclaration.name) {
             return this.createVariableDeclarationAst(statementDetail)
         }
@@ -105,8 +103,6 @@ export default class SubhutiToAstHandler {
 
     createExpressionAst(cst: SubhutiCst): Expression {
         const astName = cst.name
-        console.trace('jinrule xreadfs0' + cst)
-        console.log(cst)
         let left
         if (astName === Es6Parser.prototype.AssignmentExpression.name) {
             left = this.createAssignmentExpressionAst(cst)
@@ -272,7 +268,6 @@ export default class SubhutiToAstHandler {
 
     createPrimaryExpressionAst(cst: SubhutiCst): Expression {
         const astName = checkCstName(cst, Es6Parser.prototype.PrimaryExpression.name);
-        console.log('执行了:' + astName)
         if (cst.children.length > 1) {
 
         }
@@ -282,9 +277,20 @@ export default class SubhutiToAstHandler {
     createLiteralAst(cst: SubhutiCst): Literal {
         const astName = checkCstName(cst, Es6Parser.prototype.Literal.name);
         const firstChild = cst.children[0]
+        console.log(firstChild.name);
+        let value
+        if (firstChild.name === Es6TokenConsumer.prototype.NumericLiteral.name) {
+            value = Number(firstChild.value)
+        } else if (firstChild.name === Es6TokenConsumer.prototype.TrueTok.name) {
+            value = true
+        } else if (firstChild.name === Es6TokenConsumer.prototype.FalseTok.name) {
+            value = false
+        } else {
+            value = firstChild.value
+        }
         const ast: Literal = {
             type: astName as any,
-            value: firstChild.value,
+            value: value,
             loc: firstChild.loc
         }
         return ast

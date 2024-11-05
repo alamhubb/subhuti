@@ -28,8 +28,7 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
     AbsLiteral() {
         this.Or([
             {alt: () => this.tokenConsumer.NullLiteral()},
-            {alt: () => this.tokenConsumer.TrueTok()},
-            {alt: () => this.tokenConsumer.FalseTok()},
+            {alt: () => this.tokenConsumer.BooleanLiteral()},
             {alt: () => this.tokenConsumer.NumericLiteral()},
             {alt: () => this.tokenConsumer.StringLiteral()},
             {alt: () => this.tokenConsumer.RegularExpressionLiteral()},
@@ -820,10 +819,5 @@ export class Es5Parser<T extends Es5TokenConsumer = Es5TokenConsumer> extends Su
             },
             {alt: () => this.Statement()},
         ]);
-    }
-
-    @SubhutiRule
-    StringLiteral() {
-        this.tokenConsumer.StringLiteral()
     }
 }

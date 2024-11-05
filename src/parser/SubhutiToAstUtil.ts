@@ -285,10 +285,7 @@ export default class SubhutiToAstHandler {
         const ast: Literal = {
             type: astName as any,
             value: firstChild.value,
-            loc: {
-                start: firstChild.start,
-                end: firstChild.end,
-            }
+            loc: firstChild.loc
         }
         return ast
     }

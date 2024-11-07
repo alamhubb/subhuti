@@ -1,15 +1,15 @@
 import type SubhutiCst from "../struct/SubhutiCst.ts";
-import Es6TokenConsumer, {Es6TokenName} from "../syntax/es6/Es6Tokens.ts";
+import Es6TokenConsumer, {Es6TokenName, es6TokensObj} from "../syntax/es6/Es6Tokens.ts";
 import Es6Parser from "../syntax/es6/Es6Parser.ts";
 import type {
-    AssignmentExpression, AssignmentOperator, CallExpression,
+    AssignmentExpression, AssignmentOperator, CallExpression, ClassBody, ClassDeclaration,
     Comment, ConditionalExpression,
-    Directive, Expression, ExpressionMap,
-    Identifier, Literal, MemberExpression,
+    Directive, ExportDefaultDeclaration, Expression, ExpressionMap, FunctionExpression,
+    Identifier, Literal, MemberExpression, MethodDefinition,
     ModuleDeclaration,
     Node, NodeMap, Pattern,
-    Program,
-    Statement,
+    Program, PropertyDefinition,
+    Statement, StaticBlock,
     VariableDeclaration, VariableDeclarator
 } from "estree";
 import {SubhutiRule} from "./SubhutiParser.ts";
@@ -51,7 +51,7 @@ export default class SubhutiToAstHandler {
         const ast: Program = {
             type: astName as any,
             sourceType: sourceType as any,
-            body: cst.children.map(item => this.createStatementAst(item)) as any[],
+            body: (cst.children.map(item => this.createStatementAst(item)) as any[]).flat(),
             loc: cst.loc
         }
         return ast
@@ -59,7 +59,9 @@ export default class SubhutiToAstHandler {
 
 
     createStatementAst(cst: SubhutiCst): NodeMap[keyof NodeMap] {
-
+        if (cst.name === Es6Parser.prototype.ModuleItemList.name) {
+            return this.createVariableDeclarationAst(cst)
+        }
         //直接返回声明
         //                 this.Statement()
         //                 this.Declaration()
@@ -68,6 +70,137 @@ export default class SubhutiToAstHandler {
             return this.createVariableDeclarationAst(statementDetail)
         }
     }
+
+    createModuleItemListAst(cst: SubhutiCst): ModuleDeclaration[] {
+        //直接返回声明
+        //                 this.Statement()
+        //                 this.Declaration()
+        const astName = checkCstName(cst, Es6Parser.prototype.ModuleItemList.name);
+        const asts = cst.children.map(item => {
+            if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
+
+            } else if (item.name === Es6Parser.prototype.ExportDeclaration.name) {
+                return this.createExportDeclarationAst(item)
+            } else if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
+
+            }
+        })
+    }
+
+    createExportDeclarationAst(cst: SubhutiCst): ExportDefaultDeclaration {
+        const astName = checkCstName(cst, Es6Parser.prototype.ExportDeclaration.name);
+
+        const ast: ExportDefaultDeclaration = {
+            type: astName as any,
+            declaration: this.createClassDeclarationAst(cst.children[2]),
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createClassDeclarationAst(cst: SubhutiCst): ClassDeclaration {
+        const astName = checkCstName(cst, Es6Parser.prototype.ClassDeclaration.name);
+
+
+        const ast: ClassDeclaration = {
+            type: astName as any,
+            id: this.createIdentifierAst(cst.children[1].children[0]),
+            body: this.createClassBodyAst(cst.children[2].children[1]),
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createClassBodyItemAst(staticCst: SubhutiCst, cst: SubhutiCst): MethodDefinition | PropertyDefinition {
+        if (cst.name === Es6Parser.prototype.MethodDefinition.name) {
+            return this.createMethodDefinitionAst(staticCst, cst)
+        } else if (cst.name === Es6Parser.prototype.PropertyDefinition.name) {
+            // return this.createExportDeclarationAst(item)
+        }
+    }
+
+    createClassBodyAst(cst: SubhutiCst): ClassBody {
+        const astName = checkCstName(cst, Es6Parser.prototype.ClassBody.name);
+        //ClassBody.ClassElementList
+        const body: Array<MethodDefinition | PropertyDefinition> = cst.children[0].children.map(item => {
+                const astName = checkCstName(item, Es6Parser.prototype.ClassElement.name);
+                if (item.children.length > 1) {
+                    return this.createClassBodyItemAst(item.children[0], item.children[1])
+                } else {
+                    return this.createClassBodyItemAst(null, item.children[0])
+                }
+            }
+        )
+        const ast: ClassBody = {
+            type: astName as any,
+            body: body,
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createMethodDefinitionAst(staticCst: SubhutiCst, cst: SubhutiCst): MethodDefinition {
+        const astName = checkCstName(cst, Es6Parser.prototype.ClassElement.name);
+
+        const ast: MethodDefinition = {
+            type: astName as any,
+            kind: 'method',
+            static: true,
+            // MethodDefinition.[0]PropertyName.[0]LiteralPropertyName.[0]Identifier
+            key: this.createIdentifierAst(cst.children[0].children[0].children[0]),
+            value: []
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createFunctionExpressionAst(cst: SubhutiCst): FunctionExpression {
+        const astName = checkCstName(cst, Es6Parser.prototype.MethodDefinition.name);
+
+
+        const ast: FunctionExpression = {
+            type: astName as any,
+            kind: 'method',
+            static: true,
+            // MethodDefinition.[0]PropertyName.[0]LiteralPropertyName.[0]Identifier
+            key: this.createIdentifierAst(cst.children[0].children[0].children[0]),
+            value: []
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createBlockStatementAst(cst: SubhutiCst): FunctionExpression {
+        const astName = checkCstName(cst, Es6Parser.prototype.BlockStatement.name);
+
+        const ast: FunctionExpression = {
+            type: astName as any,
+            kind: 'method',
+            static: true,
+            // MethodDefinition.[0]PropertyName.[0]LiteralPropertyName.[0]Identifier
+            key: this.createIdentifierAst(cst.children[0].children[0].children[0]),
+            value: []
+            loc: cst.loc
+        }
+        return ast
+    }
+
+    createExpressionStatementAst(cst: SubhutiCst): FunctionExpression {
+        const astName = checkCstName(cst, Es6Parser.prototype.MethodDefinition.name);
+
+
+        const ast: FunctionExpression = {
+            type: astName as any,
+            kind: 'method',
+            static: true,
+            // MethodDefinition.[0]PropertyName.[0]LiteralPropertyName.[0]Identifier
+            key: this.createIdentifierAst(cst.children[0].children[0].children[0]),
+            value: []
+            loc: cst.loc
+        }
+        return ast
+    }
+
 
     createVariableDeclarationAst(cst: SubhutiCst): NodeMap[keyof NodeMap] {
         //直接返回声明

@@ -3,7 +3,7 @@ import Es6TokenConsumer, {Es6TokenName, es6TokensObj} from "../syntax/es6/Es6Tok
 import Es6Parser from "../syntax/es6/Es6Parser.ts";
 import type {
     AssignmentExpression, AssignmentOperator, BlockStatement, CallExpression, ClassBody, ClassDeclaration,
-    Comment, ConditionalExpression,
+    Comment, ConditionalExpression, Declaration,
     Directive, ExportDefaultDeclaration, Expression, ExpressionMap, ExpressionStatement, FunctionExpression,
     Identifier, Literal, MemberExpression, MethodDefinition,
     ModuleDeclaration,
@@ -48,13 +48,7 @@ export default class SubhutiToAstHandler {
         if (!sourceType) {
             throwNewError()
         }
-        const body: Array<Directive | Statement | ModuleDeclaration> = (cst.children.map(item => {
-            if (first.name === Es6Parser.prototype.StatementList.name) {
-                return this.createVariableDeclarationAst(item) as any
-            } else {
-                return this.createModuleItemListAst(item)
-            }
-        })).flat()
+        const body: Array<Directive | Statement | ModuleDeclaration> = this.createStatementListAst(cst.children[0])
         const ast: Program = {
             type: astName as any,
             sourceType: sourceType as any,
@@ -62,6 +56,23 @@ export default class SubhutiToAstHandler {
             loc: cst.loc
         }
         return ast
+    }
+
+
+    createStatementListAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+        const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
+        return cst.children.map(item => this.createStatementListItemAst(item)).flat()
+    }
+
+    createStatementListItemAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+        const astName = checkCstName(cst, Es6Parser.prototype.StatementListItem.name);
+        return cst.children.map(item => this.createStatementAst(item)).flat()
+    }
+
+    createStatementAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+        const astName = checkCstName(cst, Es6Parser.prototype.Statement.name);
+        const statements: Declaration[] = cst.children.map(item => this.createVariableDeclarationAst(item))
+        return statements
     }
 
 
@@ -221,7 +232,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createVariableDeclarationAst(cst: SubhutiCst): NodeMap[keyof NodeMap] {
+    createVariableDeclarationAst(cst: SubhutiCst): VariableDeclaration {
         //直接返回声明
         //                 this.Statement()
         //                 this.Declaration()

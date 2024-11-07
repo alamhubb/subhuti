@@ -487,7 +487,6 @@ export default class SubhutiToAstHandler {
     createLiteralAst(cst: SubhutiCst): Literal {
         const astName = checkCstName(cst, Es6Parser.prototype.Literal.name);
         const firstChild = cst.children[0]
-        console.log(firstChild.name);
         let value
         if (firstChild.name === Es6TokenConsumer.prototype.NumericLiteral.name) {
             value = Number(firstChild.value)

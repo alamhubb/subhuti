@@ -2,22 +2,41 @@ import type SubhutiCst from "../struct/SubhutiCst.ts";
 import Es6TokenConsumer, {Es6TokenName, es6TokensObj} from "../syntax/es6/Es6Tokens.ts";
 import Es6Parser from "../syntax/es6/Es6Parser.ts";
 import type {
-    AssignmentExpression, AssignmentOperator, BlockStatement, CallExpression, ClassBody, ClassDeclaration,
-    Comment, ConditionalExpression, Declaration,
-    Directive, ExportDefaultDeclaration, Expression, ExpressionMap, ExpressionStatement, FunctionExpression,
-    Identifier, Literal, MemberExpression, MethodDefinition,
+    AssignmentExpression,
+    AssignmentOperator,
+    BlockStatement,
+    CallExpression,
+    ClassBody,
+    ClassDeclaration,
+    Comment,
+    ConditionalExpression,
+    Declaration,
+    Directive,
+    ExportDeclaration,
+    Expression,
+    ExpressionMap,
+    ExpressionStatement,
+    FunctionExpression,
+    Identifier,
+    Literal,
+    MemberExpression,
+    MethodDefinition,
     ModuleDeclaration,
-    Node, NodeMap, Pattern,
-    Program, PropertyDefinition,
-    Statement, StaticBlock,
-    VariableDeclaration, VariableDeclarator
-} from "estree";
+    Node,
+    NodeMap,
+    Pattern,
+    Program,
+    PropertyDefinition, SourceLocation,
+    Statement,
+    StaticBlock, SubhutiTokenAst,
+    VariableDeclaration,
+    VariableDeclarator
+} from "../struct/SubhutiEs6Ast.ts";
 import {SubhutiRule} from "./SubhutiParser.ts";
 
 
 export const esTreeAstType = {
-    ExportNamedDeclaration: 'ExportNamedDeclaration',
-    ExportDefaultDeclaration: 'ExportDefaultDeclaration',
+    ExportNamedDeclaration: 'ExportNamedDeclaration'
 }
 
 export function checkCstName(cst: SubhutiCst, cstName: string) {
@@ -101,28 +120,35 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createExportDeclarationAst(cst: SubhutiCst): ExportDefaultDeclaration {
+    createExportDeclarationAst(cst: SubhutiCst): ExportDeclaration {
         let astName = checkCstName(cst, Es6Parser.prototype.ExportDeclaration.name);
+        const {children} = cst;
+        const [exportToken, secondChild, thirdChild] = children;
 
-        const second = cst.children[1]
+        // 判断是否有 default 关键字
+        const hasDefault = children.length > 2;
 
-        if (second.name === es6TokensObj.DefaultTok.name) {
-            astName = esTreeAstType.ExportDefaultDeclaration
-        }
-        const ast: ExportDefaultDeclaration = {
+        return {
             type: astName as any,
-            declaration: this.createClassDeclarationAst(cst.children[2]),
+            export: this.createSubhutiTokenAst(exportToken),
+            default: hasDefault ? this.createSubhutiTokenAst(secondChild) : null,
+            declaration: this.createClassDeclarationAst(hasDefault ? thirdChild : secondChild),
+            loc: cst.loc
+        };
+    }
+
+    createSubhutiTokenAst(cst: SubhutiCst): SubhutiTokenAst {
+        return {
+            type: cst.value,
             loc: cst.loc
         }
-        return ast
     }
 
     createClassDeclarationAst(cst: SubhutiCst): ClassDeclaration {
         const astName = checkCstName(cst, Es6Parser.prototype.ClassDeclaration.name);
-
-
         const ast: ClassDeclaration = {
             type: astName as any,
+            class: this.createSubhutiTokenAst(cst.children[0]),
             id: this.createIdentifierAst(cst.children[1].children[0]),
             body: this.createClassBodyAst(cst.children[2].children[1]),
             loc: cst.loc
@@ -163,7 +189,7 @@ export default class SubhutiToAstHandler {
         const ast: MethodDefinition = {
             type: astName as any,
             kind: 'method',
-            static: !!staticCst,
+            static: this.createSubhutiTokenAst(staticCst),
             computed: false,
             key: this.createIdentifierAst(cst.children[0].children[0].children[0]),
             value: this.createFunctionExpressionAst(cst.children[2], cst.children[5]),
@@ -254,7 +280,7 @@ export default class SubhutiToAstHandler {
         const ast: VariableDeclaration = {
             type: astName as any,
             declarations: cst.children[1].children.map(item => this.createVariableDeclaratorAst(item)) as any[],
-            kind: cst.children[0].children[0].value as any,
+            kind: this.createSubhutiTokenAst(cst.children[0].children[0]),
             loc: cst.loc
         }
         return ast
@@ -267,15 +293,6 @@ export default class SubhutiToAstHandler {
             id: this.createIdentifierAst(cst.children[0].children[0]) as any,
             init: this.createAssignmentExpressionAst(cst.children[1].children[1]) as any,
             loc: cst.loc
-        }
-        return ast
-    }
-
-    createImportOrExportDeclarationAst(cst: SubhutiCst): Node {
-        const ast: Node = {
-            type: astName as any,
-            sourceType: sourceType as any,
-            body: body as any
         }
         return ast
     }

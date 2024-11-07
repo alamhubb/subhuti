@@ -250,7 +250,7 @@ export interface FunctionDeclaration extends MaybeNamedFunctionDeclaration {
 export interface VariableDeclaration extends BaseDeclaration {
     type: "VariableDeclaration";
     declarations: VariableDeclarator[];
-    kind: "var" | "let" | "const";
+    kind: SubhutiTokenAst;
 }
 
 export interface VariableDeclarator extends BaseNode {
@@ -601,7 +601,7 @@ export interface MethodDefinition extends BaseNode {
     value: FunctionExpression;
     kind: "constructor" | "method" | "get" | "set";
     computed: boolean;
-    static: boolean;
+    static: SubhutiTokenAst;
 }
 
 export interface MaybeNamedClassDeclaration extends BaseClass, BaseDeclaration {
@@ -612,6 +612,7 @@ export interface MaybeNamedClassDeclaration extends BaseClass, BaseDeclaration {
 
 export interface ClassDeclaration extends MaybeNamedClassDeclaration {
     id: Identifier;
+    class: SubhutiTokenAst
 }
 
 export interface ClassExpression extends BaseClass, BaseExpression {
@@ -628,7 +629,7 @@ export interface MetaProperty extends BaseExpression {
 export type ModuleDeclaration =
     | ImportDeclaration
     | ExportNamedDeclaration
-    | ExportDefaultDeclaration
+    | ExportDeclaration
     | ExportAllDeclaration;
 
 export interface BaseModuleDeclaration extends BaseNode {
@@ -677,8 +678,14 @@ export interface ExportSpecifier extends Omit<BaseModuleSpecifier, "local"> {
     exported: Identifier | Literal;
 }
 
-export interface ExportDefaultDeclaration extends BaseModuleDeclaration {
-    type: "ExportDefaultDeclaration";
+export interface SubhutiTokenAst extends BaseNodeWithoutComments {
+
+}
+
+export interface ExportDeclaration extends BaseModuleDeclaration {
+    type: "ExportDeclaration";
+    export: SubhutiTokenAst
+    default: SubhutiTokenAst
     declaration: MaybeNamedFunctionDeclaration | MaybeNamedClassDeclaration | Expression;
 }
 

@@ -41,6 +41,7 @@ export const esTreeAstType = {
 
 export function checkCstName(cst: SubhutiCst, cstName: string) {
     if (cst.name !== cstName) {
+        console.log(cst)
         throwNewError(cst.name)
     }
     return cstName
@@ -103,20 +104,42 @@ export default class SubhutiToAstHandler {
         return asts
     }
 
-    createStatementListAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+    createStatementListAst(cst: SubhutiCst): Array<Statement> {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
         return cst.children.map(item => this.createStatementListItemAst(item)).flat()
     }
 
-    createStatementListItemAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+    createStatementListItemAst(cst: SubhutiCst): Array<Statement> {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementListItem.name);
         return cst.children.map(item => this.createStatementAst(item)).flat()
     }
 
-    createStatementAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
+    createStatementAst(cst: SubhutiCst): Array<Statement> {
         const astName = checkCstName(cst, Es6Parser.prototype.Statement.name);
-        const statements: Declaration[] = cst.children.map(item => this.createVariableDeclarationAst(item))
+        const statements: Statement[] = cst.children.map(item => this.createStatementDeclarationAst(item))
         return statements
+    }
+
+    createStatementDeclarationAst(cst: SubhutiCst) {
+        if (cst.name === Es6Parser.prototype.VariableDeclaration.name) {
+            return this.createVariableDeclarationAst(cst)
+        } else if (cst.name === Es6Parser.prototype.ExpressionStatement.name) {
+            return this.createExpressionStatementAst(cst)
+        }
+    }
+
+    createVariableDeclarationAst(cst: SubhutiCst): VariableDeclaration {
+        //直接返回声明
+        //                 this.Statement()
+        //                 this.Declaration()
+        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclaration.name);
+        const ast: VariableDeclaration = {
+            type: astName as any,
+            declarations: cst.children[1].children.map(item => this.createVariableDeclaratorAst(item)) as any[],
+            kind: this.createSubhutiTokenAst(cst.children[0].children[0]),
+            loc: cst.loc
+        }
+        return ast
     }
 
 
@@ -281,20 +304,6 @@ export default class SubhutiToAstHandler {
             return ast
         }
         return this.createExpressionAst(cst.children[0])
-    }
-
-    createVariableDeclarationAst(cst: SubhutiCst): VariableDeclaration {
-        //直接返回声明
-        //                 this.Statement()
-        //                 this.Declaration()
-        const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclaration.name);
-        const ast: VariableDeclaration = {
-            type: astName as any,
-            declarations: cst.children[1].children.map(item => this.createVariableDeclaratorAst(item)) as any[],
-            kind: this.createSubhutiTokenAst(cst.children[0].children[0]),
-            loc: cst.loc
-        }
-        return ast
     }
 
     createVariableDeclaratorAst(cst: SubhutiCst): VariableDeclarator {

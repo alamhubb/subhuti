@@ -14,6 +14,12 @@ import type {
 } from "estree";
 import {SubhutiRule} from "./SubhutiParser.ts";
 
+
+export const esTreeAstType = {
+    ExportNamedDeclaration: 'ExportNamedDeclaration',
+    ExportDefaultDeclaration: 'ExportDefaultDeclaration',
+}
+
 export function checkCstName(cst: SubhutiCst, cstName: string) {
     if (cst.name !== cstName) {
         throwNewError(cst.name)
@@ -39,7 +45,6 @@ export default class SubhutiToAstHandler {
     createProgramAst(cst: SubhutiCst): Program {
         const astName = checkCstName(cst, Es6Parser.prototype.Program.name);
         const first = cst.children[0]
-
         const map = {
             [Es6Parser.prototype.StatementList.name]: "script",
             [Es6Parser.prototype.ModuleItemList.name]: "module",
@@ -48,7 +53,12 @@ export default class SubhutiToAstHandler {
         if (!sourceType) {
             throwNewError()
         }
-        const body: Array<Directive | Statement | ModuleDeclaration> = this.createStatementListAst(cst.children[0])
+        let body: Array<Directive | Statement | ModuleDeclaration>
+        if (first.name === Es6Parser.prototype.ModuleItemList.name) {
+            body = this.createModuleItemListAst(first)
+        } else {
+            body = this.createStatementListAst(first)
+        }
         const ast: Program = {
             type: astName as any,
             sourceType: sourceType as any,
@@ -58,6 +68,21 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
+    createModuleItemListAst(cst: SubhutiCst): ModuleDeclaration[] {
+        //直接返回声明
+        //                 this.Statement()
+        //                 this.Declaration()
+        const astName = checkCstName(cst, Es6Parser.prototype.ModuleItemList.name);
+        const asts = cst.children.map(item => {
+            if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
+            } else if (item.name === Es6Parser.prototype.ExportDeclaration.name) {
+                return this.createExportDeclarationAst(item)
+            } else if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
+
+            }
+        })
+        return asts
+    }
 
     createStatementListAst(cst: SubhutiCst): Array<Directive | Statement | ModuleDeclaration> {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
@@ -76,25 +101,14 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createModuleItemListAst(cst: SubhutiCst): ModuleDeclaration[] {
-        //直接返回声明
-        //                 this.Statement()
-        //                 this.Declaration()
-        const astName = checkCstName(cst, Es6Parser.prototype.ModuleItemList.name);
-        const asts = cst.children.map(item => {
-            if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
-            } else if (item.name === Es6Parser.prototype.ExportDeclaration.name) {
-                return this.createExportDeclarationAst(item)
-            } else if (item.name === Es6Parser.prototype.ImportDeclaration.name) {
-
-            }
-        })
-        return asts
-    }
-
     createExportDeclarationAst(cst: SubhutiCst): ExportDefaultDeclaration {
-        const astName = checkCstName(cst, Es6Parser.prototype.ExportDeclaration.name);
+        let astName = checkCstName(cst, Es6Parser.prototype.ExportDeclaration.name);
 
+        const second = cst.children[1]
+
+        if (second.name === es6TokensObj.DefaultTok.name) {
+            astName = esTreeAstType.ExportDefaultDeclaration
+        }
         const ast: ExportDefaultDeclaration = {
             type: astName as any,
             declaration: this.createClassDeclarationAst(cst.children[2]),

@@ -150,7 +150,7 @@ export default class SubhutiToAstHandler {
     createFunctionExpressionAst(cstParams: SubhutiCst, cst: SubhutiCst): FunctionExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.FunctionBody.name);
         const ast: FunctionExpression = {
-            type: astName as any,
+            type: Es6Parser.prototype.FunctionExpression.name as any,
             id: null,
             params: [],
             body: this.createBlockStatementAst(cst.children[0]),
@@ -162,11 +162,10 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-
     createBlockStatementAst(cst: SubhutiCst): BlockStatement {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
         const ast: BlockStatement = {
-            type: astName as any,
+            type: Es6Parser.prototype.BlockStatement.name as any,
             body: cst.children[0].children.map(item =>
                 this.createExpressionStatementAst(item.children[0])
             ) as any,

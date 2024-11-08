@@ -17,433 +17,433 @@
 // an end user.
 
 
-export interface BaseNodeWithoutComments {
-    // Every leaf interface that extends BaseNode must specify a type property.
+export interface SubhutiHighlithBaseNodeWithoutComments {
+    // Every leaf interface SubhutiHighliththat extends SubhutiHighlithBaseNode must specify a type property.
     // The type property should be a string literal. For example, Identifier
-    // has: `type: "Identifier"`
+    // has: SubhutiHighlith`type: "Identifier"`
     type: string;
-    loc?: SourceLocation | null | undefined;
+    loc?: SubhutiHighlithSourceLocation | null | undefined;
     range?: [number, number] | undefined;
 }
 
-export interface BaseNode extends BaseNodeWithoutComments {
-    leadingComments?: Comment[] | undefined;
-    trailingComments?: Comment[] | undefined;
+export interface SubhutiHighlithBaseNode extends SubhutiHighlithBaseNodeWithoutComments {
+    leadingComments?: SubhutiHighlithComment[] | undefined;
+    trailingComments?: SubhutiHighlithComment[] | undefined;
 }
 
-export interface NodeMap {
-    AssignmentProperty: AssignmentProperty;
-    CatchClause: CatchClause;
-    Class: Class;
-    ClassBody: ClassBody;
-    Expression: Expression;
+export interface SubhutiHighlithNodeMap {
+    AssignmentProperty: SubhutiHighlithAssignmentProperty;
+    CatchClause: SubhutiHighlithCatchClause;
+    Class: SubhutiHighlithClass;
+    ClassBody: SubhutiHighlithClassBody;
+    Expression: SubhutiHighlithExpression;
     Function: Function;
-    Identifier: Identifier;
-    Literal: Literal;
-    MethodDefinition: MethodDefinition;
-    ModuleDeclaration: ModuleDeclaration;
-    ModuleSpecifier: ModuleSpecifier;
-    Pattern: Pattern;
-    PrivateIdentifier: PrivateIdentifier;
-    Program: Program;
-    Property: Property;
-    PropertyDefinition: PropertyDefinition;
-    SpreadElement: SpreadElement;
-    Statement: Statement;
-    Super: Super;
-    SwitchCase: SwitchCase;
-    TemplateElement: TemplateElement;
-    VariableDeclarator: VariableDeclarator;
+    Identifier: SubhutiHighlithIdentifier;
+    Literal: SubhutiHighlithLiteral;
+    MethodDefinition: SubhutiHighlithMethodDefinition;
+    ModuleDeclaration: SubhutiHighlithModuleDeclaration;
+    ModuleSpecifier: SubhutiHighlithModuleSpecifier;
+    Pattern: SubhutiHighlithPattern;
+    PrivateIdentifier: SubhutiHighlithPrivateIdentifier;
+    Program: SubhutiHighlithProgram;
+    Property: SubhutiHighlithProperty;
+    PropertyDefinition: SubhutiHighlithPropertyDefinition;
+    SpreadElement: SubhutiHighlithSpreadElement;
+    Statement: SubhutiHighlithStatement;
+    Super: SubhutiHighlithSuper;
+    SwitchCase: SubhutiHighlithSwitchCase;
+    TemplateElement: SubhutiHighlithTemplateElement;
+    VariableDeclarator: SubhutiHighlithVariableDeclarator;
 }
 
-export type Node = NodeMap[keyof NodeMap];
+export type SubhutiHighlithNode = SubhutiHighlithNodeMap[keyof SubhutiHighlithNodeMap];
 
-export interface Comment extends BaseNodeWithoutComments {
+export interface SubhutiHighlithComment extends SubhutiHighlithBaseNodeWithoutComments {
     type: "Line" | "Block";
     value: string;
 }
 
-export interface SourceLocation {
+export interface SubhutiHighlithSourceLocation {
     source?: string | null | undefined;
-    start: Position;
-    end: Position;
+    start: SubhutiHighlithPosition;
+    end: SubhutiHighlithPosition;
 }
 
-export interface Position {
-    /** >= 1 */
+export interface SubhutiHighlithPosition {
+    /** >= SubhutiHighlith1 */
     line: number;
-    /** >= 0 */
+    /** >= SubhutiHighlith0 */
     column: number;
 }
 
-export interface Program extends BaseNode {
+export interface SubhutiHighlithProgram extends SubhutiHighlithBaseNode {
     type: "Program";
     sourceType: "script" | "module";
-    body: Array<Directive | Statement | ModuleDeclaration>;
-    comments?: Comment[] | undefined;
+    body: Array<SubhutiHighlithDirective | SubhutiHighlithStatement | SubhutiHighlithModuleDeclaration>;
+    comments?: SubhutiHighlithComment[] | undefined;
 }
 
-export interface Directive extends BaseNode {
+export interface SubhutiHighlithDirective extends SubhutiHighlithBaseNode {
     type: "ExpressionStatement";
-    expression: Literal;
+    expression: SubhutiHighlithLiteral;
     directive: string;
 }
 
-export interface BaseFunction extends BaseNode {
-    params: Pattern[];
+export interface SubhutiHighlithBaseFunction extends SubhutiHighlithBaseNode {
+    params: SubhutiHighlithPattern[];
     generator?: boolean | undefined;
     async?: boolean | undefined;
     // The body is either BlockStatement or Expression because arrow functions
     // can have a body that's either. FunctionDeclarations and
     // FunctionExpressions have only BlockStatement bodies.
-    body: BlockStatement | Expression;
+    body: SubhutiHighlithBlockStatement | SubhutiHighlithExpression;
 }
 
-export type Function = FunctionDeclaration | FunctionExpression | ArrowFunctionExpression;
+export type SubhutiHighlithFunction = SubhutiHighlithFunctionDeclaration | SubhutiHighlithFunctionExpression | SubhutiHighlithArrowFunctionExpression;
 
-export type Statement =
-    | ExpressionStatement
-    | BlockStatement
-    | StaticBlock
-    | EmptyStatement
-    | DebuggerStatement
-    | WithStatement
-    | ReturnStatement
-    | LabeledStatement
-    | BreakStatement
-    | ContinueStatement
-    | IfStatement
-    | SwitchStatement
-    | ThrowStatement
-    | TryStatement
-    | WhileStatement
-    | DoWhileStatement
-    | ForStatement
-    | ForInStatement
-    | ForOfStatement
-    | Declaration;
+export type SubhutiHighlithStatement =
+    | SubhutiHighlithExpressionStatement
+    | SubhutiHighlithBlockStatement
+    | SubhutiHighlithStaticBlock
+    | SubhutiHighlithEmptyStatement
+    | SubhutiHighlithDebuggerStatement
+    | SubhutiHighlithWithStatement
+    | SubhutiHighlithReturnStatement
+    | SubhutiHighlithLabeledStatement
+    | SubhutiHighlithBreakStatement
+    | SubhutiHighlithContinueStatement
+    | SubhutiHighlithIfStatement
+    | SubhutiHighlithSwitchStatement
+    | SubhutiHighlithThrowStatement
+    | SubhutiHighlithTryStatement
+    | SubhutiHighlithWhileStatement
+    | SubhutiHighlithDoWhileStatement
+    | SubhutiHighlithForStatement
+    | SubhutiHighlithForInStatement
+    | SubhutiHighlithForOfStatement
+    | SubhutiHighlithDeclaration;
 
-export interface BaseStatement extends BaseNode {
+export interface SubhutiHighlithBaseStatement extends SubhutiHighlithBaseNode {
 }
 
-export interface EmptyStatement extends BaseStatement {
+export interface SubhutiHighlithEmptyStatement extends SubhutiHighlithBaseStatement {
     type: "EmptyStatement";
 }
 
-export interface BlockStatement extends BaseStatement {
+export interface SubhutiHighlithBlockStatement extends SubhutiHighlithBaseStatement {
     type: "BlockStatement";
-    body: Statement[];
-    innerComments?: Comment[] | undefined;
+    body: SubhutiHighlithStatement[];
+    innerComments?: SubhutiHighlithComment[] | undefined;
 }
 
-export interface StaticBlock extends Omit<BlockStatement, "type"> {
+export interface SubhutiHighlithStaticBlock extends Omit<SubhutiHighlithBlockStatement, "type"> {
     type: "StaticBlock";
 }
 
-export interface ExpressionStatement extends BaseStatement {
+export interface SubhutiHighlithExpressionStatement extends SubhutiHighlithBaseStatement {
     type: "ExpressionStatement";
-    expression: Expression;
+    expression: SubhutiHighlithExpression;
 }
 
-export interface IfStatement extends BaseStatement {
+export interface SubhutiHighlithIfStatement extends SubhutiHighlithBaseStatement {
     type: "IfStatement";
-    test: Expression;
-    consequent: Statement;
-    alternate?: Statement | null | undefined;
+    test: SubhutiHighlithExpression;
+    consequent: SubhutiHighlithStatement;
+    alternate?: SubhutiHighlithStatement | null | undefined;
 }
 
-export interface LabeledStatement extends BaseStatement {
+export interface SubhutiHighlithLabeledStatement extends SubhutiHighlithBaseStatement {
     type: "LabeledStatement";
-    label: Identifier;
-    body: Statement;
+    label: SubhutiHighlithIdentifier;
+    body: SubhutiHighlithStatement;
 }
 
-export interface BreakStatement extends BaseStatement {
+export interface SubhutiHighlithBreakStatement extends SubhutiHighlithBaseStatement {
     type: "BreakStatement";
-    label?: Identifier | null | undefined;
+    label?: SubhutiHighlithIdentifier | null | undefined;
 }
 
-export interface ContinueStatement extends BaseStatement {
+export interface SubhutiHighlithContinueStatement extends SubhutiHighlithBaseStatement {
     type: "ContinueStatement";
-    label?: Identifier | null | undefined;
+    label?: SubhutiHighlithIdentifier | null | undefined;
 }
 
-export interface WithStatement extends BaseStatement {
+export interface SubhutiHighlithWithStatement extends SubhutiHighlithBaseStatement {
     type: "WithStatement";
-    object: Expression;
-    body: Statement;
+    object: SubhutiHighlithExpression;
+    body: SubhutiHighlithStatement;
 }
 
-export interface SwitchStatement extends BaseStatement {
+export interface SubhutiHighlithSwitchStatement extends SubhutiHighlithBaseStatement {
     type: "SwitchStatement";
-    discriminant: Expression;
-    cases: SwitchCase[];
+    discriminant: SubhutiHighlithExpression;
+    cases: SubhutiHighlithSwitchCase[];
 }
 
-export interface ReturnStatement extends BaseStatement {
+export interface SubhutiHighlithReturnStatement extends SubhutiHighlithBaseStatement {
     type: "ReturnStatement";
-    argument?: Expression | null | undefined;
+    argument?: SubhutiHighlithExpression | null | undefined;
 }
 
-export interface ThrowStatement extends BaseStatement {
+export interface SubhutiHighlithThrowStatement extends SubhutiHighlithBaseStatement {
     type: "ThrowStatement";
-    argument: Expression;
+    argument: SubhutiHighlithExpression;
 }
 
-export interface TryStatement extends BaseStatement {
+export interface SubhutiHighlithTryStatement extends SubhutiHighlithBaseStatement {
     type: "TryStatement";
-    block: BlockStatement;
-    handler?: CatchClause | null | undefined;
-    finalizer?: BlockStatement | null | undefined;
+    block: SubhutiHighlithBlockStatement;
+    handler?: SubhutiHighlithCatchClause | null | undefined;
+    finalizer?: SubhutiHighlithBlockStatement | null | undefined;
 }
 
-export interface WhileStatement extends BaseStatement {
+export interface SubhutiHighlithWhileStatement extends SubhutiHighlithBaseStatement {
     type: "WhileStatement";
-    test: Expression;
-    body: Statement;
+    test: SubhutiHighlithExpression;
+    body: SubhutiHighlithStatement;
 }
 
-export interface DoWhileStatement extends BaseStatement {
+export interface SubhutiHighlithDoWhileStatement extends SubhutiHighlithBaseStatement {
     type: "DoWhileStatement";
-    body: Statement;
-    test: Expression;
+    body: SubhutiHighlithStatement;
+    test: SubhutiHighlithExpression;
 }
 
-export interface ForStatement extends BaseStatement {
+export interface SubhutiHighlithForStatement extends SubhutiHighlithBaseStatement {
     type: "ForStatement";
-    init?: VariableDeclaration | Expression | null | undefined;
-    test?: Expression | null | undefined;
-    update?: Expression | null | undefined;
-    body: Statement;
+    init?: SubhutiHighlithVariableDeclaration | SubhutiHighlithExpression | null | undefined;
+    test?: SubhutiHighlithExpression | null | undefined;
+    update?: SubhutiHighlithExpression | null | undefined;
+    body: SubhutiHighlithStatement;
 }
 
-export interface BaseForXStatement extends BaseStatement {
-    left: VariableDeclaration | Pattern;
-    right: Expression;
-    body: Statement;
+export interface SubhutiHighlithBaseForXStatement extends SubhutiHighlithBaseStatement {
+    left: SubhutiHighlithVariableDeclaration | SubhutiHighlithPattern;
+    right: SubhutiHighlithExpression;
+    body: SubhutiHighlithStatement;
 }
 
-export interface ForInStatement extends BaseForXStatement {
+export interface SubhutiHighlithForInStatement extends SubhutiHighlithBaseForXStatement {
     type: "ForInStatement";
 }
 
-export interface DebuggerStatement extends BaseStatement {
+export interface SubhutiHighlithDebuggerStatement extends SubhutiHighlithBaseStatement {
     type: "DebuggerStatement";
 }
 
-export type Declaration = FunctionDeclaration | VariableDeclaration | ClassDeclaration;
+export type SubhutiHighlithDeclaration = SubhutiHighlithFunctionDeclaration | SubhutiHighlithVariableDeclaration | SubhutiHighlithClassDeclaration;
 
-export interface BaseDeclaration extends BaseStatement {
+export interface SubhutiHighlithBaseDeclaration extends SubhutiHighlithBaseStatement {
 }
 
-export interface MaybeNamedFunctionDeclaration extends BaseFunction, BaseDeclaration {
+export interface SubhutiHighlithMaybeNamedFunctionDeclaration extends SubhutiHighlithBaseFunction, SubhutiHighlithBaseDeclaration {
     type: "FunctionDeclaration";
     /** It is null when a function declaration is a part of the `export default function` statement */
-    id: Identifier | null;
-    body: BlockStatement;
+    id: SubhutiHighlithIdentifier | null;
+    body: SubhutiHighlithBlockStatement;
 }
 
-export interface FunctionDeclaration extends MaybeNamedFunctionDeclaration {
-    id: Identifier;
+export interface SubhutiHighlithFunctionDeclaration extends SubhutiHighlithMaybeNamedFunctionDeclaration {
+    id: SubhutiHighlithIdentifier;
 }
 
-export interface VariableDeclaration extends BaseDeclaration {
+export interface SubhutiHighlithVariableDeclaration extends SubhutiHighlithBaseDeclaration {
     type: "VariableDeclaration";
-    declarations: VariableDeclarator[];
-    kind: SubhutiTokenAst;
+    declarations: SubhutiHighlithVariableDeclarator[];
+    kind: SubhutiHighlithSubhutiTokenAst;
 }
 
-export interface VariableDeclarator extends BaseNode {
+export interface SubhutiHighlithVariableDeclarator extends SubhutiHighlithBaseNode {
     type: "VariableDeclarator";
-    id: Pattern;
-    init?: Expression | null | undefined;
+    id: SubhutiHighlithPattern;
+    init?: SubhutiHighlithExpression | null | undefined;
 }
 
-export interface ExpressionMap {
-    ArrayExpression: ArrayExpression;
-    ArrowFunctionExpression: ArrowFunctionExpression;
-    AssignmentExpression: AssignmentExpression;
-    AwaitExpression: AwaitExpression;
-    BinaryExpression: BinaryExpression;
-    CallExpression: CallExpression;
-    ChainExpression: ChainExpression;
-    ClassExpression: ClassExpression;
-    ConditionalExpression: ConditionalExpression;
-    FunctionExpression: FunctionExpression;
-    Identifier: Identifier;
-    ImportExpression: ImportExpression;
-    Literal: Literal;
-    LogicalExpression: LogicalExpression;
-    MemberExpression: MemberExpression;
-    MetaProperty: MetaProperty;
-    NewExpression: NewExpression;
-    ObjectExpression: ObjectExpression;
-    SequenceExpression: SequenceExpression;
-    TaggedTemplateExpression: TaggedTemplateExpression;
-    TemplateLiteral: TemplateLiteral;
-    ThisExpression: ThisExpression;
-    UnaryExpression: UnaryExpression;
-    UpdateExpression: UpdateExpression;
-    YieldExpression: YieldExpression;
+export interface SubhutiHighlithExpressionMap {
+    ArrayExpression: SubhutiHighlithArrayExpression;
+    ArrowFunctionExpression: SubhutiHighlithArrowFunctionExpression;
+    AssignmentExpression: SubhutiHighlithAssignmentExpression;
+    AwaitExpression: SubhutiHighlithAwaitExpression;
+    BinaryExpression: SubhutiHighlithBinaryExpression;
+    CallExpression: SubhutiHighlithCallExpression;
+    ChainExpression: SubhutiHighlithChainExpression;
+    ClassExpression: SubhutiHighlithClassExpression;
+    ConditionalExpression: SubhutiHighlithConditionalExpression;
+    FunctionExpression: SubhutiHighlithFunctionExpression;
+    Identifier: SubhutiHighlithIdentifier;
+    ImportExpression: SubhutiHighlithImportExpression;
+    Literal: SubhutiHighlithLiteral;
+    LogicalExpression: SubhutiHighlithLogicalExpression;
+    MemberExpression: SubhutiHighlithMemberExpression;
+    MetaProperty: SubhutiHighlithMetaProperty;
+    NewExpression: SubhutiHighlithNewExpression;
+    ObjectExpression: SubhutiHighlithObjectExpression;
+    SequenceExpression: SubhutiHighlithSequenceExpression;
+    TaggedTemplateExpression: SubhutiHighlithTaggedTemplateExpression;
+    TemplateLiteral: SubhutiHighlithTemplateLiteral;
+    ThisExpression: SubhutiHighlithThisExpression;
+    UnaryExpression: SubhutiHighlithUnaryExpression;
+    UpdateExpression: SubhutiHighlithUpdateExpression;
+    YieldExpression: SubhutiHighlithYieldExpression;
 }
 
-export type Expression = ExpressionMap[keyof ExpressionMap];
+export type SubhutiHighlithExpression = SubhutiHighlithExpressionMap[keyof SubhutiHighlithExpressionMap];
 
-export interface BaseExpression extends BaseNode {
+export interface SubhutiHighlithBaseExpression extends SubhutiHighlithBaseNode {
 }
 
-export type ChainElement = SimpleCallExpression | MemberExpression;
+export type SubhutiHighlithChainElement = SubhutiHighlithSimpleCallExpression | SubhutiHighlithMemberExpression;
 
-export interface ChainExpression extends BaseExpression {
+export interface SubhutiHighlithChainExpression extends SubhutiHighlithBaseExpression {
     type: "ChainExpression";
-    expression: ChainElement;
+    expression: SubhutiHighlithChainElement;
 }
 
-export interface ThisExpression extends BaseExpression {
+export interface SubhutiHighlithThisExpression extends SubhutiHighlithBaseExpression {
     type: "ThisExpression";
 }
 
-export interface ArrayExpression extends BaseExpression {
+export interface SubhutiHighlithArrayExpression extends SubhutiHighlithBaseExpression {
     type: "ArrayExpression";
-    elements: Array<Expression | SpreadElement | null>;
+    elements: Array<SubhutiHighlithExpression | SubhutiHighlithSpreadElement | null>;
 }
 
-export interface ObjectExpression extends BaseExpression {
+export interface SubhutiHighlithObjectExpression extends SubhutiHighlithBaseExpression {
     type: "ObjectExpression";
-    properties: Array<Property | SpreadElement>;
+    properties: Array<SubhutiHighlithProperty | SubhutiHighlithSpreadElement>;
 }
 
-export interface PrivateIdentifier extends BaseNode {
+export interface SubhutiHighlithPrivateIdentifier extends SubhutiHighlithBaseNode {
     type: "PrivateIdentifier";
     name: string;
 }
 
-export interface Property extends BaseNode {
+export interface SubhutiHighlithProperty extends SubhutiHighlithBaseNode {
     type: "Property";
-    key: Expression | PrivateIdentifier;
-    value: Expression | Pattern; // Could be an AssignmentProperty
+    key: SubhutiHighlithExpression | SubhutiHighlithPrivateIdentifier;
+    value: SubhutiHighlithExpression | SubhutiHighlithPattern; // Could be an AssignmentProperty
     kind: "init" | "get" | "set";
     method: boolean;
     shorthand: boolean;
     computed: boolean;
 }
 
-export interface PropertyDefinition extends BaseNode {
+export interface SubhutiHighlithPropertyDefinition extends SubhutiHighlithBaseNode {
     type: "PropertyDefinition";
-    key: Expression | PrivateIdentifier;
-    value?: Expression | null | undefined;
+    key: SubhutiHighlithExpression | SubhutiHighlithPrivateIdentifier;
+    value?: SubhutiHighlithExpression | null | undefined;
     computed: boolean;
     static: boolean;
 }
 
-export interface FunctionExpression extends BaseFunction, BaseExpression {
-    id?: Identifier | null | undefined;
+export interface SubhutiHighlithFunctionExpression extends SubhutiHighlithBaseFunction, SubhutiHighlithBaseExpression {
+    id?: SubhutiHighlithIdentifier | null | undefined;
     type: "FunctionExpression";
-    body: BlockStatement;
+    body: SubhutiHighlithBlockStatement;
 }
 
-export interface SequenceExpression extends BaseExpression {
+export interface SubhutiHighlithSequenceExpression extends SubhutiHighlithBaseExpression {
     type: "SequenceExpression";
-    expressions: Expression[];
+    expressions: SubhutiHighlithExpression[];
 }
 
-export interface UnaryExpression extends BaseExpression {
+export interface SubhutiHighlithUnaryExpression extends SubhutiHighlithBaseExpression {
     type: "UnaryExpression";
-    operator: UnaryOperator;
+    operator: SubhutiHighlithUnaryOperator;
     prefix: true;
-    argument: Expression;
+    argument: SubhutiHighlithExpression;
 }
 
-export interface BinaryExpression extends BaseExpression {
+export interface SubhutiHighlithBinaryExpression extends SubhutiHighlithBaseExpression {
     type: "BinaryExpression";
-    operator: BinaryOperator;
-    left: Expression | PrivateIdentifier;
-    right: Expression;
+    operator: SubhutiHighlithBinaryOperator;
+    left: SubhutiHighlithExpression | SubhutiHighlithPrivateIdentifier;
+    right: SubhutiHighlithExpression;
 }
 
-export interface AssignmentExpression extends BaseExpression {
+export interface SubhutiHighlithAssignmentExpression extends SubhutiHighlithBaseExpression {
     type: "AssignmentExpression";
-    operator: AssignmentOperator;
-    left: Pattern | MemberExpression;
-    right: Expression;
+    operator: SubhutiHighlithAssignmentOperator;
+    left: SubhutiHighlithPattern | SubhutiHighlithMemberExpression;
+    right: SubhutiHighlithExpression;
 }
 
-export interface UpdateExpression extends BaseExpression {
+export interface SubhutiHighlithUpdateExpression extends SubhutiHighlithBaseExpression {
     type: "UpdateExpression";
-    operator: UpdateOperator;
-    argument: Expression;
+    operator: SubhutiHighlithUpdateOperator;
+    argument: SubhutiHighlithExpression;
     prefix: boolean;
 }
 
-export interface LogicalExpression extends BaseExpression {
+export interface SubhutiHighlithLogicalExpression extends SubhutiHighlithBaseExpression {
     type: "LogicalExpression";
-    operator: LogicalOperator;
-    left: Expression;
-    right: Expression;
+    operator: SubhutiHighlithLogicalOperator;
+    left: SubhutiHighlithExpression;
+    right: SubhutiHighlithExpression;
 }
 
-export interface ConditionalExpression extends BaseExpression {
+export interface SubhutiHighlithConditionalExpression extends SubhutiHighlithBaseExpression {
     type: "ConditionalExpression";
-    test: Expression;
-    alternate: Expression;
-    consequent: Expression;
+    test: SubhutiHighlithExpression;
+    alternate: SubhutiHighlithExpression;
+    consequent: SubhutiHighlithExpression;
 }
 
-export interface BaseCallExpression extends BaseExpression {
-    callee: Expression | Super;
-    arguments: Array<Expression | SpreadElement>;
+export interface SubhutiHighlithBaseCallExpression extends SubhutiHighlithBaseExpression {
+    callee: SubhutiHighlithExpression | SubhutiHighlithSuper;
+    arguments: Array<SubhutiHighlithExpression | SubhutiHighlithSpreadElement>;
 }
 
-export type CallExpression = SimpleCallExpression | NewExpression;
+export type SubhutiHighlithCallExpression = SubhutiHighlithSimpleCallExpression | SubhutiHighlithNewExpression;
 
-export interface SimpleCallExpression extends BaseCallExpression {
+export interface SubhutiHighlithSimpleCallExpression extends SubhutiHighlithBaseCallExpression {
     type: "CallExpression";
     optional: boolean;
 }
 
-export interface NewExpression extends BaseCallExpression {
+export interface SubhutiHighlithNewExpression extends SubhutiHighlithBaseCallExpression {
     type: "NewExpression";
 }
 
-export interface MemberExpression extends BaseExpression, BasePattern {
+export interface SubhutiHighlithMemberExpression extends SubhutiHighlithBaseExpression, SubhutiHighlithBasePattern {
     type: "MemberExpression";
-    object: Expression | Super;
-    property: Expression | PrivateIdentifier;
+    object: SubhutiHighlithExpression | SubhutiHighlithSuper;
+    property: SubhutiHighlithExpression | SubhutiHighlithPrivateIdentifier;
     computed: boolean;
     optional: boolean;
 }
 
-export type Pattern = Identifier | ObjectPattern | ArrayPattern | RestElement | AssignmentPattern | MemberExpression;
+export type SubhutiHighlithPattern = SubhutiHighlithIdentifier | SubhutiHighlithObjectPattern | SubhutiHighlithArrayPattern | SubhutiHighlithRestElement | SubhutiHighlithAssignmentPattern | SubhutiHighlithMemberExpression;
 
-export interface BasePattern extends BaseNode {
+export interface SubhutiHighlithBasePattern extends SubhutiHighlithBaseNode {
 }
 
-export interface SwitchCase extends BaseNode {
+export interface SubhutiHighlithSwitchCase extends SubhutiHighlithBaseNode {
     type: "SwitchCase";
-    test?: Expression | null | undefined;
-    consequent: Statement[];
+    test?: SubhutiHighlithExpression | null | undefined;
+    consequent: SubhutiHighlithStatement[];
 }
 
-export interface CatchClause extends BaseNode {
+export interface SubhutiHighlithCatchClause extends SubhutiHighlithBaseNode {
     type: "CatchClause";
-    param: Pattern | null;
-    body: BlockStatement;
+    param: SubhutiHighlithPattern | null;
+    body: SubhutiHighlithBlockStatement;
 }
 
-export interface Identifier extends BaseNode, BaseExpression, BasePattern {
+export interface SubhutiHighlithIdentifier extends SubhutiHighlithBaseNode, SubhutiHighlithBaseExpression, SubhutiHighlithBasePattern {
     type: "Identifier";
     name: string;
 }
 
-export type Literal = SimpleLiteral | RegExpLiteral | BigIntLiteral;
+export type SubhutiHighlithLiteral = SubhutiHighlithSimpleLiteral | RegExpLiteral | bigintLiteral;
 
-export interface SimpleLiteral extends BaseNode, BaseExpression {
+export interface SubhutiHighlithSimpleLiteral extends SubhutiHighlithBaseNode, SubhutiHighlithBaseExpression {
     type: "Literal";
     value: string | boolean | number | null;
     raw?: string | undefined;
 }
 
-export interface RegExpLiteral extends BaseNode, BaseExpression {
+export interface RegExpLiteral extends SubhutiHighlithBaseNode, SubhutiHighlithBaseExpression {
     type: "Literal";
     value?: RegExp | null | undefined;
     regex: {
@@ -453,16 +453,16 @@ export interface RegExpLiteral extends BaseNode, BaseExpression {
     raw?: string | undefined;
 }
 
-export interface BigIntLiteral extends BaseNode, BaseExpression {
+export interface bigintLiteral extends SubhutiHighlithBaseNode, SubhutiHighlithBaseExpression {
     type: "Literal";
     value?: bigint | null | undefined;
     bigint: string;
     raw?: string | undefined;
 }
 
-export type UnaryOperator = "-" | "+" | "!" | "~" | "typeof" | "void" | "delete";
+export type SubhutiHighlithUnaryOperator = "-" | "+" | "!" | "~" | "typeof" | "void" | "delete";
 
-export type BinaryOperator =
+export type SubhutiHighlithBinaryOperator =
     | "=="
     | "!="
     | "==="
@@ -486,9 +486,9 @@ export type BinaryOperator =
     | "in"
     | "instanceof";
 
-export type LogicalOperator = "||" | "&&" | "??";
+export type SubhutiHighlithLogicalOperator = "||" | "&&" | "??";
 
-export type AssignmentOperator =
+export type SubhutiHighlithAssignmentOperator =
     | "="
     | "+="
     | "-="
@@ -506,47 +506,47 @@ export type AssignmentOperator =
     | "&&="
     | "??=";
 
-export type UpdateOperator = "++" | "--";
+export type SubhutiHighlithUpdateOperator = "++" | "--";
 
-export interface ForOfStatement extends BaseForXStatement {
+export interface SubhutiHighlithForOfStatement extends SubhutiHighlithBaseForXStatement {
     type: "ForOfStatement";
     await: boolean;
 }
 
-export interface Super extends BaseNode {
+export interface SubhutiHighlithSuper extends SubhutiHighlithBaseNode {
     type: "Super";
 }
 
-export interface SpreadElement extends BaseNode {
+export interface SubhutiHighlithSpreadElement extends SubhutiHighlithBaseNode {
     type: "SpreadElement";
-    argument: Expression;
+    argument: SubhutiHighlithExpression;
 }
 
-export interface ArrowFunctionExpression extends BaseExpression, BaseFunction {
+export interface SubhutiHighlithArrowFunctionExpression extends SubhutiHighlithBaseExpression, SubhutiHighlithBaseFunction {
     type: "ArrowFunctionExpression";
     expression: boolean;
-    body: BlockStatement | Expression;
+    body: SubhutiHighlithBlockStatement | SubhutiHighlithExpression;
 }
 
-export interface YieldExpression extends BaseExpression {
+export interface SubhutiHighlithYieldExpression extends SubhutiHighlithBaseExpression {
     type: "YieldExpression";
-    argument?: Expression | null | undefined;
+    argument?: SubhutiHighlithExpression | null | undefined;
     delegate: boolean;
 }
 
-export interface TemplateLiteral extends BaseExpression {
+export interface SubhutiHighlithTemplateLiteral extends SubhutiHighlithBaseExpression {
     type: "TemplateLiteral";
-    quasis: TemplateElement[];
-    expressions: Expression[];
+    quasis: SubhutiHighlithTemplateElement[];
+    expressions: SubhutiHighlithExpression[];
 }
 
-export interface TaggedTemplateExpression extends BaseExpression {
+export interface SubhutiHighlithTaggedTemplateExpression extends SubhutiHighlithBaseExpression {
     type: "TaggedTemplateExpression";
-    tag: Expression;
-    quasi: TemplateLiteral;
+    tag: SubhutiHighlithExpression;
+    quasi: SubhutiHighlithTemplateLiteral;
 }
 
-export interface TemplateElement extends BaseNode {
+export interface SubhutiHighlithTemplateElement extends SubhutiHighlithBaseNode {
     type: "TemplateElement";
     tail: boolean;
     value: {
@@ -556,146 +556,146 @@ export interface TemplateElement extends BaseNode {
     };
 }
 
-export interface AssignmentProperty extends Property {
-    value: Pattern;
+export interface SubhutiHighlithAssignmentProperty extends SubhutiHighlithProperty {
+    value: SubhutiHighlithPattern;
     kind: "init";
     method: boolean; // false
 }
 
-export interface ObjectPattern extends BasePattern {
+export interface SubhutiHighlithObjectPattern extends SubhutiHighlithBasePattern {
     type: "ObjectPattern";
-    properties: Array<AssignmentProperty | RestElement>;
+    properties: Array<SubhutiHighlithAssignmentProperty | SubhutiHighlithRestElement>;
 }
 
-export interface ArrayPattern extends BasePattern {
+export interface SubhutiHighlithArrayPattern extends SubhutiHighlithBasePattern {
     type: "ArrayPattern";
-    elements: Array<Pattern | null>;
+    elements: Array<SubhutiHighlithPattern | null>;
 }
 
-export interface RestElement extends BasePattern {
+export interface SubhutiHighlithRestElement extends SubhutiHighlithBasePattern {
     type: "RestElement";
-    argument: Pattern;
+    argument: SubhutiHighlithPattern;
 }
 
-export interface AssignmentPattern extends BasePattern {
+export interface SubhutiHighlithAssignmentPattern extends SubhutiHighlithBasePattern {
     type: "AssignmentPattern";
-    left: Pattern;
-    right: Expression;
+    left: SubhutiHighlithPattern;
+    right: SubhutiHighlithExpression;
 }
 
-export type Class = ClassDeclaration | ClassExpression;
+export type SubhutiHighlithClass = SubhutiHighlithClassDeclaration | SubhutiHighlithClassExpression;
 
-export interface BaseClass extends BaseNode {
-    superClass?: Expression | null | undefined;
-    body: ClassBody;
+export interface SubhutiHighlithBaseClass extends SubhutiHighlithBaseNode {
+    superClass?: SubhutiHighlithExpression | null | undefined;
+    body: SubhutiHighlithClassBody;
 }
 
-export interface ClassBody extends BaseNode {
+export interface SubhutiHighlithClassBody extends SubhutiHighlithBaseNode {
     type: "ClassBody";
-    body: Array<MethodDefinition | PropertyDefinition | StaticBlock>;
+    body: Array<SubhutiHighlithMethodDefinition | SubhutiHighlithPropertyDefinition | SubhutiHighlithStaticBlock>;
 }
 
-export interface MethodDefinition extends BaseNode {
+export interface SubhutiHighlithMethodDefinition extends SubhutiHighlithBaseNode {
     type: "MethodDefinition";
-    key: Expression | PrivateIdentifier;
-    value: FunctionExpression;
+    key: SubhutiHighlithExpression | SubhutiHighlithPrivateIdentifier;
+    value: SubhutiHighlithFunctionExpression;
     kind: "constructor" | "method" | "get" | "set";
     computed: boolean;
-    static: SubhutiTokenAst;
+    static: SubhutiHighlithSubhutiTokenAst;
 }
 
-export interface MaybeNamedClassDeclaration extends BaseClass, BaseDeclaration {
+export interface SubhutiHighlithMaybeNamedClassDeclaration extends SubhutiHighlithBaseClass, SubhutiHighlithBaseDeclaration {
     type: "ClassDeclaration";
     /** It is null when a class declaration is a part of the `export default class` statement */
-    id: Identifier | null;
+    id: SubhutiHighlithIdentifier | null;
 }
 
-export interface ClassDeclaration extends MaybeNamedClassDeclaration {
-    id: Identifier;
-    class: SubhutiTokenAst
+export interface SubhutiHighlithClassDeclaration extends SubhutiHighlithMaybeNamedClassDeclaration {
+    id: SubhutiHighlithIdentifier;
+    class: SubhutiHighlithSubhutiTokenAst
 }
 
-export interface ClassExpression extends BaseClass, BaseExpression {
+export interface SubhutiHighlithClassExpression extends SubhutiHighlithBaseClass, SubhutiHighlithBaseExpression {
     type: "ClassExpression";
-    id?: Identifier | null | undefined;
+    id?: SubhutiHighlithIdentifier | null | undefined;
 }
 
-export interface MetaProperty extends BaseExpression {
+export interface SubhutiHighlithMetaProperty extends SubhutiHighlithBaseExpression {
     type: "MetaProperty";
-    meta: Identifier;
-    property: Identifier;
+    meta: SubhutiHighlithIdentifier;
+    property: SubhutiHighlithIdentifier;
 }
 
-export type ModuleDeclaration =
-    | ImportDeclaration
-    | ExportNamedDeclaration
-    | ExportDeclaration
-    | ExportAllDeclaration;
+export type SubhutiHighlithModuleDeclaration =
+    | SubhutiHighlithImportDeclaration
+    | SubhutiHighlithExportNamedDeclaration
+    | SubhutiHighlithExportDeclaration
+    | SubhutiHighlithExportAllDeclaration;
 
-export interface BaseModuleDeclaration extends BaseNode {
+export interface SubhutiHighlithBaseModuleDeclaration extends SubhutiHighlithBaseNode {
 }
 
-export type ModuleSpecifier = ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier | ExportSpecifier;
+export type SubhutiHighlithModuleSpecifier = SubhutiHighlithImportSpecifier | SubhutiHighlithImportDefaultSpecifier | SubhutiHighlithImportNamespaceSpecifier | SubhutiHighlithExportSpecifier;
 
-export interface BaseModuleSpecifier extends BaseNode {
-    local: Identifier;
+export interface SubhutiHighlithBaseModuleSpecifier extends SubhutiHighlithBaseNode {
+    local: SubhutiHighlithIdentifier;
 }
 
-export interface ImportDeclaration extends BaseModuleDeclaration {
+export interface SubhutiHighlithImportDeclaration extends SubhutiHighlithBaseModuleDeclaration {
     type: "ImportDeclaration";
-    specifiers: Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier>;
-    source: Literal;
+    specifiers: Array<SubhutiHighlithImportSpecifier | SubhutiHighlithImportDefaultSpecifier | SubhutiHighlithImportNamespaceSpecifier>;
+    source: SubhutiHighlithLiteral;
 }
 
-export interface ImportSpecifier extends BaseModuleSpecifier {
+export interface SubhutiHighlithImportSpecifier extends SubhutiHighlithBaseModuleSpecifier {
     type: "ImportSpecifier";
-    imported: Identifier | Literal;
+    imported: SubhutiHighlithIdentifier | SubhutiHighlithLiteral;
 }
 
-export interface ImportExpression extends BaseExpression {
+export interface SubhutiHighlithImportExpression extends SubhutiHighlithBaseExpression {
     type: "ImportExpression";
-    source: Expression;
+    source: SubhutiHighlithExpression;
 }
 
-export interface ImportDefaultSpecifier extends BaseModuleSpecifier {
+export interface SubhutiHighlithImportDefaultSpecifier extends SubhutiHighlithBaseModuleSpecifier {
     type: "ImportDefaultSpecifier";
 }
 
-export interface ImportNamespaceSpecifier extends BaseModuleSpecifier {
+export interface SubhutiHighlithImportNamespaceSpecifier extends SubhutiHighlithBaseModuleSpecifier {
     type: "ImportNamespaceSpecifier";
 }
 
-export interface ExportNamedDeclaration extends BaseModuleDeclaration {
+export interface SubhutiHighlithExportNamedDeclaration extends SubhutiHighlithBaseModuleDeclaration {
     type: "ExportNamedDeclaration";
-    declaration?: Declaration | null | undefined;
-    specifiers: ExportSpecifier[];
-    source?: Literal | null | undefined;
+    declaration?: SubhutiHighlithDeclaration | null | undefined;
+    specifiers: SubhutiHighlithExportSpecifier[];
+    source?: SubhutiHighlithLiteral | null | undefined;
 }
 
-export interface ExportSpecifier extends Omit<BaseModuleSpecifier, "local"> {
+export interface SubhutiHighlithExportSpecifier extends Omit<SubhutiHighlithBaseModuleSpecifier, "local"> {
     type: "ExportSpecifier";
-    local: Identifier | Literal;
-    exported: Identifier | Literal;
+    local: SubhutiHighlithIdentifier | SubhutiHighlithLiteral;
+    exported: SubhutiHighlithIdentifier | SubhutiHighlithLiteral;
 }
 
-export interface SubhutiTokenAst extends BaseNodeWithoutComments {
+export interface SubhutiHighlithSubhutiTokenAst extends SubhutiHighlithBaseNodeWithoutComments {
 
 }
 
-export interface ExportDeclaration extends BaseModuleDeclaration {
+export interface SubhutiHighlithExportDeclaration extends SubhutiHighlithBaseModuleDeclaration {
     type: "ExportDeclaration";
-    export: SubhutiTokenAst
-    default: SubhutiTokenAst
-    declaration: MaybeNamedFunctionDeclaration | MaybeNamedClassDeclaration | Expression;
+    export: SubhutiHighlithSubhutiTokenAst
+    default: SubhutiHighlithSubhutiTokenAst
+    declaration: SubhutiHighlithMaybeNamedFunctionDeclaration | SubhutiHighlithMaybeNamedClassDeclaration | SubhutiHighlithExpression;
 }
 
-export interface ExportAllDeclaration extends BaseModuleDeclaration {
+export interface SubhutiHighlithExportAllDeclaration extends SubhutiHighlithBaseModuleDeclaration {
     type: "ExportAllDeclaration";
-    exported: Identifier | Literal | null;
-    source: Literal;
+    exported: SubhutiHighlithIdentifier | SubhutiHighlithLiteral | null;
+    source: SubhutiHighlithLiteral;
 }
 
-export interface AwaitExpression extends BaseExpression {
+export interface SubhutiHighlithAwaitExpression extends SubhutiHighlithBaseExpression {
     type: "AwaitExpression";
-    argument: Expression;
+    argument: SubhutiHighlithExpression;
 }

@@ -10,7 +10,8 @@
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "lib": [
-      "ES2015"
+      "ES2015",
+      "dom"
     ],
     "types": [
       "node"

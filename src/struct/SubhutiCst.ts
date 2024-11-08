@@ -7,9 +7,9 @@ export interface SourceLocation {
 }
 
 export interface Position {
-    /** >= SubhutiHighlith1 */
+    /** >= OvsAst1 */
     line: number;
-    /** >= SubhutiHighlith0 */
+    /** >= OvsAst0 */
     column: number;
 }
 

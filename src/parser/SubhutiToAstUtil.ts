@@ -1,36 +1,36 @@
 import type SubhutiCst from "../struct/SubhutiCst.ts";
-import Es6TokenConsumer, {Es6TokenName, es6TokensObj} from "../syntax/es6/Es6Tokens.ts";
-import Es6Parser from "../syntax/es6/Es6Parser.ts";
+import Es6TokenConsumer, {Es6TokenName, es6TokensObj} from "../../../subhuti-ts/src/language/es2015/Es6Tokens.ts";
+import Es6Parser from "../../../subhuti-ts/src/language/es2015/Es6Parser.ts";
 import type {
-    AssignmentExpression,
-    AssignmentOperator,
-    BlockStatement,
-    CallExpression,
-    ClassBody,
-    ClassDeclaration,
-    Comment,
-    ConditionalExpression,
-    Declaration,
-    Directive,
-    ExportDeclaration,
-    Expression,
-    ExpressionMap,
-    ExpressionStatement,
-    FunctionExpression,
-    Identifier,
-    Literal,
-    MemberExpression,
-    MethodDefinition,
-    ModuleDeclaration,
-    Node,
-    NodeMap,
-    Pattern,
-    Program,
-    PropertyDefinition, SourceLocation,
-    Statement,
-    StaticBlock, SubhutiTokenAst,
-    VariableDeclaration,
-    VariableDeclarator
+    SubhutiHighlithAssignmentExpression,
+    SubhutiHighlithAssignmentOperator,
+    SubhutiHighlithBlockStatement,
+    SubhutiHighlithCallExpression,
+    SubhutiHighlithClassBody,
+    SubhutiHighlithClassDeclaration,
+    SubhutiHighlithComment,
+    SubhutiHighlithConditionalExpression,
+    SubhutiHighlithDeclaration,
+    SubhutiHighlithDirective,
+    SubhutiHighlithExportDeclaration,
+    SubhutiHighlithExpression,
+    SubhutiHighlithExpressionMap,
+    SubhutiHighlithExpressionStatement,
+    SubhutiHighlithFunctionExpression,
+    SubhutiHighlithIdentifier,
+    SubhutiHighlithLiteral,
+    SubhutiHighlithMemberExpression,
+    SubhutiHighlithMethodDefinition,
+    SubhutiHighlithModuleDeclaration,
+    SubhutiHighlithNode,
+    SubhutiHighlithNodeMap,
+    SubhutiHighlithPattern,
+    SubhutiHighlithProgram,
+    SubhutiHighlithPropertyDefinition, SubhutiHighlithSourceLocation,
+    SubhutiHighlithStatement,
+    SubhutiHighlithStaticBlock, SubhutiHighlithSubhutiTokenAst,
+    SubhutiHighlithVariableDeclaration,
+    SubhutiHighlithVariableDeclarator
 } from "../struct/SubhutiEs6Ast.ts";
 import {SubhutiRule} from "./SubhutiParser.ts";
 
@@ -52,9 +52,9 @@ export function throwNewError(errorMsg: string = 'syntax error') {
 }
 
 export default class SubhutiToAstHandler {
-    createIdentifierAst(cst: SubhutiCst): Identifier {
+    createIdentifierAst(cst: SubhutiCst): SubhutiHighlithIdentifier {
         const astName = checkCstName(cst, Es6TokenConsumer.prototype.Identifier.name);
-        const ast: Identifier = {
+        const ast: SubhutiHighlithIdentifier = {
             type: astName as any,
             name: cst.value,
             loc: cst.loc
@@ -62,7 +62,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createProgramAst(cst: SubhutiCst): Program {
+    createProgramAst(cst: SubhutiCst): SubhutiHighlithProgram {
         const astName = checkCstName(cst, Es6Parser.prototype.Program.name);
         const first = cst.children[0]
         const map = {
@@ -73,13 +73,13 @@ export default class SubhutiToAstHandler {
         if (!sourceType) {
             throwNewError()
         }
-        let body: Array<Directive | Statement | ModuleDeclaration>
+        let body: Array<SubhutiHighlithDirective | SubhutiHighlithStatement | SubhutiHighlithModuleDeclaration>
         if (first.name === Es6Parser.prototype.ModuleItemList.name) {
             body = this.createModuleItemListAst(first)
         } else {
             body = this.createStatementListAst(first)
         }
-        const ast: Program = {
+        const ast: SubhutiHighlithProgram = {
             type: astName as any,
             sourceType: sourceType as any,
             body: body,
@@ -88,7 +88,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createModuleItemListAst(cst: SubhutiCst): ModuleDeclaration[] {
+    createModuleItemListAst(cst: SubhutiCst): SubhutiHighlithModuleDeclaration[] {
         //直接返回声明
         //                 this.Statement()
         //                 this.Declaration()
@@ -104,19 +104,19 @@ export default class SubhutiToAstHandler {
         return asts
     }
 
-    createStatementListAst(cst: SubhutiCst): Array<Statement> {
+    createStatementListAst(cst: SubhutiCst): Array<SubhutiHighlithStatement> {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
         return cst.children.map(item => this.createStatementListItemAst(item)).flat()
     }
 
-    createStatementListItemAst(cst: SubhutiCst): Array<Statement> {
+    createStatementListItemAst(cst: SubhutiCst): Array<SubhutiHighlithStatement> {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementListItem.name);
         return cst.children.map(item => this.createStatementAst(item)).flat()
     }
 
-    createStatementAst(cst: SubhutiCst): Array<Statement> {
+    createStatementAst(cst: SubhutiCst): Array<SubhutiHighlithStatement> {
         const astName = checkCstName(cst, Es6Parser.prototype.Statement.name);
-        const statements: Statement[] = cst.children.map(item => this.createStatementDeclarationAst(item))
+        const statements: SubhutiHighlithStatement[] = cst.children.map(item => this.createStatementDeclarationAst(item))
         return statements
     }
 
@@ -128,12 +128,12 @@ export default class SubhutiToAstHandler {
         }
     }
 
-    createVariableDeclarationAst(cst: SubhutiCst): VariableDeclaration {
+    createVariableDeclarationAst(cst: SubhutiCst): SubhutiHighlithVariableDeclaration {
         //直接返回声明
         //                 this.Statement()
         //                 this.Declaration()
         const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclaration.name);
-        const ast: VariableDeclaration = {
+        const ast: SubhutiHighlithVariableDeclaration = {
             type: astName as any,
             declarations: cst.children[1].children.map(item => this.createVariableDeclaratorAst(item)) as any[],
             kind: this.createSubhutiTokenAst(cst.children[0].children[0]),
@@ -143,7 +143,7 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createExportDeclarationAst(cst: SubhutiCst): ExportDeclaration {
+    createExportDeclarationAst(cst: SubhutiCst): SubhutiHighlithExportDeclaration {
         let astName = checkCstName(cst, Es6Parser.prototype.ExportDeclaration.name);
         const {children} = cst;
         const [exportToken, secondChild, thirdChild] = children;
@@ -160,16 +160,16 @@ export default class SubhutiToAstHandler {
         };
     }
 
-    createSubhutiTokenAst(cst: SubhutiCst): SubhutiTokenAst {
+    createSubhutiTokenAst(cst: SubhutiCst): SubhutiHighlithSubhutiTokenAst {
         return {
             type: cst.value,
             loc: cst.loc
         }
     }
 
-    createClassDeclarationAst(cst: SubhutiCst): ClassDeclaration {
+    createClassDeclarationAst(cst: SubhutiCst): SubhutiHighlithClassDeclaration {
         const astName = checkCstName(cst, Es6Parser.prototype.ClassDeclaration.name);
-        const ast: ClassDeclaration = {
+        const ast: SubhutiHighlithClassDeclaration = {
             type: astName as any,
             class: this.createSubhutiTokenAst(cst.children[0]),
             id: this.createIdentifierAst(cst.children[1].children[0]),
@@ -179,7 +179,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createClassBodyItemAst(staticCst: SubhutiCst, cst: SubhutiCst): MethodDefinition | PropertyDefinition {
+    createClassBodyItemAst(staticCst: SubhutiCst, cst: SubhutiCst): SubhutiHighlithMethodDefinition | SubhutiHighlithPropertyDefinition {
         if (cst.name === Es6Parser.prototype.MethodDefinition.name) {
             return this.createMethodDefinitionAst(staticCst, cst)
         } else if (cst.name === Es6Parser.prototype.PropertyDefinition.name) {
@@ -187,10 +187,10 @@ export default class SubhutiToAstHandler {
         }
     }
 
-    createClassBodyAst(cst: SubhutiCst): ClassBody {
+    createClassBodyAst(cst: SubhutiCst): SubhutiHighlithClassBody {
         const astName = checkCstName(cst, Es6Parser.prototype.ClassBody.name);
         //ClassBody.ClassElementList
-        const body: Array<MethodDefinition | PropertyDefinition> = cst.children[0].children.map(item => {
+        const body: Array<SubhutiHighlithMethodDefinition | SubhutiHighlithPropertyDefinition> = cst.children[0].children.map(item => {
                 const astName = checkCstName(item, Es6Parser.prototype.ClassElement.name);
                 if (item.children.length > 1) {
                     return this.createClassBodyItemAst(item.children[0], item.children[1])
@@ -199,7 +199,7 @@ export default class SubhutiToAstHandler {
                 }
             }
         )
-        const ast: ClassBody = {
+        const ast: SubhutiHighlithClassBody = {
             type: astName as any,
             body: body,
             loc: cst.loc
@@ -207,9 +207,9 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createMethodDefinitionAst(staticCst: SubhutiCst, cst: SubhutiCst): MethodDefinition {
+    createMethodDefinitionAst(staticCst: SubhutiCst, cst: SubhutiCst): SubhutiHighlithMethodDefinition {
         const astName = checkCstName(cst, Es6Parser.prototype.MethodDefinition.name);
-        const ast: MethodDefinition = {
+        const ast: SubhutiHighlithMethodDefinition = {
             type: astName as any,
             kind: 'method',
             static: this.createSubhutiTokenAst(staticCst),
@@ -221,10 +221,10 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createFunctionExpressionAst(cstParams: SubhutiCst, cst: SubhutiCst): FunctionExpression {
+    createFunctionExpressionAst(cstParams: SubhutiCst, cst: SubhutiCst): SubhutiHighlithFunctionExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.FunctionBody.name);
         const params = this.createFormalParametersAst(cstParams)
-        const ast: FunctionExpression = {
+        const ast: SubhutiHighlithFunctionExpression = {
             type: Es6Parser.prototype.FunctionExpression.name as any,
             id: null,
             params: params,
@@ -237,7 +237,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createFormalParametersAst(cst: SubhutiCst): Pattern[] {
+    createFormalParametersAst(cst: SubhutiCst): SubhutiHighlithPattern[] {
         const astName = checkCstName(cst, Es6Parser.prototype.FormalParameters.name);
         // FormalParameterList.FormalsList
         const params = cst.children[0].children[0].children.filter(item => item.name === Es6Parser.prototype.FormalParameter.name).map(item => {
@@ -247,9 +247,9 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createBlockStatementAst(cst: SubhutiCst): BlockStatement {
+    createBlockStatementAst(cst: SubhutiCst): SubhutiHighlithBlockStatement {
         const astName = checkCstName(cst, Es6Parser.prototype.StatementList.name);
-        const ast: BlockStatement = {
+        const ast: SubhutiHighlithBlockStatement = {
             type: Es6Parser.prototype.BlockStatement.name as any,
             body: cst.children[0].children.map(item =>
                 this.createExpressionStatementAst(item.children[0])
@@ -259,9 +259,9 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createExpressionStatementAst(cst: SubhutiCst): ExpressionStatement {
+    createExpressionStatementAst(cst: SubhutiCst): SubhutiHighlithExpressionStatement {
         const astName = checkCstName(cst, Es6Parser.prototype.ExpressionStatement.name);
-        const ast: ExpressionStatement = {
+        const ast: SubhutiHighlithExpressionStatement = {
             type: astName as any,
             expression: this.createAssignmentExpressionAst(cst.children[0].children[0]),
             loc: cst.loc
@@ -269,7 +269,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createCallExpressionAst(cst: SubhutiCst): Expression {
+    createCallExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.CallExpression.name);
         if (cst.children.length > 1) {
             const argumentsCst = cst.children[1]
@@ -277,7 +277,7 @@ export default class SubhutiToAstHandler {
 
             const argumentsAst: any[] = ArgumentListCst.children.map(item => this.createAssignmentExpressionAst(item)) as any[]
 
-            const ast: CallExpression = {
+            const ast: SubhutiHighlithCallExpression = {
                 type: astName as any,
                 callee: this.createMemberExpressionAst(cst.children[0]),
                 arguments: argumentsAst,
@@ -290,10 +290,10 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createMemberExpressionAst(cst: SubhutiCst): Expression {
+    createMemberExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.MemberExpression.name);
         if (cst.children.length > 1) {
-            const ast: MemberExpression = {
+            const ast: SubhutiHighlithMemberExpression = {
                 type: astName as any,
                 object: this.createIdentifierAst(cst.children[0].children[0].children[0]),
                 property: this.createIdentifierAst(cst.children[2]),
@@ -306,9 +306,9 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createVariableDeclaratorAst(cst: SubhutiCst): VariableDeclarator {
+    createVariableDeclaratorAst(cst: SubhutiCst): SubhutiHighlithVariableDeclarator {
         const astName = checkCstName(cst, Es6Parser.prototype.VariableDeclarator.name);
-        const ast: VariableDeclarator = {
+        const ast: SubhutiHighlithVariableDeclarator = {
             type: astName as any,
             id: this.createIdentifierAst(cst.children[0].children[0]) as any,
             init: this.createAssignmentExpressionAst(cst.children[1].children[1]) as any,
@@ -317,7 +317,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createExpressionAst(cst: SubhutiCst): Expression {
+    createExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = cst.name
         let left
         if (astName === Es6Parser.prototype.AssignmentExpression.name) {
@@ -362,7 +362,7 @@ export default class SubhutiToAstHandler {
         return left
     }
 
-    createLogicalORExpressionAst(cst: SubhutiCst): Expression {
+    createLogicalORExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.LogicalORExpression.name);
         if (cst.children.length > 1) {
 
@@ -370,7 +370,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createLogicalANDExpressionAst(cst: SubhutiCst): Expression {
+    createLogicalANDExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.LogicalANDExpression.name);
         if (cst.children.length > 1) {
 
@@ -378,7 +378,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createBitwiseORExpressionAst(cst: SubhutiCst): Expression {
+    createBitwiseORExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.BitwiseORExpression.name);
         if (cst.children.length > 1) {
 
@@ -386,7 +386,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createBitwiseXORExpressionAst(cst: SubhutiCst): Expression {
+    createBitwiseXORExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.BitwiseXORExpression.name);
         if (cst.children.length > 1) {
 
@@ -394,7 +394,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createBitwiseANDExpressionAst(cst: SubhutiCst): Expression {
+    createBitwiseANDExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.BitwiseANDExpression.name);
         if (cst.children.length > 1) {
 
@@ -402,7 +402,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createEqualityExpressionAst(cst: SubhutiCst): Expression {
+    createEqualityExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.EqualityExpression.name);
         if (cst.children.length > 1) {
 
@@ -410,7 +410,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createRelationalExpressionAst(cst: SubhutiCst): Expression {
+    createRelationalExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.RelationalExpression.name);
         if (cst.children.length > 1) {
 
@@ -418,7 +418,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createShiftExpressionAst(cst: SubhutiCst): Expression {
+    createShiftExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.ShiftExpression.name);
         if (cst.children.length > 1) {
 
@@ -426,7 +426,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createAdditiveExpressionAst(cst: SubhutiCst): Expression {
+    createAdditiveExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.AdditiveExpression.name);
         if (cst.children.length > 1) {
 
@@ -434,7 +434,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createMultiplicativeExpressionAst(cst: SubhutiCst): Expression {
+    createMultiplicativeExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.MultiplicativeExpression.name);
         if (cst.children.length > 1) {
 
@@ -442,7 +442,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createUnaryExpressionAst(cst: SubhutiCst): Expression {
+    createUnaryExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.UnaryExpression.name);
         if (cst.children.length > 1) {
 
@@ -450,7 +450,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createPostfixExpressionAst(cst: SubhutiCst): Expression {
+    createPostfixExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.PostfixExpression.name);
         if (cst.children.length > 1) {
 
@@ -458,7 +458,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createLeftHandSideExpressionAst(cst: SubhutiCst): Expression {
+    createLeftHandSideExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.LeftHandSideExpression.name);
         if (cst.children.length > 1) {
 
@@ -466,7 +466,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createNewExpressionAst(cst: SubhutiCst): Expression {
+    createNewExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.NewExpression.name);
         if (cst.children.length > 1) {
 
@@ -474,7 +474,7 @@ export default class SubhutiToAstHandler {
         return this.createExpressionAst(cst.children[0])
     }
 
-    createPrimaryExpressionAst(cst: SubhutiCst): Expression {
+    createPrimaryExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.PrimaryExpression.name);
         const first = cst.children[0]
         if (first.name === Es6Parser.prototype.IdentifierReference.name) {
@@ -484,7 +484,7 @@ export default class SubhutiToAstHandler {
         }
     }
 
-    createLiteralAst(cst: SubhutiCst): Literal {
+    createLiteralAst(cst: SubhutiCst): SubhutiHighlithLiteral {
         const astName = checkCstName(cst, Es6Parser.prototype.Literal.name);
         const firstChild = cst.children[0]
         let value
@@ -497,7 +497,7 @@ export default class SubhutiToAstHandler {
         } else {
             value = firstChild.value
         }
-        const ast: Literal = {
+        const ast: SubhutiHighlithLiteral = {
             type: astName as any,
             value: value,
             loc: firstChild.loc
@@ -506,14 +506,14 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createAssignmentExpressionAst(cst: SubhutiCst): Expression {
+    createAssignmentExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.AssignmentExpression.name);
         let left
         let right
         if (cst.children.length === 1) {
             return this.createExpressionAst(cst.children[0])
         }
-        const ast: AssignmentExpression = {
+        const ast: SubhutiHighlithAssignmentExpression = {
             type: astName as any,
             // operator: AssignmentOperator;
             left: left,
@@ -523,7 +523,7 @@ export default class SubhutiToAstHandler {
         return ast
     }
 
-    createConditionalExpressionAst(cst: SubhutiCst): Expression {
+    createConditionalExpressionAst(cst: SubhutiCst): SubhutiHighlithExpression {
         const astName = checkCstName(cst, Es6Parser.prototype.ConditionalExpression.name);
         const firstChild = cst.children[0]
         let test = this.createExpressionAst(firstChild)
@@ -535,7 +535,7 @@ export default class SubhutiToAstHandler {
             alternate = this.createAssignmentExpressionAst(cst.children[1])
             consequent = this.createAssignmentExpressionAst(cst.children[2])
         }
-        const ast: ConditionalExpression = {
+        const ast: SubhutiHighlithConditionalExpression = {
             type: astName as any,
             test: test as any,
             alternate: alternate as any,
@@ -546,9 +546,9 @@ export default class SubhutiToAstHandler {
     }
 
 
-    createAssignmentOperatorAst(cst: SubhutiCst): AssignmentOperator {
+    createAssignmentOperatorAst(cst: SubhutiCst): SubhutiHighlithAssignmentOperator {
         const astName = checkCstName(cst, Es6Parser.prototype.AssignmentOperator.name);
-        const ast: AssignmentExpression = cst.children[0].value as any
+        const ast: SubhutiHighlithAssignmentExpression = cst.children[0].value as any
         return ast as any
     }
 }

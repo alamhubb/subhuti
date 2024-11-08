@@ -1,5 +1,17 @@
 import SubhutiMatchToken from "./SubhutiMatchToken.ts";
-import type {Position, SourceLocation} from "estree";
+
+export interface SourceLocation {
+    source?: string | null | undefined;
+    start: Position;
+    end: Position;
+}
+
+export interface Position {
+    /** >= SubhutiHighlith1 */
+    line: number;
+    /** >= SubhutiHighlith0 */
+    column: number;
+}
 
 export default class SubhutiCst {
     // pathName: string;

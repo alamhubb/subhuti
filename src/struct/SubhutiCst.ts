@@ -1,16 +1,16 @@
 import SubhutiMatchToken from "./SubhutiMatchToken.ts";
 
-export interface SourceLocation {
-    source?: string | null | undefined;
+interface SourceLocation {
     start: Position;
     end: Position;
+    filename: string;
+    identifierName: string | undefined | null;
 }
 
-export interface Position {
-    /** >= OvsAst1 */
+interface Position {
     line: number;
-    /** >= OvsAst0 */
     column: number;
+    index: number;
 }
 
 export default class SubhutiCst {

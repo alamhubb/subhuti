@@ -266,6 +266,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this.ruleExecErrorStack.pop()
         if (this.continueMatch) {
             if (cst.children[0]) {
+                if(!cst.children[0].loc){
+                    console.log(cst.children[0])
+                    return cst
+                }
                 cst.loc = {
                     start: cst.children[0].loc.start,
                     end: cst.children[cst.children.length - 1].loc.end,

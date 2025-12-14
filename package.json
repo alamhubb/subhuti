@@ -2,8 +2,7 @@
   "name": "subhuti",
   "version": "0.2.2",
   "type": "module",
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.mts",
+  "main": "src/index.ts",
   "license": "MIT",
   "scripts": {
     "test": "tsx test/HelloWorldGrammarParser.ts",

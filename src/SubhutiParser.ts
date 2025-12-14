@@ -77,44 +77,42 @@ export interface ParseRecordNode {
 }
 
 // ============================================
-// 装饰器系统
+// 装饰器系统（兼容旧版 experimentalDecorators 和 Stage 3）
 // ============================================
 
-export function Subhuti<E extends SubhutiTokenLookahead, T extends new (...args: any[]) => SubhutiParser<E>>(
+export function Subhuti<T extends new (...args: any[]) => SubhutiParser>(
     target: T,
-    context: ClassDecoratorContext
-) {
-    // 不使用 context.metadata，因为 tsdown/rolldown 编译后不支持
+    context?: ClassDecoratorContext
+): T {
     return target
 }
 
-export function SubhutiRule(targetFun: any, context: ClassMethodDecoratorContext) {
-    const ruleName = targetFun.name
-    // 在运行时通过 this.constructor.name 获取类名
-    const wrappedFunction = function (...args: any[]): SubhutiCst | undefined {
-        const className = this.constructor.name
-        return this.executeRuleWrapper(targetFun, ruleName, className, ...args)
+function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
+    const wrappedFunction = function (this: SubhutiParser, ...args: any[]): SubhutiCst | undefined {
+        return this.executeRuleWrapper(originalMethod, ruleName, this.constructor.name, ...args)
     }
-
     Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
-
-    // ✅ 保存原始函数引用（供 SubhutiRuleCollector 使用）
     Object.defineProperty(wrappedFunction, '__originalFunction__', {
-        value: targetFun,
-        writable: false,
-        enumerable: false,
-        configurable: false
+        value: originalMethod, writable: false, enumerable: false, configurable: false
     })
-
-    // ✅ 添加元数据标记，标识这是一个规则方法
     Object.defineProperty(wrappedFunction, '__isSubhutiRule__', {
-        value: true,
-        writable: false,
-        enumerable: false,
-        configurable: false
+        value: true, writable: false, enumerable: false, configurable: false
     })
-
     return wrappedFunction
+}
+
+export function SubhutiRule(
+    targetOrMethod: any,
+    propertyKeyOrContext: string | ClassMethodDecoratorContext,
+    descriptor?: PropertyDescriptor
+): any {
+    const isLegacy = typeof propertyKeyOrContext === 'string'
+    if (isLegacy) {
+        descriptor!.value = wrapRuleMethod(descriptor!.value, propertyKeyOrContext as string)
+        return descriptor
+    } else {
+        return wrapRuleMethod(targetOrMethod, targetOrMethod.name)
+    }
 }
 
 export type SubhutiTokenConsumerConstructor<T extends SubhutiTokenConsumer> =
@@ -631,7 +629,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
      * 规则执行入口（由 @SubhutiRule 装饰器调用）
      * 职责：前置检查 → 循环检测 → Packrat 缓存 → 核心执行 → 后置处理
      */
-    private executeRuleWrapper(targetFun: Function, ruleName: string, className: string, ...args: any[]): SubhutiCst | undefined {
+    executeRuleWrapper(targetFun: Function, ruleName: string, className: string, ...args: any[]): SubhutiCst | undefined {
         if (this.checkRuleIsThisClass(ruleName, className)) {
             return
         }

@@ -23,7 +23,7 @@ export {
     createValueRegToken,
     createEmptyValueRegToken
 } from './struct/SubhutiCreateToken'
-export type { SubhutiTokenLookahead as SubhutiTokenLookaheadConfig, SubhutiTokenContextConstraint } from './struct/SubhutiCreateToken'
+export type { SubhutiTokenContextConstraint } from './struct/SubhutiCreateToken'
 
 // Error handling
 export { SubhutiErrorHandler, ParsingError } from './SubhutiError'

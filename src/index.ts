@@ -14,7 +14,15 @@ export { default as SubhutiTokenLookahead } from './SubhutiTokenLookahead'
 export { default as SubhutiCst } from './struct/SubhutiCst'
 export type { SubhutiSourceLocation, SubhutiPosition } from './struct/SubhutiCst'
 export { default as SubhutiMatchToken, createMatchToken } from './struct/SubhutiMatchToken'
-export { SubhutiCreateToken, emptyValue } from './struct/SubhutiCreateToken'
+export { 
+    SubhutiCreateToken, 
+    emptyValue,
+    createToken,
+    createKeywordToken,
+    createRegToken,
+    createValueRegToken,
+    createEmptyValueRegToken
+} from './struct/SubhutiCreateToken'
 export type { SubhutiTokenLookahead as SubhutiTokenLookaheadConfig, SubhutiTokenContextConstraint } from './struct/SubhutiCreateToken'
 
 // Error handling

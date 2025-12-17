@@ -1,8 +1,9 @@
 {
   "name": "subhuti",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "license": "MIT",
   "scripts": {
     "test": "tsx test/HelloWorldGrammarParser.ts",

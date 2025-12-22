@@ -31,7 +31,7 @@ import {SubhutiGrammarValidator} from "./validation/SubhutiGrammarValidator.ts";
 // 类型定义
 // ============================================
 
-export type RuleFunction = () => SubhutiCst | undefined
+export type RuleFunction = () => void
 
 export interface SubhutiParserOr {
     alt: RuleFunction

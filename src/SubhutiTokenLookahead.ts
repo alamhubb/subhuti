@@ -91,7 +91,7 @@ export default class SubhutiTokenLookahead {
      * @param count 要获取的 token 数量
      * @returns token 数组（长度可能小于 count，如果遇到 EOF）
      */
-    private peekSequence(count: number): SubhutiMatchToken[] {
+    protected peekSequence(count: number): SubhutiMatchToken[] {
         const result: SubhutiMatchToken[] = []
         for (let i = 1; i <= count; i++) {
             const token = this.peek(i)
@@ -105,7 +105,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead = token]
      * 规范：正向前瞻，检查下一个 token 是否匹配
      */
-    private lookahead(tokenName: string, offset: number = 1): boolean {
+    protected lookahead(tokenName: string, offset: number = 1): boolean {
         return this.peek(offset)?.tokenName === tokenName
     }
 
@@ -113,7 +113,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead ≠ token]
      * 规范：否定前瞻，检查下一个 token 是否不匹配
      */
-    private lookaheadNot(tokenName: string, offset: number = 1): boolean {
+    protected lookaheadNot(tokenName: string, offset: number = 1): boolean {
         const token = this.peek(offset)
         // EOF 时返回 true（认为"不是任何具体 token"）
         return token ? token.tokenName !== tokenName : true
@@ -123,7 +123,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead ∈ {t1, t2, ...}]
      * 规范：正向集合前瞻，检查下一个 token 是否在集合中
      */
-    private lookaheadIn(tokenNames: string[], offset: number = 1): boolean {
+    protected lookaheadIn(tokenNames: string[], offset: number = 1): boolean {
         const token = this.peek(offset)
         return token ? tokenNames.includes(token.tokenName) : false
     }
@@ -132,7 +132,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead ∉ {t1, t2, ...}]
      * 规范：否定集合前瞻，检查下一个 token 是否不在集合中
      */
-    private lookaheadNotIn(tokenNames: string[], offset: number = 1): boolean {
+    protected lookaheadNotIn(tokenNames: string[], offset: number = 1): boolean {
         const token = this.peek(offset)
         // EOF 时返回 true（认为"不在任何集合中"）
         return token ? !tokenNames.includes(token.tokenName) : true
@@ -142,7 +142,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead = t1 t2 ...]
      * 规范：序列前瞻，检查连续的 token 序列是否匹配
      */
-    private lookaheadSequence(tokenNames: string[]): boolean {
+    protected lookaheadSequence(tokenNames: string[]): boolean {
         const peeked = this.peekSequence(tokenNames.length)
         if (peeked.length !== tokenNames.length) {
             return false
@@ -154,7 +154,7 @@ export default class SubhutiTokenLookahead {
      * [lookahead ≠ t1 t2 ...]
      * 规范：否定序列前瞻，检查连续的 token 序列是否不匹配
      */
-    private lookaheadNotSequence(tokenNames: string[]): boolean {
+    protected lookaheadNotSequence(tokenNames: string[]): boolean {
         return !this.lookaheadSequence(tokenNames)
     }
 
@@ -194,7 +194,7 @@ export default class SubhutiTokenLookahead {
      * [no LineTerminator here]
      * 检查当前 token 前是否有换行符
      */
-    private lookaheadHasLineBreak(): boolean {
+    protected lookaheadHasLineBreak(): boolean {
         return this.curToken?.hasLineBreakBefore ?? false
     }
 

@@ -32,7 +32,7 @@
 
 ```bash
 cd subhuti/tests
-npx bun run-all-tests.ts
+npx tsx run-all-tests.ts
 ```
 
 **特性：** 自动扫描 `cases/` 目录下所有测试文件，按字母顺序运行
@@ -41,7 +41,7 @@ npx bun run-all-tests.ts
 
 ```bash
 cd subhuti/tests/cases
-npx bun subhutiparsertest-token-001.ts
+npx tsx subhutiparsertest-token-001.ts
 ```
 
 ### 使用 Debug 功能
@@ -339,13 +339,13 @@ Or([
 
 ```bash
 # 1. 验证基础功能
-npx bun subhutiparsertest-token-001.ts
+npx tsx subhutiparsertest-token-001.ts
 
 # 2. 验证Or规则
-npx bun subhutiparsertest-or-002.ts
+npx tsx subhutiparsertest-or-002.ts
 
 # 3. ⭐ 关键测试：Or规则顺序
-npx bun subhutiparsertest-or-order-003.ts
+npx tsx subhutiparsertest-or-order-003.ts
 
 # 如果测试3失败，说明问题在这里！
 ```
@@ -497,7 +497,7 @@ if (cst && cst.hasChild('Expression')) {
 1. 创建一个最小复现测试用例
 2. 命名为 `subhutiparsertest-xxx-0XX.ts`
 3. 放到 `tests/cases/` 目录
-4. 运行 `npx bun run-all-tests.ts` 验证
+4. 运行 `npx tsx run-all-tests.ts` 验证
 
 ## License
 

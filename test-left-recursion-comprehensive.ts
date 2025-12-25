@@ -2,7 +2,7 @@
  * 左递归检测 - 综合测试
  * 
  * 运行方式：
- *   npx bun subhuti/test-left-recursion-comprehensive.ts
+ *   npx tsx subhuti/test-left-recursion-comprehensive.ts
  * 
  * 测试范围：
  * 1. 层级测试（1-4层）

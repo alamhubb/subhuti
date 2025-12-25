@@ -14,7 +14,7 @@ const casesDir = join(__dirname, 'cases')
 
 async function runTest(testFile: string): Promise<boolean> {
     return new Promise((resolve) => {
-        const child = spawn('npx', ['bun', join(casesDir, testFile)], {
+        const child = spawn('npx', ['tsx', join(casesDir, testFile)], {
             stdio: 'inherit',
             shell: true
         })

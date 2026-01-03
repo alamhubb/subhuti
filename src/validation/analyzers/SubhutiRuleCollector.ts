@@ -27,8 +27,8 @@
  * @version 3.0.0 - 使用分析模式，不再依赖异常处理
  */
 
-import type SubhutiParser from "../SubhutiParser"
-import type {ConsumeNode, RuleNode, SequenceNode} from "./SubhutiValidationError"
+import type SubhutiParser from "../../SubhutiParser"
+import type { ConsumeNode, RuleNode, SequenceNode } from "../types/SubhutiValidationError"
 
 /**
  * 规则收集器
@@ -340,7 +340,7 @@ export class SubhutiRuleCollector {
         for (let i = 0; i < alternatives.length; i++) {
             const alt = alternatives[i]
             // 进入新的序列
-            const seqNode: SequenceNode = {type: 'sequence', nodes: []}
+            const seqNode: SequenceNode = { type: 'sequence', nodes: [] }
             this.currentRuleStack.push(seqNode)
 
             try {
@@ -366,7 +366,7 @@ export class SubhutiRuleCollector {
 
         // 记录 Or 节点（即使某些分支失败，只要有至少一个分支成功）
         if (altNodes.length > 0) {
-            this.recordNode({type: 'or', alternatives: altNodes})
+            this.recordNode({ type: 'or', alternatives: altNodes })
         }
     }
 
@@ -374,7 +374,7 @@ export class SubhutiRuleCollector {
      * 处理 Many 规则
      */
     private handleMany(fn: () => any, target: any): void {
-        const seqNode: SequenceNode = {type: 'sequence', nodes: []}
+        const seqNode: SequenceNode = { type: 'sequence', nodes: [] }
         this.currentRuleStack.push(seqNode)
 
         try {
@@ -383,13 +383,13 @@ export class SubhutiRuleCollector {
 
             const innerNode = this.currentRuleStack.pop()
             if (innerNode) {
-                this.recordNode({type: 'many', node: innerNode})
+                this.recordNode({ type: 'many', node: innerNode })
             }
         } catch (error: any) {
             // 执行失败，但仍然尝试保存已收集的部分
             const innerNode = this.currentRuleStack.pop()
             if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({type: 'many', node: innerNode})
+                this.recordNode({ type: 'many', node: innerNode })
             }
         }
     }
@@ -398,7 +398,7 @@ export class SubhutiRuleCollector {
      * 处理 Option 规则
      */
     private handleOption(fn: () => any, target: any): void {
-        const seqNode: SequenceNode = {type: 'sequence', nodes: []}
+        const seqNode: SequenceNode = { type: 'sequence', nodes: [] }
         this.currentRuleStack.push(seqNode)
 
         try {
@@ -406,13 +406,13 @@ export class SubhutiRuleCollector {
 
             const innerNode = this.currentRuleStack.pop()
             if (innerNode) {
-                this.recordNode({type: 'option', node: innerNode})
+                this.recordNode({ type: 'option', node: innerNode })
             }
         } catch (error: any) {
             // 执行失败，但仍然尝试保存已收集的部分
             const innerNode = this.currentRuleStack.pop()
             if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({type: 'option', node: innerNode})
+                this.recordNode({ type: 'option', node: innerNode })
             }
         }
     }
@@ -421,7 +421,7 @@ export class SubhutiRuleCollector {
      * 处理 AtLeastOne 规则
      */
     private handleAtLeastOne(fn: () => any, target: any): void {
-        const seqNode: SequenceNode = {type: 'sequence', nodes: []}
+        const seqNode: SequenceNode = { type: 'sequence', nodes: [] }
         this.currentRuleStack.push(seqNode)
 
         try {
@@ -429,13 +429,13 @@ export class SubhutiRuleCollector {
 
             const innerNode = this.currentRuleStack.pop()
             if (innerNode) {
-                this.recordNode({type: 'atLeastOne', node: innerNode})
+                this.recordNode({ type: 'atLeastOne', node: innerNode })
             }
         } catch (error: any) {
             // 执行失败，但仍然尝试保存已收集的部分
             const innerNode = this.currentRuleStack.pop()
             if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({type: 'atLeastOne', node: innerNode})
+                this.recordNode({ type: 'atLeastOne', node: innerNode })
             }
         }
     }
@@ -444,7 +444,7 @@ export class SubhutiRuleCollector {
      * 处理 consume
      */
     private handleConsume(tokenName: string): void {
-        const tokenNode: ConsumeNode = {type: 'consume', tokenName}
+        const tokenNode: ConsumeNode = { type: 'consume', tokenName }
         this.tokenAstCache.set(tokenName, tokenNode)
         this.recordNode(tokenNode)
     }
@@ -453,7 +453,7 @@ export class SubhutiRuleCollector {
      * 处理子规则调用
      */
     private handleSubrule(ruleName: string): any {
-        this.recordNode({type: 'subrule', ruleName})
+        this.recordNode({ type: 'subrule', ruleName })
     }
 
     /**

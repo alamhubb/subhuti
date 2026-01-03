@@ -40,11 +40,3 @@ export { BFSPathExpander } from './core/BFSPathExpander'
 export { PathUtils } from './utils/PathUtils'
 export { PerformanceAnalyzer } from './utils/PerformanceAnalyzer'
 
-// 调试器
-export { SubhutiValidationDebugger } from './debug/SubhutiValidationDebugger'
-export type {
-    DebugEvent,
-    RuleDebugInfo,
-    ConflictDebugInfo
-} from './debug/SubhutiValidationDebugger'
-

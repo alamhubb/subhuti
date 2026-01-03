@@ -44,7 +44,7 @@ export default class SubhutiLexer {
         pattern: new RegExp('^(?:' + token.pattern.source + ')', token.pattern.flags)
       }
     })
-    
+
     // 排序：有 mode 的 token 优先，这样传入特定 mode 时会先匹配带 mode 的 token
     this._allTokens = processedTokens.sort((a, b) => {
       if (a.mode && !b.mode) return -1  // a 有 mode，优先
@@ -119,7 +119,7 @@ export default class SubhutiLexer {
         continue
       }
 
-      const match = remaining.match(token.pattern)
+      const match = remaining.match(token.pattern!)
       if (!match) continue
 
       // 上下文约束检查
@@ -352,7 +352,7 @@ export default class SubhutiLexer {
         continue
       }
 
-      const match = remaining.match(token.pattern)
+      const match = remaining.match(token.pattern!)
       if (!match) continue
 
       // 上下文约束检查

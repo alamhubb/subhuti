@@ -13,7 +13,7 @@ export default class JsonUtil {
         return null;
     }
 
-    static cloneDeep<T>(object: T): T {
+    static cloneDeep<T>(object: T): T | null {
         if (object) {
             return JSON.parse(JSON.stringify(object));
         }

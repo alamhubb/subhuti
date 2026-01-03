@@ -115,13 +115,13 @@ export function SubhutiRule(
     }
 }
 
-export type SubhutiTokenConsumerConstructor<T extends SubhutiTokenConsumer> =
+export type SubhutiTokenConsumerConstructor<T extends SubhutiTokenConsumer<any>> =
     new (parser: SubhutiParser) => T
 
 /**
  * Parser 构造选项
  */
-export interface SubhutiParserOptions<T extends SubhutiTokenConsumer = SubhutiTokenConsumer> {
+export interface SubhutiParserOptions<T extends SubhutiTokenConsumer<any> = SubhutiTokenConsumer<any>> {
     /** TokenConsumer 类（可选） */
     tokenConsumer?: SubhutiTokenConsumerConstructor<T>
     /** Token 定义（用于按需词法分析模式） */
@@ -132,7 +132,7 @@ export interface SubhutiParserOptions<T extends SubhutiTokenConsumer = SubhutiTo
 // SubhutiParser 核心类
 // ============================================
 
-export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiTokenConsumer>
+export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = SubhutiTokenConsumer<any>>
     extends SubhutiTokenLookahead {
     // 核心字段
     readonly tokenConsumer: T
@@ -398,7 +398,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
      * @param modes 每个位置的词法模式（可选，不传用默认值）
      * @returns token 或 undefined（EOF）
      */
-    protected override LA(offset: number = 1, modes?: string[]): SubhutiMatchToken | undefined {
+    protected override LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
         let currentIndex = this._codeIndex
         let currentLine = this._codeLine
         let currentColumn = this._codeColumn
@@ -429,7 +429,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     /**
      * peek - 前瞻获取 token（支持模式数组）
      */
-    protected override peek(offset: number = 1, modes?: string[]): SubhutiMatchToken | undefined {
+    protected override peek(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
         return this.LA(offset, modes)
     }
 
@@ -781,6 +781,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 return true
             }
         }
+        return false
     }
 
     private onRuleExitDebugHandler(
@@ -826,7 +827,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (this._parseSuccess) {
             const parentCst = this.cstStack[this.cstStack.length - 1]
             if (parentCst) {
-                parentCst.children.push(cst)
+                parentCst.children!.push(cst)
             }
             this.setLocation(cst)
         }
@@ -952,13 +953,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                 // 恢复成功，将 CST 添加到当前节点
                 const currentCst = this.curCst
                 if (currentCst) {
-                    currentCst.children.push(...recoveredCST.children)
+                    currentCst.children!.push(...recoveredCST.children)
                 }
                 // 从恢复的位置继续（需要从 parsedTokens 恢复 codeIndex）
                 const maxTokenIndex = this.getParseRecordMaxEndIndex(this._parseRecordRoot!, syncIndex)
                 if (maxTokenIndex > 0 && maxTokenIndex <= this._parsedTokens.length) {
                     const lastToken = this._parsedTokens[maxTokenIndex - 1]
-                    this._codeIndex = lastToken.index + lastToken.tokenValue.length
+                    this._codeIndex = (lastToken.index || 0) + lastToken.tokenValue.length
                 }
             } else {
                 // 没有可恢复的内容，跳过一个字符继续
@@ -1127,7 +1128,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         // 从 parsedTokens 中找出在范围内的 tokens
         for (const token of this._parsedTokens) {
-            if (token.index >= startIndex && token.index < endIndex) {
+            if ((token.index || 0) >= startIndex && (token.index || 0) < endIndex) {
                 const tokenNode = new SubhutiCst()
                 tokenNode.name = token.tokenName
                 tokenNode.value = token.tokenValue
@@ -1135,14 +1136,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
                     type: token.tokenName,
                     value: token.tokenValue,
                     start: {
-                        index: token.index,
-                        line: token.rowNum,
-                        column: token.columnStartNum
+                        index: token.index || 0,
+                        line: token.rowNum || 0,
+                        column: token.columnStartNum || 0
                     },
                     end: {
-                        index: token.index + (token.tokenValue?.length || 0),
-                        line: token.rowNum,
-                        column: token.columnEndNum
+                        index: (token.index || 0) + (token.tokenValue?.length || 0),
+                        line: token.rowNum || 0,
+                        column: token.columnEndNum || 0
                     }
                 }
                 errorNode.children.push(tokenNode)
@@ -1314,7 +1315,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         // 添加到当前 CST
         const currentCst = this.curCst
         if (currentCst) {
-            currentCst.children.push(cst)
+            currentCst.children!.push(cst)
         }
 
         // 解析记录树：记录 token 并更新祖先的 endTokenIndex
@@ -1372,7 +1373,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
 
         const currentCst = this.curCst
         if (currentCst) {
-            currentCst.children.length = backData.curCstChildrenLength
+            currentCst.children!.length = backData.curCstChildrenLength
         }
     }
 
@@ -1461,7 +1462,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (cached.parseSuccess) {
             const parentCst = this.cstStack[this.cstStack.length - 1]
             if (parentCst) {
-                parentCst.children.push(cached.cst)
+                parentCst.children!.push(cached.cst)
             }
         }
 

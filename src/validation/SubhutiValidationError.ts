@@ -79,7 +79,7 @@ export interface ValidationStats {
     /** 缓存使用率统计 */
     cacheUsage?: {
         dfsFirstK: { hit: number, miss: number, total: number, hitRate: number, getCount: number }
-        bfsAllCache: { getCount: number, size: number }
+        bfsAllCache: { getCount: number, size: number, hit?: number, miss?: number, total?: number, hitRate?: number }
         bfsLevelCache: { hit: number, miss: number, total: number, hitRate: number, size: number, getCount: number }
         getDirectChildren: { hit: number, miss: number, total: number, hitRate: number }
     }
@@ -102,7 +102,7 @@ export class SubhutiGrammarValidationError extends Error {
      */
     toString(): string {
         const lines: string[] = []
-        
+
         // 输出错误详情
         for (const error of this.errors) {
             // 格式化标题
@@ -119,17 +119,17 @@ export class SubhutiGrammarValidationError extends Error {
                 // 其他类型：使用原始 message
                 title = `[${error.level}] ${error.message}`
             }
-            
+
             lines.push(title)
             lines.push(`  Rule: ${error.ruleName}`)
             lines.push(`  Branches: [${error.branchIndices.join(', ')}]`)
-            
+
             // conflictPaths 是可选的
             if (error.conflictPaths) {
                 lines.push(`  Path A: ${error.conflictPaths.pathA}`)
                 lines.push(`  Path B: ${error.conflictPaths.pathB}`)
             }
-            
+
             // 格式化 Suggestion（简化）
             if (error.type === 'prefix-conflict' && error.branchIndices.length === 2) {
                 const [i, j] = error.branchIndices
@@ -137,7 +137,7 @@ export class SubhutiGrammarValidationError extends Error {
             } else {
                 lines.push(`  Suggestion: ${error.suggestion}`)
             }
-            
+
             lines.push('')
         }
 
@@ -163,12 +163,12 @@ export class SubhutiGrammarValidationError extends Error {
             lines.push('📦 缓存信息：')
             lines.push(`   ├─ dfsFirstKCache: ${s.dfsFirstKCacheSize} 条 (First(${s.firstK}))`)
             lines.push(`   └─ bfsAllCache: ${s.bfsAllCacheSize} 条 (MaxLevel)`)
-            
+
             // 输出缓存使用率（统一格式）
             if (s.cacheUsage) {
                 lines.push('')
                 lines.push('💾 缓存使用率：')
-                
+
                 // dfsFirstKCache
                 const dfs = s.cacheUsage.dfsFirstK
                 lines.push(`   dfsFirstKCache:`)
@@ -177,16 +177,16 @@ export class SubhutiGrammarValidationError extends Error {
                 lines.push(`      未命中次数: ${dfs.miss}`)
                 lines.push(`      命中率: ${dfs.hitRate.toFixed(1)}%`)
                 lines.push(`      缓存总条数: ${s.dfsFirstKCacheSize}`)
-                
+
                 // bfsAllCache
                 const bfsAll = s.cacheUsage.bfsAllCache
                 lines.push(`   bfsAllCache:`)
                 lines.push(`      查询次数: ${bfsAll.getCount}`)
-                lines.push(`      命中次数: ${bfsAll.hit}`)
-                lines.push(`      未命中次数: ${bfsAll.miss}`)
-                lines.push(`      命中率: ${bfsAll.total > 0 ? bfsAll.hitRate.toFixed(1) : '0.0'}%`)
+                lines.push(`      命中次数: ${bfsAll.hit ?? 'N/A'}`)
+                lines.push(`      未命中次数: ${bfsAll.miss ?? 'N/A'}`)
+                lines.push(`      命中率: ${(bfsAll.total ?? 0) > 0 ? (bfsAll.hitRate ?? 0).toFixed(1) : '0.0'}%`)
                 lines.push(`      缓存总条数: ${bfsAll.size}`)
-                
+
                 // bfsLevelCache
                 const bfsLevel = s.cacheUsage.bfsLevelCache
                 lines.push(`   bfsLevelCache:`)
@@ -195,7 +195,7 @@ export class SubhutiGrammarValidationError extends Error {
                 lines.push(`      未命中次数: ${bfsLevel.miss}`)
                 lines.push(`      命中率: ${bfsLevel.total > 0 ? bfsLevel.hitRate.toFixed(1) : 'N/A'}%`)
                 lines.push(`      缓存总条数: ${bfsLevel.size}`)
-                
+
                 // getDirectChildren
                 const gdc = s.cacheUsage.getDirectChildren
                 if (gdc.total > 0) {
@@ -207,7 +207,7 @@ export class SubhutiGrammarValidationError extends Error {
                     lines.push(`      缓存总条数: 与 bfsLevelCache 共用`)
                 }
             }
-            
+
             lines.push('')
             lines.push('='.repeat(60))
         }

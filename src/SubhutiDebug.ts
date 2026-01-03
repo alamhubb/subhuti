@@ -397,12 +397,12 @@ export class SubhutiDebugUtils {
         const errors: Array<{ path: string, issue: string, node?: any }> = []
 
         if (node === null) {
-            errors.push({path, issue: 'Node is null'})
+            errors.push({ path, issue: 'Node is null' })
             return errors
         }
 
         if (node === undefined) {
-            errors.push({path, issue: 'Node is undefined'})
+            errors.push({ path, issue: 'Node is undefined' })
             return errors
         }
 
@@ -410,7 +410,7 @@ export class SubhutiDebugUtils {
             errors.push({
                 path,
                 issue: 'Node has neither name nor value',
-                node: {...node, children: node.children ? `[${node.children.length} children]` : undefined}
+                node: { ...node, children: node.children ? `[${node.children.length} children]` : undefined }
             })
         }
 
@@ -419,7 +419,7 @@ export class SubhutiDebugUtils {
                 errors.push({
                     path,
                     issue: `children is not an array (type: ${typeof node.children})`,
-                    node: {name: node.name, childrenType: typeof node.children}
+                    node: { name: node.name, childrenType: typeof node.children }
                 })
                 return errors
             }
@@ -428,12 +428,12 @@ export class SubhutiDebugUtils {
                 const childPath = `${path}.children[${index}]`
 
                 if (child === null) {
-                    errors.push({path: childPath, issue: 'Child is null'})
+                    errors.push({ path: childPath, issue: 'Child is null' })
                     return
                 }
 
                 if (child === undefined) {
-                    errors.push({path: childPath, issue: 'Child is undefined'})
+                    errors.push({ path: childPath, issue: 'Child is undefined' })
                     return
                 }
 
@@ -446,7 +446,7 @@ export class SubhutiDebugUtils {
             errors.push({
                 path,
                 issue: `Leaf node has both value and non-empty children`,
-                node: {name: node.name, value: node.value, childrenCount: node.children.length}
+                node: { name: node.name, value: node.value, childrenCount: node.children.length }
             })
         }
 
@@ -516,7 +516,7 @@ export class SubhutiDebugUtils {
             const childPrefix = prefix + (isLast ? '   ' : '│  ')
 
             cst.children.forEach((child: any, index: number) => {
-                const isLastChild = index === cst.children.length - 1
+                const isLastChild = index === cst.children!.length - 1
                 lines.push(SubhutiDebugUtils.formatCst(child, childPrefix, isLastChild))
             })
         }
@@ -532,18 +532,18 @@ export class SubhutiDebugUtils {
 
         if (isToken) {
             // Token 节点：显示名称、值、位置
-            const value = TreeFormatHelper.formatTokenValue(cst.value)
+            const value = TreeFormatHelper.formatTokenValue(cst.value ?? '')
             const location = cst.loc ? TreeFormatHelper.formatLocation(cst.loc) : null
 
             return TreeFormatHelper.formatLine(
                 [connector, cst.name + ':', `"${value}"`, location].join(''),
-                {prefix}
+                { prefix }
             )
         } else {
             // Rule 节点：只显示名称
             return TreeFormatHelper.formatLine(
                 [connector, cst.name].join(''),
-                {prefix}
+                { prefix }
             )
         }
     }
@@ -777,7 +777,7 @@ export class SubhutiTraceDebugger {
      */
     private deepCloneRuleStackItem(item: RuleStackItem): RuleStackItem {
         if (item.ruleName) {
-            if (!item.childs.length) {
+            if (!item.childs || !item.childs.length) {
                 throw new Error('系统错误')
             }
         }
@@ -883,11 +883,11 @@ export class SubhutiTraceDebugger {
         } else if (restoredItem.tokenExpectName) {
             displayDepth++
             restoredItem.shouldBreakLine = true
-        } else if (restoredItem.orBranchInfo && restoredItem.orBranchInfo.isOrEntry && restoredItem.childs.length > 1) {
+        } else if (restoredItem.orBranchInfo && restoredItem.orBranchInfo.isOrEntry && restoredItem.childs && restoredItem.childs.length > 1) {
             displayDepth++
             restoredItem.shouldBreakLine = true
             OrBranchNeedNewLine = true
-        } else if (['UpdateExpression'].indexOf(restoredItem.ruleName) > -1) {
+        } else if (['UpdateExpression'].indexOf(restoredItem.ruleName ?? '') > -1) {
             displayDepth++
             restoredItem.shouldBreakLine = true
         } else if (lastRowShouldBreakLine) {
@@ -1196,7 +1196,7 @@ export class SubhutiTraceDebugger {
             }
         }
 
-        const tokenStr = SubhutiDebugRuleTracePrint.getPrintToken(tokenItem, location)
+        const tokenStr = SubhutiDebugRuleTracePrint.getPrintToken(tokenItem, location ?? undefined)
         const line = SubhutiDebugRuleTracePrint.formatLine(tokenStr, depth)
         SubhutiDebugRuleTracePrint.consoleLog(line)
     }
@@ -1250,7 +1250,7 @@ export class SubhutiTraceDebugger {
             throw new Error(`❌ Or exit error: ruleStack is empty when exiting Or for ${parentRuleName}`)
         }
 
-        const curOrNode = this.ruleStack.pop()
+        const curOrNode = this.ruleStack.pop()!
 
         // 快速失败：栈顶必须是要退出的 Or 包裹节点
         if (!(curOrNode.ruleName === parentRuleName
@@ -1352,7 +1352,7 @@ export class SubhutiTraceDebugger {
         }
 
         // 【3】Pop 栈顶
-        const curBranchNode = this.ruleStack.pop()
+        const curBranchNode = this.ruleStack.pop()!
 
         // 快速失败：栈顶必须是要退出的 Or 分支节点
         if (!(curBranchNode.ruleName === parentRuleName
@@ -1536,7 +1536,7 @@ export class SubhutiTraceDebugger {
     }
 
     parentPushChild(parent: RuleStackItem, child: string) {
-        parent.childs.push(child)
+        parent.childs!.push(child)
     }
 
     // ========================================

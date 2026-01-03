@@ -39,7 +39,7 @@ export function getShowRulePath(): boolean {
 // TreeFormatHelper - 树形输出格式化辅助
 // ============================================
 
-import {LogUtil} from "./logutil.ts";
+import { LogUtil } from "./logutil.ts";
 
 /**
  * 树形输出格式化辅助类
@@ -164,6 +164,8 @@ export interface RuleStackItem {
         isOrEntry: boolean         // 是否是 Or 包裹节点（onOrEnter 创建）
         isOrBranch: boolean        // 是否是 Or 分支节点（onOrBranch 创建）
         totalBranches?: number     // Or 分支信息（如 "#1/3" 或 "3" 表示总分支数）
+        startTokenIndex?: number   // Or开始时的tokenIndex
+        branchAttempts?: any[]     // 记录所有分支尝试
     }
 }
 
@@ -199,7 +201,7 @@ export class SubhutiDebugRuleTracePrint {
                 // Or 包裹节点：显示 [Or]
                 return ' [Or]'
             } else if (info.isOrBranch) {
-                return ` [Or #${info.branchIndex + 1}/${info.totalBranches}]`
+                return ` [Or #${(info.branchIndex ?? 0) + 1}/${info.totalBranches}]`
             } else {
                 return `错误`
             }
@@ -213,7 +215,7 @@ export class SubhutiDebugRuleTracePrint {
      */
     static isOrEntry(item: RuleStackItem): boolean {
         // 新设计：检查 orBranchInfo 对象
-        return item.orBranchInfo?.isOrEntry
+        return item.orBranchInfo?.isOrEntry ?? false
     }
 
 
@@ -237,13 +239,13 @@ export class SubhutiDebugRuleTracePrint {
         return TreeFormatHelper.formatLine(
             str,
             // 前缀：根据深度生成缩进，└─ 表示是叶子节点
-            {prefix: '│  '.repeat(depth) + symbol}
+            { prefix: '│  '.repeat(depth) + symbol }
         )
     }
 
 
 
-    public static consoleLog(...strs) {
+    public static consoleLog(...strs: any[]) {
         if (!_showRulePath) return  // 如果关闭了规则路径输出，直接返回
         console.log(...strs)  // 恢复实时输出
         // LogUtil.log(strs[0])  // 可选：同时写入文件
@@ -283,7 +285,7 @@ export class SubhutiDebugRuleTracePrint {
         let baseDepth = 0
         if (lastOutputted) {
             // 否则 baseDepth = 最后一个已输出规则的深度 + 1
-            baseDepth = lastOutputted.displayDepth
+            baseDepth = lastOutputted.displayDepth ?? 0
         }
 
         //最后一个未输出的 OrEntry（使用 findLastIndex 直接获取正向索引）
@@ -397,7 +399,7 @@ export class SubhutiDebugRuleTracePrint {
      * @param rules
      * @param depth 兼容非缓存和缓存，
      */
-    static formatChainRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth): string[] {
+    static formatChainRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth ?? 0): string[] {
         if (!rules.length) {
             throw new Error("系统错误")
         }
@@ -422,7 +424,7 @@ export class SubhutiDebugRuleTracePrint {
      * @param rules
      * @param depth 兼容非缓存和缓存，
      */
-    static printChainRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth) {
+    static printChainRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth ?? 0) {
         const lines = this.formatChainRule(rules, depth)
         lines.forEach(line => this.consoleLog(line))
     }
@@ -434,7 +436,7 @@ export class SubhutiDebugRuleTracePrint {
      * @param rules
      * @param depth 兼容非缓存和缓存，
      */
-    static formatMultipleSingleRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth): { lines: string[], depth: number } {
+    static formatMultipleSingleRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth ?? 0): { lines: string[], depth: number } {
         const lines: string[] = []
 
         rules.forEach((item, index) => {
@@ -450,7 +452,7 @@ export class SubhutiDebugRuleTracePrint {
             let branch = isLast ? '└─' : '├─'
             let printStr = this.getRuleItemLogContent(item)
 
-            const line = SubhutiDebugRuleTracePrint.formatLine(printStr, item.displayDepth, branch)
+            const line = SubhutiDebugRuleTracePrint.formatLine(printStr, item.displayDepth ?? 0, branch)
             lines.push(line)
 
             item.outputted = true
@@ -466,7 +468,7 @@ export class SubhutiDebugRuleTracePrint {
      * @param rules
      * @param depth 兼容非缓存和缓存，
      */
-    static printMultipleSingleRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth): number {
+    static printMultipleSingleRule(rules: RuleStackItem[], depth: number = rules[0].displayDepth ?? 0): number {
         const result = this.formatMultipleSingleRule(rules, depth)
         result.lines.forEach(line => this.consoleLog(line))
         return result.depth
@@ -481,14 +483,14 @@ export class SubhutiDebugRuleTracePrint {
                 // Or 包裹节点：显示 [Or]
                 res = '🔀 ' + tokenItem.ruleName + '(Or)'
             } else if (tokenItem.orBranchInfo.isOrBranch) {
-                res = `[Branch #${branchInfo.branchIndex + 1}](${tokenItem.ruleName})`
+                res = `[Branch #${(branchInfo.branchIndex ?? 0) + 1}](${tokenItem.ruleName})`
                 // 🔍 调试：记录 Or 分支被标记为 outputted
             }
         } else {
             if (tokenItem.tokenExpectName) {
                 res = SubhutiDebugRuleTracePrint.getPrintToken(tokenItem)
             } else {
-                res = tokenItem.ruleName
+                res = tokenItem.ruleName ?? ''
             }
         }
         if (tokenItem.isManuallyAdded) {

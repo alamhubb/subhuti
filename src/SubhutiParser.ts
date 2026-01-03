@@ -16,16 +16,16 @@
 import SubhutiTokenLookahead from "./SubhutiTokenLookahead.ts"
 import SubhutiCst from "./struct/SubhutiCst.ts";
 import type SubhutiMatchToken from "./struct/SubhutiMatchToken.ts";
-import {SubhutiErrorHandler, ParsingError} from "./SubhutiError.ts";
-import {SubhutiTraceDebugger} from "./SubhutiDebug.ts";
-import {SubhutiPackratCache, type SubhutiPackratCacheResult} from "./SubhutiPackratCache.ts";
+import { SubhutiErrorHandler, ParsingError } from "./SubhutiError.ts";
+import { SubhutiTraceDebugger } from "./SubhutiDebug.ts";
+import { SubhutiPackratCache, type SubhutiPackratCacheResult } from "./SubhutiPackratCache.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
-import {SubhutiDebugRuleTracePrint, setShowRulePath} from "./SubhutiDebugRuleTracePrint.ts";
-import SubhutiLexer, {LexicalGoal, TokenCacheEntry} from "./SubhutiLexer.ts";
-import {SubhutiCreateToken} from "./struct/SubhutiCreateToken.ts";
+import { SubhutiDebugRuleTracePrint, setShowRulePath } from "./SubhutiDebugRuleTracePrint.ts";
+import SubhutiLexer, { TokenCacheEntry } from "./SubhutiLexer.ts";
+import { SubhutiCreateToken, DefaultMode, type LexerMode } from "./struct/SubhutiCreateToken.ts";
 
 // Grammar Validation
-import {SubhutiGrammarValidator} from "./validation/SubhutiGrammarValidator.ts";
+import { SubhutiGrammarValidator } from "./validation/SubhutiGrammarValidator.ts";
 
 // ============================================
 // 类型定义
@@ -91,7 +91,7 @@ function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
     const wrappedFunction = function (this: SubhutiParser, ...args: any[]): SubhutiCst | undefined {
         return this.executeRuleWrapper(originalMethod, ruleName, this.constructor.name, ...args)
     }
-    Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
+    Object.defineProperty(wrappedFunction, 'name', { value: ruleName })
     Object.defineProperty(wrappedFunction, '__originalFunction__', {
         value: originalMethod, writable: false, enumerable: false, configurable: false
     })
@@ -162,14 +162,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     /** 上一个 token 名称（用于上下文约束） */
     protected _lastTokenName: string | null = null
 
-    /** 模板字符串深度 */
-    protected _templateDepth: number = 0
-
-    /** 默认词法目标 */
-    protected _defaultGoal: LexicalGoal = LexicalGoal.InputElementDiv
-
     /** Token 缓存：位置 → 模式 → 缓存条目 */
-    protected _tokenCache: Map<number, Map<LexicalGoal, TokenCacheEntry>> = new Map()
+    protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
 
     /** 已解析的 token 列表（用于输出给使用者） */
     protected _parsedTokens: SubhutiMatchToken[] = []
@@ -310,7 +304,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         this._codeLine = 1
         this._codeColumn = 1
         this._lastTokenName = null
-        this._templateDepth = 0
         this._tokenCache = new Map()
         this._parsedTokens = []
 
@@ -360,21 +353,21 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
      * @param codeIndex 源码位置
      * @param line 行号
      * @param column 列号
-     * @param goal 词法目标
+     * @param mode 词法模式（由插件提供，如 'regexp', 'templateTail' 等，空字符串表示默认模式）
      * @returns TokenCacheEntry 或 null（EOF）
      */
     protected _getOrParseToken(
         codeIndex: number,
         line: number,
         column: number,
-        goal: LexicalGoal
+        mode: LexerMode = DefaultMode
     ): TokenCacheEntry | null {
         if (!this._lexer) return null
 
         // 1. 查缓存
         const positionCache = this._tokenCache.get(codeIndex)
-        if (positionCache?.has(goal)) {
-            return positionCache.get(goal)!
+        if (positionCache?.has(mode)) {
+            return positionCache.get(mode)!
         }
 
         // 2. 解析新 token
@@ -383,9 +376,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             codeIndex,
             line,
             column,
-            goal,
-            this._lastTokenName,
-            this._templateDepth
+            mode,
+            this._lastTokenName
         )
 
         if (!entry) return null  // EOF
@@ -394,7 +386,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         if (!positionCache) {
             this._tokenCache.set(codeIndex, new Map())
         }
-        this._tokenCache.get(codeIndex)!.set(goal, entry)
+        this._tokenCache.get(codeIndex)!.set(mode, entry)
 
         return entry
     }
@@ -403,20 +395,20 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
      * LA (LookAhead) - 前瞻获取 token（支持模式数组）
      *
      * @param offset 偏移量（1 = 当前 token，2 = 下一个...）
-     * @param goals 每个位置的词法目标（可选，不传用默认值）
+     * @param modes 每个位置的词法模式（可选，不传用默认值）
      * @returns token 或 undefined（EOF）
      */
-    protected override LA(offset: number = 1, goals?: LexicalGoal[]): SubhutiMatchToken | undefined {
+    protected override LA(offset: number = 1, modes?: string[]): SubhutiMatchToken | undefined {
         let currentIndex = this._codeIndex
         let currentLine = this._codeLine
         let currentColumn = this._codeColumn
 
         for (let i = 0; i < offset; i++) {
-            // 确定当前 token 的词法目标
-            const goal = goals?.[i] ?? this._defaultGoal
+            // 确定当前 token 的词法模式
+            const mode = modes?.[i] ?? DefaultMode
 
             // 从缓存获取或解析
-            const entry = this._getOrParseToken(currentIndex, currentLine, currentColumn, goal)
+            const entry = this._getOrParseToken(currentIndex, currentLine, currentColumn, mode)
 
             if (!entry) return undefined  // EOF
 
@@ -437,8 +429,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     /**
      * peek - 前瞻获取 token（支持模式数组）
      */
-    protected override peek(offset: number = 1, goals?: LexicalGoal[]): SubhutiMatchToken | undefined {
-        return this.LA(offset, goals)
+    protected override peek(offset: number = 1, modes?: string[]): SubhutiMatchToken | undefined {
+        return this.LA(offset, modes)
     }
 
     /**
@@ -455,10 +447,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     /**
      * 供 TokenConsumer 使用的 consume 方法
      * @param tokenName token 名称
-     * @param goal 可选的词法目标（用于模板尾部等场景）
+     * @param mode 词法模式（可选）
      */
-    _consumeToken(tokenName: string, goal?: LexicalGoal): SubhutiCst | undefined {
-        return this.consume(tokenName, goal)
+    _consumeToken(tokenName: string, mode?: LexerMode): SubhutiCst | undefined {
+        return this.consume(tokenName, mode)
     }
 
     /**
@@ -1114,7 +1106,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     protected findNextSyncPoint(fromIndex: number): number {
         // 从指定位置开始，尝试解析每个位置的 token
         for (let i = fromIndex; i < this._sourceCode.length; i++) {
-            const entry = this._getOrParseToken(i, this._codeLine, this._codeColumn, this._defaultGoal)
+            const entry = this._getOrParseToken(i, this._codeLine, this._codeColumn, DefaultMode)
             if (entry && this._syncTokens.has(entry.token.tokenName)) {
                 return i
             }
@@ -1234,9 +1226,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
     /**
      * 消费 token（智能错误管理）
      * - 失败时返回 undefined，不抛异常
-     * - 支持传入词法目标（可选）
+     * - protected: 必须通过 tokenConsumer 的封装方法消费 token
+     * @param tokenName token 名称
+     * @param mode 词法模式（可选，默认使用 _currentMode）
      */
-    consume(tokenName: string, goal?: LexicalGoal): SubhutiCst | undefined {
+    protected consume(tokenName: string, mode?: LexerMode): SubhutiCst | undefined {
         if (this.parserFail) {
             return
         }
@@ -1246,13 +1240,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
             return
         }
 
-        // 获取当前 token
-        const actualGoal = goal ?? this._defaultGoal
+        // 获取当前 token（使用传入的 mode 或默认 mode）
+        const effectiveMode = mode ?? DefaultMode
         const entry = this._getOrParseToken(
             this._codeIndex,
             this._codeLine,
             this._codeColumn,
-            actualGoal
+            effectiveMode
         )
 
         if (!entry) {
@@ -1285,13 +1279,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
         )
 
         const cst = this.generateCstByToken(token)
-
-        // 更新模板深度
-        if (token.tokenName === 'TemplateHead') {
-            this._templateDepth++
-        } else if (token.tokenName === 'TemplateTail') {
-            this._templateDepth--
-        }
 
         // 更新位置
         this._codeIndex = entry.nextCodeIndex
@@ -1405,13 +1392,25 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer = SubhutiToken
      * 检查是否已到达源码末尾
      */
     get isEof(): boolean {
-        const entry = this._getOrParseToken(
-            this._codeIndex,
-            this._codeLine,
-            this._codeColumn,
-            this._defaultGoal
-        )
-        return entry === null
+        // 先检查是否已经到达代码末尾
+        if (this._codeIndex >= this._sourceCode.length) {
+            return true
+        }
+
+        // 尝试获取下一个 token（会跳过空白）
+        try {
+            const entry = this._getOrParseToken(
+                this._codeIndex,
+                this._codeLine,
+                this._codeColumn,
+                DefaultMode
+            )
+            return entry === null
+        } catch {
+            // 如果词法分析器无法识别字符，说明不是 EOF
+            // 让后续的消费操作处理这个错误
+            return false
+        }
     }
 
     /**

@@ -1,3 +1,33 @@
+// ============================================
+// LexerMode 类型定义
+// ============================================
+
+/** 品牌符号 */
+declare const LexerModeBrand: unique symbol
+
+/** 品牌类型 */
+export type LexerModeBrand = typeof LexerModeBrand
+
+/**
+ * LexerMode 基础类型
+ * 使用 TypeScript 品牌类型实现类型安全的 mode 字符串
+ */
+export type LexerMode = string & { readonly [LexerModeBrand]: unknown }
+
+/**
+ * 创建 LexerMode 的辅助函数
+ */
+export function createMode<T extends string>(value: T): T & LexerMode {
+    return value as T & LexerMode
+}
+
+/** 默认模式 */
+export const DefaultMode = createMode('')
+
+// ============================================
+// Token 配置接口
+// ============================================
+
 /**
  * 词法前瞻配置
  */
@@ -32,6 +62,7 @@ export interface SubhutiCreateTokenOptions {
     categories?: any;
     lookaheadAfter?: SubhutiTokenLookahead;
     contextConstraint?: SubhutiTokenContextConstraint;
+    mode?: LexerMode;  // 词法模式：只在指定 mode 下才匹配此 token
 }
 
 export class SubhutiCreateToken {
@@ -44,6 +75,7 @@ export class SubhutiCreateToken {
     categories?: any;
     lookaheadAfter?: SubhutiTokenLookahead;  // 前瞻配置
     contextConstraint?: SubhutiTokenContextConstraint;  // 上下文约束配置
+    mode?: LexerMode;  // 词法模式：只在指定 mode 下才匹配此 token
 
     constructor(ovsToken: SubhutiCreateTokenOptions) {
         this.name = ovsToken.name;
@@ -58,6 +90,7 @@ export class SubhutiCreateToken {
         this.skip = ovsToken.skip;
         this.lookaheadAfter = ovsToken.lookaheadAfter;  // 复制前瞻配置
         this.contextConstraint = ovsToken.contextConstraint;  // 复制上下文约束
+        this.mode = ovsToken.mode;  // 复制词法模式
     }
 }
 
@@ -102,12 +135,12 @@ export function createValueRegToken(
 export function createEmptyValueRegToken(
     name: string,
     pattern: RegExp,
-    contextConstraint?: SubhutiTokenContextConstraint
+    mode?: LexerMode
 ) {
     const token = new SubhutiCreateToken({
         name: name,
         pattern: pattern,
-        contextConstraint: contextConstraint
+        mode: mode
     });
     return token;
 }

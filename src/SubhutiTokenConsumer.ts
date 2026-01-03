@@ -17,7 +17,7 @@ import type SubhutiParser from "./SubhutiParser.ts"
 import type SubhutiCst from "./struct/SubhutiCst.ts"
 import type { LexerMode } from "./struct/SubhutiCreateToken.ts"
 
-export default class SubhutiTokenConsume<T extends SubhutiParser = SubhutiParser> {
+export default class SubhutiTokenConsumer<T extends SubhutiParser> {
     /**
      * Parser 实例
      */

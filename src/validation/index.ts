@@ -26,8 +26,15 @@ export { SubhutiGrammarValidationError } from './SubhutiValidationError'
 export { SubhutiRuleCollector } from './SubhutiRuleCollector'
 export { SubhutiGrammarAnalyzer, EXPANSION_LIMITS } from './SubhutiGrammarAnalyzer'
 export type { GrammarAnalyzerOptions } from './SubhutiGrammarAnalyzer'
-export { SubhutiConflictDetector } from './SubhutiConflictDetector'
 export { SubhutiGrammarValidator } from './SubhutiGrammarValidator'
+
+// 新的模块化组件（可选导出）
+export { LeftRecursionDetector } from './detectors/LeftRecursionDetector'
+export { OrConflictDetector } from './detectors/OrConflictDetector'
+export { PathExpander } from './core/PathExpander'
+export { BFSPathExpander } from './core/BFSPathExpander'
+export { PathUtils } from './utils/PathUtils'
+export { PerformanceAnalyzer } from './utils/PerformanceAnalyzer'
 
 // 调试器
 export { SubhutiValidationDebugger } from './SubhutiValidationDebugger'

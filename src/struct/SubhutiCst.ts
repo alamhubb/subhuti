@@ -17,9 +17,9 @@ export interface SubhutiPosition extends Position {
 
 export default class SubhutiCst {
     // pathName: string;
-    name: string;
+    name!: string;
     children?: SubhutiCst[]
-    loc: SubhutiSourceLocation
+    loc!: SubhutiSourceLocation
     value?: string;
 
     constructor(cst?: SubhutiCst) {

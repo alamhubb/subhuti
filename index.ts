@@ -3,8 +3,12 @@ export { default as SubhutiParser, Subhuti, SubhutiRule } from './SubhutiParser.
 export type { RuleFunction, SubhutiParserOr, SubhutiBackData, PartialMatchRecord, ParseRecordNode, SubhutiParserOptions, SubhutiTokenConsumerConstructor } from './SubhutiParser.ts'
 
 // Lexer
-export { default as SubhutiLexer, LexicalGoal, SubhutiLexerTokenNames, REGEXP_LITERAL_PATTERN, matchRegExpLiteral } from './SubhutiLexer.ts'
-export type { TokenCacheEntry } from './SubhutiLexer.ts'
+export { default as SubhutiLexer } from './SubhutiLexer.ts'
+export type { TokenCacheEntry, LexerState } from './SubhutiLexer.ts'
+
+// Lexer Mode
+export { DefaultMode, createMode } from './struct/SubhutiCreateToken.ts'
+export type { LexerMode, LexerModeBrand } from './struct/SubhutiCreateToken.ts'
 
 // Token Consumer & Lookahead
 export { default as SubhutiTokenConsumer } from './SubhutiTokenConsumer.ts'
@@ -14,8 +18,8 @@ export { default as SubhutiTokenLookahead } from './SubhutiTokenLookahead.ts'
 export { default as SubhutiCst } from './struct/SubhutiCst.ts'
 export type { SubhutiSourceLocation, SubhutiPosition } from './struct/SubhutiCst.ts'
 export { default as SubhutiMatchToken, createMatchToken } from './struct/SubhutiMatchToken.ts'
-export { 
-    SubhutiCreateToken, 
+export {
+    SubhutiCreateToken,
     emptyValue,
     createToken,
     createKeywordToken,

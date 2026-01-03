@@ -308,3 +308,126 @@ Arguments: Or([
 
 **注意**：First集合模式可能会误报，因为它只看第一个token，不看完整路径。
 
+---
+
+## 🏗️ 重构后的模块化架构
+
+### 新的文件结构
+
+经过重构，原本 3269 行的巨型文件已拆分为模块化结构：
+
+```
+validation/
+├── constants/
+│   └── ExpansionLimits.ts          # 配置常量 (40行)
+│
+├── utils/
+│   ├── PerformanceAnalyzer.ts      # 性能分析器 (340行)
+│   └── PathUtils.ts                # 路径工具函数 (90行)
+│
+├── core/
+│   ├── PathExpander.ts             # DFS路径展开器 (470行)
+│   └── BFSPathExpander.ts          # BFS路径展开器
+│
+├── detectors/
+│   ├── LeftRecursionDetector.ts    # 左递归检测器 (240行)
+│   └── OrConflictDetector.ts       # Or冲突检测器 (210行)
+│
+├── SubhutiGrammarAnalyzer.ts       # 门面类 (180行，重写)
+├── SubhutiGrammarValidator.ts      # 验证器入口
+├── SubhutiRuleCollector.ts         # 规则收集器
+├── SubhutiValidationError.ts       # 错误类型定义
+└── index.ts                        # 导出
+```
+
+### 代码精简对比
+
+| 分类 | 旧代码 | 新代码 | 变化 |
+|------|--------|--------|------|
+| 核心功能 | 1500行 | 1300行 | -200 (去除日志) |
+| 调试/日志 | 300行 | 0行 | -300 |
+| 深度计算 | 200行 | 0行 | -200 |
+| 图分析 | 60行 | 0行 | -60 |
+| 前缀树 | 50行 | 0行 | -50 |
+| 复杂检测 | 260行 | 0行 | -260 (简化) |
+| 统计分析 | 50行 | 0行 | -50 |
+| **新增工具** | 0行 | 560行 | +560 (模块化) |
+| **总计** | **3269行** | **1860行** | **-1409行 (-43%)** |
+
+### 删除的功能
+
+#### ✂️ 调试功能（~300行）
+- 日志系统（文件日志、控制台日志）
+- 深度计算和统计
+- Mermaid 图表生成
+
+#### ✂️ 重复功能（~320行）
+- **图分析** - 与 DFS 左递归检测功能重复
+- **多种冲突检测实现** - 简化为 First(K) 检测
+
+#### ✂️ 高级检测（~50行）
+- **前缀树检测** - 简化为使用 Set 进行完全匹配
+- **ArrayTrie 类** - 不再需要
+
+#### ✂️ 辅助工具（~730行）
+- 规则可能性计算
+- 深度统计
+- 各种备用实现
+
+### 保留的核心功能
+
+✅ **DFS/BFS 路径展开** - 完整保留  
+✅ **左递归检测** - 完整保留  
+✅ **Or 冲突检测 (First(K))** - 保留主流程，简化为相等检测  
+✅ **所有节点类型展开** - Or, Sequence, Option, Many, AtLeastOne  
+✅ **笛卡尔积计算** - 完整保留优化版本  
+✅ **性能分析** - 独立为 PerformanceAnalyzer 模块
+
+### 架构优势
+
+1. **单一职责** - 每个类只负责一个功能
+2. **模块化** - 清晰的依赖关系，可独立测试
+3. **可扩展性** - 添加新检测器无需修改现有代码
+4. **性能优化** - 检测器共享缓存，避免重复计算
+5. **易维护** - 代码量减少 43%，结构更清晰
+
+### 使用方式
+
+#### 基本使用（API 保持兼容）
+
+```typescript
+import { SubhutiGrammarValidator } from './validation'
+
+// 验证语法（与之前完全相同）
+SubhutiGrammarValidator.validate(parser)
+```
+
+#### 高级使用（使用新的模块化组件）
+
+```typescript
+import { 
+    SubhutiGrammarAnalyzer,
+    LeftRecursionDetector,
+    OrConflictDetector 
+} from './validation'
+
+// 创建分析器
+const analyzer = new SubhutiGrammarAnalyzer(ruleASTs, tokenCache)
+
+// 执行验证
+const { errors, stats } = analyzer.initCacheAndCheckLeftRecursion()
+
+// 或者单独使用检测器
+const leftRecDetector = new LeftRecursionDetector(ruleASTs, tokenCache, perfAnalyzer)
+const { errors } = leftRecDetector.detect()
+```
+
+---
+
+## 📌 重要说明
+
+- ✅ 所有公开 API 保持向后兼容
+- ✅ 现有代码无需修改
+- ✅ 共享缓存机制提升性能
+- ✅ 错误类型和格式保持不变
+

@@ -13,7 +13,7 @@
       "default": "./dist/index.mjs"
     }
   },
-  "monorepo": "./index.ts",
+  "monorepo": "./src/index.ts",
   "files": [
     "dist"
   ],

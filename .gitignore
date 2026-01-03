@@ -1,4 +1,5 @@
-/.idea
+.idea
+.qin
 lib
 node_modules
 dist

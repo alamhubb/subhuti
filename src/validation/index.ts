@@ -1,7 +1,7 @@
 /**
  * Subhuti Grammar Validation - 统一导出
  * 
- * @version 1.0.0
+ * @version 2.0.0 - 重构后的模块化架构
  */
 
 // 类型定义
@@ -17,34 +17,34 @@ export type {
     AtLeastOneNode,
     SubruleNode,
     Path
-} from './SubhutiValidationError'
+} from './types/SubhutiValidationError'
 
 // 异常类
-export { SubhutiGrammarValidationError } from './SubhutiValidationError'
+export { SubhutiGrammarValidationError } from './types/SubhutiValidationError'
 
-// 核心类
-export { SubhutiRuleCollector } from './SubhutiRuleCollector'
-export { SubhutiGrammarAnalyzer, EXPANSION_LIMITS } from './SubhutiGrammarAnalyzer'
-export type { GrammarAnalyzerOptions } from './SubhutiGrammarAnalyzer'
-export { SubhutiGrammarValidator } from './SubhutiGrammarValidator'
+// 核心分析器
+export { SubhutiRuleCollector } from './analyzers/SubhutiRuleCollector'
+export { SubhutiGrammarAnalyzer, EXPANSION_LIMITS } from './analyzers/SubhutiGrammarAnalyzer'
+export type { GrammarAnalyzerOptions } from './analyzers/SubhutiGrammarAnalyzer'
+export { SubhutiGrammarValidator } from './analyzers/SubhutiGrammarValidator'
 
-// 新的模块化组件（可选导出）
+// 检测器
 export { LeftRecursionDetector } from './detectors/LeftRecursionDetector'
 export { OrConflictDetector } from './detectors/OrConflictDetector'
+
+// 路径展开器
 export { PathExpander } from './core/PathExpander'
 export { BFSPathExpander } from './core/BFSPathExpander'
+
+// 工具类
 export { PathUtils } from './utils/PathUtils'
 export { PerformanceAnalyzer } from './utils/PerformanceAnalyzer'
 
 // 调试器
-export { SubhutiValidationDebugger } from './SubhutiValidationDebugger'
+export { SubhutiValidationDebugger } from './debug/SubhutiValidationDebugger'
 export type {
     DebugEvent,
     RuleDebugInfo,
     ConflictDebugInfo
-} from './SubhutiValidationDebugger'
-
-// 日志工具
-export { SubhutiValidationLogger, LogLevel } from './SubhutiValidationLogger'
-export type { LoggerConfig } from './SubhutiValidationLogger'
+} from './debug/SubhutiValidationDebugger'
 

@@ -15,12 +15,12 @@ import type {
     SequenceNode,
     ValidationError,
     ConsumeNode
-} from './SubhutiValidationError.ts'
-import { EXPANSION_LIMITS } from './constants/ExpansionLimits.ts'
-import { PerformanceAnalyzer } from './utils/PerformanceAnalyzer.ts'
-import { LeftRecursionDetector } from './detectors/LeftRecursionDetector.ts'
-import { OrConflictDetector } from './detectors/OrConflictDetector.ts'
-import { BFSPathExpander } from './core/BFSPathExpander.ts'
+} from '../types/SubhutiValidationError.ts'
+import { EXPANSION_LIMITS } from '../constants/ExpansionLimits.ts'
+import { PerformanceAnalyzer } from '../utils/PerformanceAnalyzer.ts'
+import { LeftRecursionDetector } from '../detectors/LeftRecursionDetector.ts'
+import { OrConflictDetector } from '../detectors/OrConflictDetector.ts'
+import { BFSPathExpander } from '../core/BFSPathExpander.ts'
 
 /**
  * 语法分析器配置
@@ -187,4 +187,4 @@ export class SubhutiGrammarAnalyzer {
 }
 
 // 导出配置常量（保持向后兼容）
-export { EXPANSION_LIMITS } from './constants/ExpansionLimits.ts'
+export { EXPANSION_LIMITS } from '../constants/ExpansionLimits.ts'

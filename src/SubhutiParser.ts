@@ -23,9 +23,8 @@ import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import { SubhutiDebugRuleTracePrint, setShowRulePath } from "./SubhutiDebugRuleTracePrint.ts";
 import SubhutiLexer, { TokenCacheEntry } from "./SubhutiLexer.ts";
 import { SubhutiCreateToken, DefaultMode, type LexerMode } from "./struct/SubhutiCreateToken.ts";
+import {SubhutiGrammarValidator} from "./validation";
 
-// Grammar Validation
-import { SubhutiGrammarValidator } from "./validation/SubhutiGrammarValidator.ts";
 
 // ============================================
 // 类型定义

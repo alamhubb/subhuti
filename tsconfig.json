@@ -1,36 +1,24 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "module": "ESNext",
-    "moduleResolution": "tsxdler",
-    "target": "ES2020",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
-    "outDir": "dist",
-    "rootDir": "src",
+    "target": "ES2022",
     "declaration": true,
     "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
     "sourceMap": true,
-    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
     "skipLibCheck": true,
-    "strict": false,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "tests",
-    "examples"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "test", "examples"]
 }

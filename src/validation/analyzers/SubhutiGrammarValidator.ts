@@ -14,9 +14,8 @@
  */
 
 import { SubhutiRuleCollector } from "./SubhutiRuleCollector";
-import { SubhutiGrammarAnalyzer, EXPANSION_LIMITS } from "./SubhutiLeftRecursionDetector";
-import { SubhutiConflictDetector } from "./SubhutiConflictDetector";
-import { SubhutiGrammarValidationError, ValidationStats } from "./SubhutiValidationError";
+import { SubhutiGrammarAnalyzer } from "./SubhutiGrammarAnalyzer";
+import { SubhutiGrammarValidationError } from "../types/SubhutiValidationError";
 
 export class SubhutiGrammarValidator {
     /**

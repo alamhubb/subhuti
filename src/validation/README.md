@@ -318,26 +318,34 @@ Arguments: Or([
 
 ```
 validation/
-├── constants/
-│   └── ExpansionLimits.ts          # 配置常量 (40行)
+├── README.md                       # 唯一文档
+├── index.ts                        # 统一导出
 │
-├── utils/
-│   ├── PerformanceAnalyzer.ts      # 性能分析器 (340行)
-│   └── PathUtils.ts                # 路径工具函数 (90行)
+├── types/                          # 类型定义
+│   └── SubhutiValidationError.ts   # 错误类型定义 (10KB)
 │
-├── core/
-│   ├── PathExpander.ts             # DFS路径展开器 (470行)
-│   └── BFSPathExpander.ts          # BFS路径展开器
+├── analyzers/                      # 分析器核心
+│   ├── SubhutiGrammarAnalyzer.ts   # 门面类 (6.4KB，重写)
+│   ├── SubhutiGrammarValidator.ts  # 验证器入口 (2.2KB)
+│   └── SubhutiRuleCollector.ts     # 规则收集器 (18KB)
 │
-├── detectors/
-│   ├── LeftRecursionDetector.ts    # 左递归检测器 (240行)
-│   └── OrConflictDetector.ts       # Or冲突检测器 (210行)
+├── detectors/                      # 检测器
+│   ├── LeftRecursionDetector.ts    # 左递归检测器 (9KB)
+│   └── OrConflictDetector.ts       # Or冲突检测器 (8KB)
 │
-├── SubhutiGrammarAnalyzer.ts       # 门面类 (180行，重写)
-├── SubhutiGrammarValidator.ts      # 验证器入口
-├── SubhutiRuleCollector.ts         # 规则收集器
-├── SubhutiValidationError.ts       # 错误类型定义
-└── index.ts                        # 导出
+├── core/                           # 路径展开
+│   ├── PathExpander.ts             # DFS路径展开器 (14KB)
+│   └── BFSPathExpander.ts          # BFS路径展开器 (9.4KB)
+│
+├── utils/                          # 工具类
+│   ├── PerformanceAnalyzer.ts      # 性能分析器 (14KB)
+│   └── PathUtils.ts                # 路径工具函数 (3.3KB)
+│
+├── debug/                          # 调试工具
+│   └── SubhutiValidationDebugger.ts  # 调试器 (23KB)
+│
+└── constants/                      # 常量
+    └── ExpansionLimits.ts          # 配置常量 (1.1KB)
 ```
 
 ### 代码精简对比

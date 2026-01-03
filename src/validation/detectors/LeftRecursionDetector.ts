@@ -14,7 +14,7 @@ import type {
     ValidationError,
     SubruleNode,
     ConsumeNode
-} from '../SubhutiValidationError.ts'
+} from '../types/SubhutiValidationError.ts'
 import { EXPANSION_LIMITS } from '../constants/ExpansionLimits.ts'
 import { PathUtils } from '../utils/PathUtils.ts'
 import { PerformanceAnalyzer } from '../utils/PerformanceAnalyzer.ts'

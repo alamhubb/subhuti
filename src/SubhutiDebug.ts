@@ -269,6 +269,10 @@ import {
     SubhutiDebugRuleTracePrint,
     TreeFormatHelper,
 } from "./SubhutiDebugRuleTracePrint"
+import type { LogWriter } from './debug/LogWriter.ts'
+import { ConsoleLogWriter } from './debug/ConsoleLogWriter.ts'
+import { FileLogWriter } from './debug/FileLogWriter.ts'
+import { ProjectRootFinder } from './debug/ProjectRootFinder.ts'
 
 
 // ============================================
@@ -292,7 +296,7 @@ import {
  */
 export class SubhutiDebugUtils {
     // ========================================
-    // CST Token 分析
+    // Token 分析方法
     // ========================================
 
     /**
@@ -701,6 +705,11 @@ export class SubhutiDebugUtils {
 
 export class SubhutiTraceDebugger {
     // ========================================
+    // 日志输出系统
+    // ========================================
+    private logWriter: LogWriter = new ConsoleLogWriter()
+
+    // ========================================
     // 过程追踪数据（新版 - 只用 ruleStack）
     // ========================================
     public ruleStack: RuleStackItem[] = []
@@ -732,6 +741,45 @@ export class SubhutiTraceDebugger {
      */
     constructor(tokens?: any[]) {
         this.inputTokens = this.extractValidTokens(tokens || [])
+    }
+
+    /**
+     * 设置日志输出到文件
+     * 
+     * @param filePath - 日志文件路径（可选，不传则使用默认路径）
+     * @returns this - 支持链式调用
+     * 
+     * @example
+     * ```typescript
+     * // 使用指定路径
+     * parser.debug().setLogFile('./logs/my-debug.log')
+     * 
+     * // 使用默认路径（{projectRoot}/logs/YYYY-MM-DD-HH-mm.log）
+     * parser.debug().setLogFile()
+     * ```
+     */
+    setLogFile(filePath?: string): this {
+        // 关闭旧的 logWriter（如果有）
+        if (this.logWriter && typeof this.logWriter.close === 'function') {
+            this.logWriter.close()
+        }
+
+        // 创建新的 FileLogWriter
+        if (filePath) {
+            this.logWriter = new FileLogWriter(filePath)
+        } else {
+            this.logWriter = new FileLogWriter(ProjectRootFinder.getDefaultLogPath())
+        }
+
+        return this
+    }
+
+    /**
+     * 内部方法：写入日志
+     * 统一的日志输出接口，替换所有 console.log
+     */
+    private print(message: string): void {
+        this.logWriter.write(message)
     }
 
     /**
@@ -1546,19 +1594,19 @@ export class SubhutiTraceDebugger {
      * 自动输出完整调试报告
      */
     autoOutput(): void {
-        console.log('\n' + '='.repeat(60))
-        console.log('🔍 Subhuti Debug 输出')
-        console.log('='.repeat(60))
+        this.print('\n' + '='.repeat(60))
+        this.print('🔍 Subhuti Debug 输出')
+        this.print('='.repeat(60))
 
         // ========================================
         // 第一部分：性能摘要
         // ========================================
-        console.log('\n【第一部分：性能摘要】')
-        console.log('─'.repeat(60))
-        console.log('\n' + this.getSummary())
+        this.print('\n【第一部分：性能摘要】')
+        this.print('─'.repeat(60))
+        this.print('\n' + this.getSummary())
 
         // 所有规则详细统计
-        console.log('\n📋 所有规则详细统计:')
+        this.print('\n📋 所有规则详细统计:')
         const allStats = Array.from(this.stats.values())
             .sort((a, b) => b.executionTime - a.executionTime)
 
@@ -1566,7 +1614,7 @@ export class SubhutiTraceDebugger {
             const cacheRate = stat.totalCalls > 0
                 ? (stat.cacheHits / stat.totalCalls * 100).toFixed(1)
                 : '0.0'
-            console.log(
+            this.print(
                 `  ${stat.ruleName}: ${stat.totalCalls}次 | ` +
                 `执行${stat.actualExecutions}次 | ` +
                 `耗时${stat.executionTime.toFixed(2)}ms | ` +
@@ -1574,84 +1622,84 @@ export class SubhutiTraceDebugger {
             )
         })
 
-        console.log('\n' + '='.repeat(60))
+        this.print('\n' + '='.repeat(60))
 
         // ========================================
         // 第二部分：CST 验证报告
         // ========================================
         if (this.topLevelCst) {
-            console.log('\n【第二部分：CST 验证报告】')
-            console.log('─'.repeat(60))
-            console.log('\n🔍 CST 验证报告')
-            console.log('─'.repeat(60))
+            this.print('\n【第二部分：CST 验证报告】')
+            this.print('─'.repeat(60))
+            this.print('\n🔍 CST 验证报告')
+            this.print('─'.repeat(60))
 
             // 2.1 结构验证
             const structureErrors = this.validateStructure(this.topLevelCst)
-            console.log(`\n📌 结构完整性: ${structureErrors.length === 0 ? '✅' : '❌'}`)
+            this.print(`\n📌 结构完整性: ${structureErrors.length === 0 ? '✅' : '❌'}`)
 
             if (structureErrors.length > 0) {
-                console.log(`   发现 ${structureErrors.length} 个错误:`)
+                this.print(`   发现 ${structureErrors.length} 个错误:`)
                 structureErrors.forEach((err, i) => {
-                    console.log(`\n   [${i + 1}] ${err.path}`)
-                    console.log(`       问题: ${err.issue}`)
+                    this.print(`\n   [${i + 1}] ${err.path}`)
+                    this.print(`       问题: ${err.issue}`)
                     if (err.node) {
                         const nodeStr = JSON.stringify(err.node, null, 2)
                             .split('\n')
                             .map(line => `       ${line}`)
                             .join('\n')
-                        console.log(nodeStr)
+                        this.print(nodeStr)
                     }
                 })
             } else {
-                console.log('   无结构错误')
+                this.print('   无结构错误')
             }
 
             // 2.2 Token 完整性
             const tokenResult = this.checkTokenCompleteness(this.topLevelCst)
-            console.log(`\n📌 Token 完整性: ${tokenResult.missing.length === 0 ? '✅' : '❌'}`)
-            console.log(`   输入 tokens: ${tokenResult.input.length} 个`)
-            console.log(`   CST tokens:  ${tokenResult.cst.length} 个`)
-            console.log(`   输入列表: [${tokenResult.input.join(', ')}]`)
-            console.log(`   CST列表:  [${tokenResult.cst.join(', ')}]`)
+            this.print(`\n📌 Token 完整性: ${tokenResult.missing.length === 0 ? '✅' : '❌'}`)
+            this.print(`   输入 tokens: ${tokenResult.input.length} 个`)
+            this.print(`   CST tokens:  ${tokenResult.cst.length} 个`)
+            this.print(`   输入列表: [${tokenResult.input.join(', ')}]`)
+            this.print(`   CST列表:  [${tokenResult.cst.join(', ')}]`)
 
             if (tokenResult.missing.length > 0) {
-                console.log(`   ❌ 缺失: [${tokenResult.missing.join(', ')}]`)
+                this.print(`   ❌ 缺失: [${tokenResult.missing.join(', ')}]`)
             } else {
-                console.log(`   ✅ 完整保留`)
+                this.print(`   ✅ 完整保留`)
             }
 
             // 2.3 CST 统计
             const stats = this.getCSTStatistics(this.topLevelCst)
-            console.log(`\n📌 CST 统计:`)
-            console.log(`   总节点数: ${stats.totalNodes}`)
-            console.log(`   叶子节点: ${stats.leafNodes}`)
-            console.log(`   最大深度: ${stats.maxDepth}`)
-            console.log(`   节点类型: ${stats.nodeTypes.size} 种`)
+            this.print(`\n📌 CST 统计:`)
+            this.print(`   总节点数: ${stats.totalNodes}`)
+            this.print(`   叶子节点: ${stats.leafNodes}`)
+            this.print(`   最大深度: ${stats.maxDepth}`)
+            this.print(`   节点类型: ${stats.nodeTypes.size} 种`)
 
             // 节点类型分布
-            console.log(`\n   节点类型分布:`)
+            this.print(`\n   节点类型分布:`)
             const sortedTypes = Array.from(stats.nodeTypes.entries())
                 .sort((a, b) => b[1] - a[1])
             sortedTypes.forEach(([name, count]) => {
-                console.log(`     ${name}: ${count}`)
+                this.print(`     ${name}: ${count}`)
             })
 
-            console.log('─'.repeat(60))
+            this.print('─'.repeat(60))
 
             // ========================================
             // 第三部分：CST 可视化
             // ========================================
-            console.log('\n【第三部分：CST 可视化】')
-            console.log('─'.repeat(60))
-            console.log('\n📊 CST 结构')
-            console.log('─'.repeat(60))
-            console.log(SubhutiDebugUtils.formatCst(this.topLevelCst))
-            console.log('─'.repeat(60))
+            this.print('\n【第三部分：CST 可视化】')
+            this.print('─'.repeat(60))
+            this.print('\n📊 CST 结构')
+            this.print('─'.repeat(60))
+            this.print(SubhutiDebugUtils.formatCst(this.topLevelCst))
+            this.print('─'.repeat(60))
         }
 
-        console.log('\n' + '='.repeat(60))
-        console.log('🎉 Debug 输出完成')
-        console.log('='.repeat(60))
+        this.print('\n' + '='.repeat(60))
+        this.print('🎉 Debug 输出完成')
+        this.print('='.repeat(60))
     }
 }
 

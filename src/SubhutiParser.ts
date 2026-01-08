@@ -23,7 +23,7 @@ import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import { SubhutiDebugRuleTracePrint, setShowRulePath } from "./SubhutiDebugRuleTracePrint.ts";
 import SubhutiLexer, { TokenCacheEntry } from "./SubhutiLexer.ts";
 import { SubhutiCreateToken, DefaultMode, type LexerMode } from "./struct/SubhutiCreateToken.ts";
-import {SubhutiGrammarValidator} from "./validation";
+import { SubhutiGrammarValidator } from "./validation";
 
 
 // ============================================
@@ -483,6 +483,31 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         setShowRulePath(showRulePath)
         this._debugger = new SubhutiTraceDebugger(this._parsedTokens)
         return this
+    }
+
+    /**
+     * 设置日志输出文件（委托给 debugger）
+     * 支持链式调用，可与其他配置方法组合使用
+     * 
+     * @param filePath 日志文件路径（不传或undefined使用默认路径）
+     * @returns this - 支持链式调用
+     * 
+     * @example
+     * ```typescript
+     * parser.debug()
+     *       .setLogFile('./logs/debug.log')
+     *       .cache(true)
+     *       
+     * parser.Script()
+     * ```
+     */
+    setLogFile(filePath?: string): this {
+        if (!this._debugger) {
+            // 如果还未启用 debug，自动启用
+            this.debug()
+        }
+        this._debugger!.setLogFile(filePath)
+        return this  // ✅ 返回 parser 自身，支持链式调用
     }
 
     errorHandler(enable: boolean = true): this {

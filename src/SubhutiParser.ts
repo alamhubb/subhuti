@@ -182,41 +182,35 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private _errorRecoveryMode: boolean = false
 
     /**
-     * 同步点 Token 定义
-     * - tokenName: token 名称（必须）
-     * - value: token 值（可选，用于软关键字如 interface）
+     * 同步点 Token 名称集合
+     * 这些 token 通常是语句的开始，用于容错模式下的恢复点
      */
-    protected _syncTokens: Array<{ tokenName: string; value?: string }> = []
+    protected _syncTokens: Set<string> = new Set([
+        'LetTok', 'ConstTok', 'VarTok',
+        'FunctionTok', 'ClassTok', 'AsyncTok',
+        'IfTok', 'ForTok', 'WhileTok', 'DoTok', 'SwitchTok',
+        'TryTok', 'ThrowTok', 'ReturnTok', 'BreakTok', 'ContinueTok',
+        'ImportTok', 'ExportTok',
+        'DebuggerTok',
+        'Semicolon',
+    ])
 
     /**
      * 设置同步点 Token
      */
-    setSyncTokens(tokens: Array<{ tokenName: string; value?: string }>): this {
-        this._syncTokens = [...tokens]
+    setSyncTokens(tokens: string[]): this {
+        this._syncTokens = new Set(tokens)
         return this
     }
 
     /**
      * 添加同步点 Token
      */
-    addSyncTokens(tokens: Array<{ tokenName: string; value?: string }>): this {
-        this._syncTokens.push(...tokens)
+    addSyncTokens(tokens: string[]): this {
+        for (const token of tokens) {
+            this._syncTokens.add(token)
+        }
         return this
-    }
-
-    /**
-     * 检查 token 是否是同步点
-     */
-    protected isSyncToken(tokenName: string, tokenValue: string): boolean {
-        return this._syncTokens.some(sync => {
-            if (sync.value) {
-                // 有 value 时，tokenName 和 value 都要匹配
-                return sync.tokenName === tokenName && sync.value === tokenValue
-            } else {
-                // 没有 value 时，只匹配 tokenName
-                return sync.tokenName === tokenName
-            }
-        })
     }
 
     /**
@@ -742,17 +736,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 顶层规则：检查是否所有源码都被消费
             if (isTopLevel && this._parseSuccess) {
                 if (!this.isEof) {
-                    // 容错模式下，允许未消费完的代码（不抛错）
-                    if (this.errorRecoveryMode) {
-                        // 可选：记录未消费的 token 信息
-                        // console.warn(`[ErrorRecovery] Unconsumed tokens at position ${this._codeIndex}`)
-                    } else {
-                        const nextToken = this.LA(1)
-                        throw new Error(
-                            `Parser internal error: parsing succeeded but source code remains unconsumed. ` +
-                            `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${this._codeIndex}`
-                        )
-                    }
+                    const nextToken = this.LA(1)
+                    throw new Error(
+                        `Parser internal error: parsing succeeded but source code remains unconsumed. ` +
+                        `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${this._codeIndex}`
+                    )
                 }
             }
 
@@ -835,11 +823,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.cstStack.pop()
 
         // 成功时添加到父节点并设置位置
-        // 容错模式下：失败但有子节点也添加（保留已消费的 token）
-        const shouldAddToParent = this._parseSuccess ||
-            (this.errorRecoveryMode && cst.children && cst.children.length > 0)
-
-        if (shouldAddToParent) {
+        if (this._parseSuccess) {
             const parentCst = this.cstStack[this.cstStack.length - 1]
             if (parentCst) {
                 parentCst.children!.push(cst)
@@ -867,7 +851,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 核心逻辑：
      * - 依次尝试每个分支，第一个成功的分支生效
      * - 所有分支都失败则整体失败
-     * - 容错模式下：所有分支失败时，选择消费 token 最多的分支
      *
      * 优化：只有消费了 token 才需要回溯（没消费 = 状态没变）
      */
@@ -878,13 +861,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         const savedState = this.saveState()
         const startCodeIndex = this._codeIndex
-        const startTokenIndex = this.currentTokenIndex
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
-
-        // 容错模式：记录消费 token 最多的分支
-        let bestBranchState: SubhutiBackData | null = null
-        let bestTokenCount = 0
 
         // 进入 Or（整个 Or 调用开始）
         this._debugger?.onOrEnter?.(parentRuleName, startCodeIndex)
@@ -907,27 +885,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return
             }
 
-            // 容错模式：记录消费 token 最多的失败分支
-            if (this.errorRecoveryMode) {
-                const tokenCount = this.currentTokenIndex - startTokenIndex
-                if (tokenCount > bestTokenCount) {
-                    bestTokenCount = tokenCount
-                    bestBranchState = this.saveState()
-                }
-            }
-
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
                 this.recordPartialMatchAndRestore(savedState, startCodeIndex)
                 this._parseSuccess = true
             }
             // 最后一个分支：失败后不回溯，保持失败状态
-        }
-
-        // 容错模式：所有分支失败，使用消费 token 最多的分支
-        if (this.errorRecoveryMode && bestBranchState && bestTokenCount > 0) {
-            this.restoreState(bestBranchState)
-            // 保持失败状态，但保留已消费的 token
         }
 
         // 退出 Or（整个 Or 调用失败结束）
@@ -960,13 +923,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 清理记录
         this._unparsedTokens.length = 0
 
-        let iterationCount = 0
         while (!this.parserFailOrIsEof) {
-            iterationCount++
             const startTokenIndex = this.currentTokenIndex
-            const startCodeIndex = this._codeIndex
-
-            console.log(`\n[ManyWithRecovery] 迭代 ${iterationCount}: codeIndex=${startCodeIndex}, tokenIndex=${startTokenIndex}`)
 
             // 启用解析记录，为本次迭代创建根节点
             this._parseRecordRoot = {
@@ -981,39 +939,30 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
             if (success) {
                 // 成功，清理解析记录树，继续下一个
-                console.log(`[ManyWithRecovery] 迭代 ${iterationCount}: 成功, 新 codeIndex=${this._codeIndex}`)
                 this._parseRecordRoot = null
                 this._parseRecordStack = []
                 continue
             }
 
             // 解析失败，尝试从解析记录树恢复
-            console.log(`[ManyWithRecovery] 迭代 ${iterationCount}: 失败, parsedTokens.length=${this._parsedTokens.length}`)
-
-            // 从当前 codeIndex 开始查找同步点
-            // 注意：不能用 _parsedTokens 的最后位置，因为解析失败后 _parsedTokens 会被回滚
-            const lastParsedEnd = this._codeIndex
-
-            console.log(`[ManyWithRecovery] 查找同步点, lastParsedEnd=${lastParsedEnd}`)
-            const syncIndex = this.findNextSyncPoint(lastParsedEnd)
-            console.log(`[ManyWithRecovery] 找到同步点 syncIndex=${syncIndex}, 源码片段: "${this._sourceCode.substring(syncIndex, syncIndex + 30).replace(/\n/g, '\\n')}"`)
-
+            const syncIndex = this.findNextSyncPoint(this._codeIndex + 1)
             const recoveredCST = this.recoverFromParseRecord(this._parseRecordRoot!, syncIndex)
 
             if (recoveredCST && recoveredCST.children && recoveredCST.children.length > 0) {
                 // 恢复成功，将 CST 添加到当前节点
-                console.log(`[ManyWithRecovery] 恢复成功, recoveredCST.children.length=${recoveredCST.children.length}`)
                 const currentCst = this.curCst
                 if (currentCst) {
                     currentCst.children!.push(...recoveredCST.children)
                 }
-                // 跳到同步点继续（不能用恢复的 token 位置，因为它可能在同步点之前）
-                this._codeIndex = syncIndex
-                console.log(`[ManyWithRecovery] 恢复后 codeIndex=${this._codeIndex}`)
+                // 从恢复的位置继续（需要从 parsedTokens 恢复 codeIndex）
+                const maxTokenIndex = this.getParseRecordMaxEndIndex(this._parseRecordRoot!, syncIndex)
+                if (maxTokenIndex > 0 && maxTokenIndex <= this._parsedTokens.length) {
+                    const lastToken = this._parsedTokens[maxTokenIndex - 1]
+                    this._codeIndex = (lastToken.index || 0) + lastToken.tokenValue.length
+                }
             } else {
-                // 没有可恢复的内容，跳到同步点继续（而不是逐字符前进）
-                console.log(`[ManyWithRecovery] 无法恢复, 跳到同步点 ${syncIndex}`)
-                this._codeIndex = syncIndex
+                // 没有可恢复的内容，跳过一个字符继续
+                this._codeIndex++
             }
 
             // 清理解析记录树
@@ -1021,8 +970,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._parseRecordStack = []
             this._parseSuccess = true
         }
-
-        console.log(`[ManyWithRecovery] 循环结束, 总迭代次数=${iterationCount}, isEof=${this.isEof}, parserFail=${this.parserFail}`)
 
         // 出口：如果有未解析的 tokens，标记解析失败
         if (this._unparsedTokens.length > 0) {
@@ -1153,71 +1100,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     /**
      * 找到下一个同步点（语句开始 token）
-     *
-     * 使用逐 Token 扫描而不是逐字符扫描：
-     * - readTokenAt 会返回完整的 token（包括字符串、注释等）
-     * - 避免从字符串/注释中间开始解析的问题
-     * - 遇到词法错误时跳到下一行继续
-     *
      * @param fromIndex 从哪个源码位置开始查找
      * @returns 同步点的源码位置，如果没找到返回源码末尾
      */
     protected findNextSyncPoint(fromIndex: number): number {
-        let pos = fromIndex
-        let line = this._codeLine
-        let column = this._codeColumn
-        let isFirstToken = true  // 标记是否是第一个 token
-
-        console.log(`[findNextSyncPoint] 开始查找, fromIndex=${fromIndex}, sourceCode.length=${this._sourceCode.length}`)
-        let tokenCount = 0
-
-        while (pos < this._sourceCode.length) {
-            try {
-                // 使用 readTokenAt 获取下一个完整的 token
-                const entry = this._lexer.readTokenAt(
-                    this._sourceCode,
-                    pos,
-                    line,
-                    column,
-                    DefaultMode,
-                    this._lastTokenName
-                )
-
-                if (!entry) {
-                    console.log(`[findNextSyncPoint] entry 为 null, pos=${pos}`)
-                    break  // EOF
-                }
-
-                tokenCount++
-                if (tokenCount <= 10) {
-                    console.log(`[findNextSyncPoint] token ${tokenCount}: ${entry.token.tokenName} = "${entry.token.tokenValue.substring(0, 20)}", pos=${pos}, isSyncToken=${this.isSyncToken(entry.token.tokenName, entry.token.tokenValue)}`)
-                }
-
-                // 检查是否是同步点 token（如 const, let, function, class 等）
-                // 跳过第一个 token，避免找到当前位置本身导致无限循环
-                if (!isFirstToken && this.isSyncToken(entry.token.tokenName, entry.token.tokenValue)) {
-                    console.log(`[findNextSyncPoint] 找到同步点! token=${entry.token.tokenName}, value=${entry.token.tokenValue}, index=${entry.token.index}`)
-                    return entry.token.index  // 返回 token 的起始位置
-                }
-                isFirstToken = false
-
-                // 移动到下一个 token 的位置
-                pos = entry.nextCodeIndex
-                line = entry.nextLine
-                column = entry.nextColumn
-
-            } catch (e: any) {
-                // 词法错误：跳到下一行重试
-                console.log(`[findNextSyncPoint] 词法错误 at pos=${pos}: ${e?.message}`)
-                const nextNewline = this._sourceCode.indexOf('\n', pos)
-                if (nextNewline === -1) break
-                pos = nextNewline + 1
-                line++
-                column = 1
+        // 从指定位置开始，尝试解析每个位置的 token
+        for (let i = fromIndex; i < this._sourceCode.length; i++) {
+            const entry = this._getOrParseToken(i, this._codeLine, this._codeColumn, DefaultMode)
+            if (entry && this._syncTokens.has(entry.token.tokenName)) {
+                return i
             }
         }
-
-        console.log(`[findNextSyncPoint] 未找到同步点, 返回源码末尾 ${this._sourceCode.length}, 共扫描 ${tokenCount} 个 token`)
         return this._sourceCode.length  // 没找到，返回源码末尾
     }
 

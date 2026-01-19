@@ -887,7 +887,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
-                this.recordPartialMatchAndRestore(savedState, startCodeIndex)
+                this.restoreState(savedState)
                 this._parseSuccess = true
             }
             // 最后一个分支：失败后不回溯，保持失败状态
@@ -1377,18 +1377,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
-     * 【容错模式】记录部分匹配并回溯
-     * - 解析记录树方案中，部分匹配由 _parseRecordRoot 记录
-     * - 这里只需要回溯 CST（解析记录树是只增不删的）
-     *
-     * @param savedState 保存的状态
-     * @param startCodeIndex 起始源码位置
-     */
-    private recordPartialMatchAndRestore(savedState: SubhutiBackData, startCodeIndex: number): void {
-        this.restoreState(savedState)
-    }
-
-    /**
      * 检查是否已到达源码末尾
      */
     get isEof(): boolean {
@@ -1430,7 +1418,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         if (this.parserFail) {
             // 记录部分匹配并回溯
-            this.recordPartialMatchAndRestore(savedState, startIndex)
+            this.restoreState(savedState)
             this._parseSuccess = true
             return false
         }

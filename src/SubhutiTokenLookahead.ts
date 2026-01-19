@@ -79,7 +79,9 @@ export default class SubhutiTokenLookahead {
         if (!this._lexer) return null
 
         // 容错：nextTokenInfo 可能为 undefined（代码不完整时）
-        if (!nextTokenInfo) return null
+        if (!nextTokenInfo) {
+            throw new Error('[Parser Error] nextTokenInfo is undefined - 代码不完整或解析器状态异常')
+        }
 
         // 1. 查缓存
         const positionCache = this._tokenCache.get(nextTokenInfo.index)

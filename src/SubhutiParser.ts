@@ -539,7 +539,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         const savedState = this.getCurState()
-        const startCodeIndex = this._nextTokenInfo.index
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
@@ -547,7 +546,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const failedBranches: SubhutiCst[] = []
 
         // 进入 Or（整个 Or 调用开始）
-        this._debugger?.onOrEnter?.(parentRuleName, startCodeIndex)
+        this._debugger?.onOrEnter?.(parentRuleName, this.lastTokenIndex)
 
         for (let i = 0; i < totalCount; i++) {
             const alt = alternatives[i]
@@ -556,7 +555,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 进入 Or 分支
             this._debugger?.onOrBranch?.(i, totalCount, parentRuleName)
 
-            const cst = alt.alt() as SubhutiCst | undefined
+            alt.alt()
 
             // 退出 Or 分支（无论成功还是失败）
             this._debugger?.onOrBranchExit?.(parentRuleName, i)
@@ -566,6 +565,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 this._debugger?.onOrExit?.(parentRuleName)
                 return
             }
+
+            const cst = this.curCst
 
             // 失败：记录这个分支的 cst（在 restoreState 之前）
             if (cst) {
@@ -580,32 +581,21 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 最后一个分支：失败后不回溯，保持失败状态
         }
 
-        // 所有分支都失败，选择 codeIndex 变化最多的分支
-        if (failedBranches.length > 0) {
+        if (this.parserFail) {
             const best = failedBranches.reduce((a, b) => {
                 const aEnd = a.loc?.end?.index ?? startCodeIndex
                 const bEnd = b.loc?.end?.index ?? startCodeIndex
                 return aEnd >= bEnd ? a : b
             })
-
-            // 最后一个分支的 cst 在 parent.children 中（因为没有 restoreState）
-            // 替换为 best
-            const parentCst = this.curCst
-            if (parentCst && parentCst.children && parentCst.children.length > 0) {
-                parentCst.children.pop()  // 移除最后一个分支的 cst
-                parentCst.children.push(best)  // 添加 best
-            }
-
-            // 恢复位置到 best 的结束位置
-            if (best.loc?.end?.index && best.loc.end.index > startCodeIndex) {
-                this._nextTokenInfo.index = best.loc.end.index
-                this._nextTokenInfo.line = best.loc.end.line
-                this._nextTokenInfo.column = best.loc.end.column
-            }
+            this.setCurCst(best)
         }
 
         // 退出 Or（整个 Or 调用失败结束）
         this._debugger?.onOrExit?.(parentRuleName)
+    }
+
+    setCurCst(curCst: SubhutiCst): void {
+        this.cstStack[this.cstStack.length - 1] = curCst
     }
 
     /**
@@ -627,47 +617,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     ManyTolerant(fn: RuleFunction): void {
         while (!this.isEof) {
-            const startCodeIndex = this._nextTokenInfo.index
+            if (!this.tryAndRestore(fn)) {
 
-            fn()
-
-            if (this._parseSuccess) {
-                continue  // 成功，继续循环
-            }
-
-            // 失败但有进展（codeIndex 变化了），改为 true 继续
-            if (this._nextTokenInfo.index > startCodeIndex) {
-                this._parseSuccess = true
-                continue
-            }
-
-            // 失败且没进展，退出循环（暂时不跳过 token）
-            break
-        }
-    }
-
-    /**
-     * 跳过一个 token（用于容错恢复）
-     */
-    private skipOneToken(): void {
-        const token = this.LA(1)
-        if (token) {
-            // 创建一个错误节点来记录跳过的 token
-            const errorCst = new SubhutiCst()
-            errorCst.name = 'ErrorToken'
-            errorCst.children = [this.generateCstByToken(token)]
-
-            // 添加到当前 CST
-            const parentCst = this.curCst
-            if (parentCst) {
-                parentCst.children!.push(errorCst)
-            }
-
-            // 推进 token 位置
-            const entry = this._getOrParseToken(this._nextTokenInfo, DefaultMode)
-            if (entry) {
-                this._parsedTokens.push(token)
-                this.setNextTokenIndex(entry.nextTokenInfo)
             }
         }
     }
@@ -864,7 +815,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return false
         }
         const savedState = this.getCurState()
-        const startIndex = this._nextTokenInfo.index
+        const startIndex = this.lastTokenIndex
 
         fn()
 
@@ -876,7 +827,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         // 成功但没消费 token → 返回 false（防止无限循环）
-        return this._nextTokenInfo.index !== startIndex
+        return this.lastTokenIndex !== startIndex
     }
 
     /**

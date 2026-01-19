@@ -51,29 +51,6 @@ export interface SubhutiBackData {
     parsedTokensLength: number
 }
 
-/**
- * 部分匹配记录（用于容错模式）
- * 在回溯时记录已消费 token 的 CST 结构
- */
-export interface PartialMatchRecord {
-    children: SubhutiCst[]    // 部分匹配的 children（引用）
-    parentCst: SubhutiCst     // 父节点（恢复时把 children 放到这里）
-    endTokenIndex: number     // 消耗到的 token 索引
-    startTokenIndex: number   // 起始 token 索引
-}
-
-/**
- * 解析记录树节点（用于容错模式）
- * 只增不删，记录所有解析尝试路径
- */
-export interface ParseRecordNode {
-    name: string                  // 规则名或 token 名
-    children: ParseRecordNode[]   // 子节点（只增不删）
-    startTokenIndex: number       // 该节点开始的 token 索引
-    endTokenIndex: number         // 该节点消耗到的 token 索引
-    token?: SubhutiMatchToken     // 如果是 token 叶子节点
-    value?: string                // token 值
-}
 
 // ============================================
 // 装饰器系统（兼容旧版 experimentalDecorators 和 Stage 3）
@@ -149,7 +126,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     /** 源代码 */
     protected _sourceCode: string = ''
 
-    /** 当前源码位置 */
+    /** 当前源码位置，如果用tokenindex会导致tokenindex动态变化缓存问题，因为同样的代码不同的模式解析出来的tokens不一致 */
     protected _codeIndex: number = 0
 
     /** 当前行号 */
@@ -174,64 +151,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     private _analysisMode: boolean = false
 
-    /**
-     * 容错模式标志
-     * - true: 启用容错（解析失败时跳过 token 继续解析）
-     * - false: 不启用容错（解析失败时停止）
-     */
-    private _errorRecoveryMode: boolean = false
-
-    /**
-     * 同步点 Token 名称集合
-     * 这些 token 通常是语句的开始，用于容错模式下的恢复点
-     */
-    protected _syncTokens: Set<string> = new Set([
-        'LetTok', 'ConstTok', 'VarTok',
-        'FunctionTok', 'ClassTok', 'AsyncTok',
-        'IfTok', 'ForTok', 'WhileTok', 'DoTok', 'SwitchTok',
-        'TryTok', 'ThrowTok', 'ReturnTok', 'BreakTok', 'ContinueTok',
-        'ImportTok', 'ExportTok',
-        'DebuggerTok',
-        'Semicolon',
-    ])
-
-    /**
-     * 设置同步点 Token
-     */
-    setSyncTokens(tokens: string[]): this {
-        this._syncTokens = new Set(tokens)
-        return this
-    }
-
-    /**
-     * 添加同步点 Token
-     */
-    addSyncTokens(tokens: string[]): this {
-        for (const token of tokens) {
-            this._syncTokens.add(token)
-        }
-        return this
-    }
-
-    /**
-     * 启用容错模式
-     */
-    enableErrorRecovery(): this {
-        this._errorRecoveryMode = true
-        return this
-    }
-
-    /**
-     * 获取容错模式状态
-     */
-    get errorRecoveryMode(): boolean {
-        return this._errorRecoveryMode
-    }
-
-    getRuleStack() {
-        return this.cstStack.map(item => item.name)
-    }
-
     // 调试和错误处理
     private _debugger?: SubhutiTraceDebugger
     private readonly _errorHandler = new SubhutiErrorHandler()
@@ -247,40 +166,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     enableMemoization: boolean = true
     private readonly _cache: SubhutiPackratCache
 
-    /**
-     * 部分匹配候选列表（容错模式专用）
-     * 记录在回溯时被删除但消费了 token 的 CST 片段
-     */
-    private _partialMatchCandidates: PartialMatchRecord[] = []
-
-    /**
-     * 未被解析的 tokens 列表（容错模式专用）
-     * 用于最终判断解析是否完全成功
-     */
-    private _unparsedTokens: SubhutiMatchToken[] = []
-
-    // ============================================
-    // 解析记录树相关（容错模式专用）
-    // ============================================
-
-    /** 解析记录树根节点 */
-    private _parseRecordRoot: ParseRecordNode | null = null
-
-    /** 解析记录树节点栈（跟踪当前路径） */
-    private _parseRecordStack: ParseRecordNode[] = []
-
-    /**
-     * 获取未被解析的 tokens 列表
-     */
-    get unparsedTokens(): SubhutiMatchToken[] {
-        return this._unparsedTokens
-    }
-
-    /**
-     * 是否有未被解析的 tokens
-     */
-    get hasUnparsedTokens(): boolean {
-        return this._unparsedTokens.length > 0
+    getRuleStack() {
+        return this.cstStack.map(item => item.name)
     }
 
     /**
@@ -654,28 +541,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 if (cached !== undefined) {
                     this._debugger?.onRuleExit(ruleName, true, startTime)
 
-                    // 解析记录模式：缓存命中时也要记录节点，并更新整个祖先链的 endTokenIndex
-                    if (this.errorRecoveryMode && cached.endTokenIndex > tokenIndex) {
-                        // 创建记录节点，复制缓存中的 children
-                        const recordNode: ParseRecordNode = {
-                            name: ruleName,
-                            startTokenIndex: tokenIndex,
-                            endTokenIndex: cached.endTokenIndex,
-                            children: cached.recordNode?.children ? [...cached.recordNode.children] : []
-                        }
-                        const recordParent = this._parseRecordStack[this._parseRecordStack.length - 1]
-                        if (recordParent) {
-                            recordParent.children.push(recordNode)
-                        }
-                        // 更新整个祖先链的 endTokenIndex
-                        for (let i = this._parseRecordStack.length - 1; i >= 0; i--) {
-                            const ancestor = this._parseRecordStack[i]
-                            if (cached.endTokenIndex > ancestor.endTokenIndex) {
-                                ancestor.endTokenIndex = cached.endTokenIndex
-                            }
-                        }
-                    }
-
                     const cst = this.applyCachedResult(cached)
                     if (!cst.children?.length) {
                         cst.children = undefined
@@ -687,35 +552,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 核心执行
             const startTokenIndex = tokenIndex
 
-            // 解析记录树：创建节点并入栈（在 executeRuleCore 之前）
-            let recordNode: ParseRecordNode | null = null
-            if (this.errorRecoveryMode) {
-                recordNode = {
-                    name: ruleName,
-                    children: [],
-                    startTokenIndex: tokenIndex,
-                    endTokenIndex: tokenIndex
-                }
-                this._parseRecordStack.push(recordNode)
-            }
-
             const cst = this.executeRuleCore(ruleName, targetFun, ...args)
-
-            // 解析记录树：出栈，只有消费了 token 才添加到父节点
-            if (this.errorRecoveryMode && recordNode) {
-                this._parseRecordStack.pop()
-                if (recordNode.endTokenIndex > recordNode.startTokenIndex) {
-                    const recordParent = this._parseRecordStack[this._parseRecordStack.length - 1]
-                    if (recordParent) {
-                        recordParent.children.push(recordNode)
-                    }
-                }
-            }
 
             // 缓存存储
             if (this.enableMemoization) {
                 const endTokenIndex = this.currentTokenIndex
-                const finalEndIndex = recordNode ? Math.max(recordNode.endTokenIndex, endTokenIndex) : endTokenIndex
 
                 // 提取本次规则消费的 token
                 const consumedTokens = this._parseSuccess
@@ -723,10 +564,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     : undefined
 
                 this._cache.set(ruleName, startTokenIndex, {
-                    endTokenIndex: finalEndIndex,
+                    endTokenIndex: endTokenIndex,
                     cst: cst,
                     parseSuccess: this._parseSuccess,
-                    recordNode: recordNode,
                     parsedTokens: consumedTokens
                 })
             }
@@ -909,261 +749,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
-     * 带容错的 Many 规则（使用解析记录树）
-     * - 当全局 errorRecoveryMode 开启时，解析失败会尝试恢复并继续
-     * - 使用解析记录树记录所有解析尝试，只增不删
-     * - 失败时从解析记录树提取最优路径恢复 CST
-     * @param fn 要执行的规则函数
-     */
-    ManyWithRecovery(fn: RuleFunction): void {
-        if (!this.errorRecoveryMode) {
-            throw new Error('非容错模式不应该进入 ManyWithRecovery')
-        }
-
-        // 清理记录
-        this._unparsedTokens.length = 0
-
-        while (!this.parserFailOrIsEof) {
-            const startTokenIndex = this.currentTokenIndex
-
-            // 启用解析记录，为本次迭代创建根节点
-            this._parseRecordRoot = {
-                name: '__ParseRecordRoot__',
-                children: [],
-                startTokenIndex: startTokenIndex,
-                endTokenIndex: startTokenIndex
-            }
-            this._parseRecordStack = [this._parseRecordRoot]
-
-            const success = this.tryAndRestore(fn)
-
-            if (success) {
-                // 成功，清理解析记录树，继续下一个
-                this._parseRecordRoot = null
-                this._parseRecordStack = []
-                continue
-            }
-
-            // 解析失败，尝试从解析记录树恢复
-            const syncIndex = this.findNextSyncPoint(this._codeIndex + 1)
-            const recoveredCST = this.recoverFromParseRecord(this._parseRecordRoot!, syncIndex)
-
-            if (recoveredCST && recoveredCST.children && recoveredCST.children.length > 0) {
-                // 恢复成功，将 CST 添加到当前节点
-                const currentCst = this.curCst
-                if (currentCst) {
-                    currentCst.children!.push(...recoveredCST.children)
-                }
-                // 从恢复的位置继续（需要从 parsedTokens 恢复 codeIndex）
-                const maxTokenIndex = this.getParseRecordMaxEndIndex(this._parseRecordRoot!, syncIndex)
-                if (maxTokenIndex > 0 && maxTokenIndex <= this._parsedTokens.length) {
-                    const lastToken = this._parsedTokens[maxTokenIndex - 1]
-                    this._codeIndex = (lastToken.index || 0) + lastToken.tokenValue.length
-                }
-            } else {
-                // 没有可恢复的内容，跳过一个字符继续
-                this._codeIndex++
-            }
-
-            // 清理解析记录树
-            this._parseRecordRoot = null
-            this._parseRecordStack = []
-            this._parseSuccess = true
-        }
-
-        // 出口：如果有未解析的 tokens，标记解析失败
-        if (this._unparsedTokens.length > 0) {
-            this._parseSuccess = false
-        }
-    }
-
-    /**
-     * 从解析记录树恢复 CST
-     * 找到 endTokenIndex <= maxIndex 的最深路径，转换为 CST
-     */
-    private recoverFromParseRecord(root: ParseRecordNode, maxIndex: number): SubhutiCst | null {
-        if (!root || root.children.length === 0) {
-            return null
-        }
-
-        const cst = new SubhutiCst()
-        cst.name = root.name
-        cst.children = this.parseRecordChildrenToCST(root.children, maxIndex)
-
-        if (!cst.children || cst.children.length === 0) {
-            return null
-        }
-
-        return cst
-    }
-
-    /**
-     * 将解析记录树子节点转换为 CST 子节点
-     *
-     * 选择策略：
-     * 1. 按 startTokenIndex 分组（同一位置开始的是 Or 的不同分支）
-     * 2. 对于每组，选择 endTokenIndex <= maxIndex 且最大的
-     * 3. 如果有多个相同深度的，选择最后一个
-     */
-    private parseRecordChildrenToCST(nodes: ParseRecordNode[], maxIndex: number): SubhutiCst[] {
-        // 按 startTokenIndex 分组
-        const groups = new Map<number, ParseRecordNode[]>()
-        for (const node of nodes) {
-            // 跳过超过同步点的节点
-            if (node.endTokenIndex > maxIndex) {
-                continue
-            }
-            const key = node.startTokenIndex
-            if (!groups.has(key)) {
-                groups.set(key, [])
-            }
-            groups.get(key)!.push(node)
-        }
-
-        // 对每组选择最优节点
-        const selectedNodes: ParseRecordNode[] = []
-        for (const [startIdx, group] of groups) {
-            // 选择 endTokenIndex 最大的，如果相同则选最后一个（兜底分支，更通用）
-            let best: ParseRecordNode | null = null
-            for (const node of group) {
-                if (!best || node.endTokenIndex >= best.endTokenIndex) {
-                    best = node
-                }
-            }
-            if (best) {
-                selectedNodes.push(best)
-            }
-        }
-
-        // 按 startTokenIndex 排序，保证顺序正确
-        selectedNodes.sort((a, b) => a.startTokenIndex - b.startTokenIndex)
-
-        // 转换为 CST
-        return selectedNodes.map(node => this.parseRecordNodeToCST(node, maxIndex))
-    }
-
-    /**
-     * 将单个解析记录节点转换为 CST 节点
-     */
-    private parseRecordNodeToCST(node: ParseRecordNode, maxIndex: number): SubhutiCst {
-        const cst = new SubhutiCst()
-        cst.name = node.name
-
-        // 如果是 token 节点
-        if (node.token) {
-            cst.value = node.value
-            cst.loc = {
-                type: node.token.tokenName,
-                value: node.token.tokenValue,
-                start: {
-                    index: node.token.index || 0,
-                    line: node.token.rowNum || 0,
-                    column: node.token.columnStartNum || 0
-                },
-                end: {
-                    index: (node.token.index || 0) + node.token.tokenValue.length,
-                    line: node.token.rowNum || 0,
-                    column: node.token.columnEndNum || 0
-                }
-            }
-        }
-
-        // 递归转换子节点
-        if (node.children.length > 0) {
-            cst.children = this.parseRecordChildrenToCST(node.children, maxIndex)
-            if (cst.children.length === 0) {
-                cst.children = undefined
-            } else {
-                // 设置位置信息
-                this.setLocation(cst)
-            }
-        }
-
-        return cst
-    }
-
-    /**
-     * 获取解析记录树中 <= maxIndex 的最大 endTokenIndex
-     */
-    private getParseRecordMaxEndIndex(root: ParseRecordNode, maxIndex: number): number {
-        let maxEnd = root.endTokenIndex <= maxIndex ? root.endTokenIndex : 0
-
-        for (const child of root.children) {
-            const childMax = this.getParseRecordMaxEndIndex(child, maxIndex)
-            if (childMax > maxEnd) {
-                maxEnd = childMax
-            }
-        }
-
-        return maxEnd
-    }
-
-    /**
-     * 找到下一个同步点（语句开始 token）
-     * @param fromIndex 从哪个源码位置开始查找
-     * @returns 同步点的源码位置，如果没找到返回源码末尾
-     */
-    protected findNextSyncPoint(fromIndex: number): number {
-        // 从指定位置开始，尝试解析每个位置的 token
-        for (let i = fromIndex; i < this._sourceCode.length; i++) {
-            const entry = this._getOrParseToken(i, this._codeLine, this._codeColumn, DefaultMode)
-            if (entry && this._syncTokens.has(entry.token.tokenName)) {
-                return i
-            }
-        }
-        return this._sourceCode.length  // 没找到，返回源码末尾
-    }
-
-    /**
-     * 创建 ErrorNode，包含指定范围内的 token
-     * @param startIndex 起始源码位置（包含）
-     * @param endIndex 结束源码位置（不包含）
-     * @returns ErrorNode CST 节点
-     */
-    protected createErrorNode(startIndex: number, endIndex: number): SubhutiCst {
-        const errorNode = new SubhutiCst()
-        errorNode.name = 'ErrorNode'
-        errorNode.children = []
-
-        // 从 parsedTokens 中找出在范围内的 tokens
-        for (const token of this._parsedTokens) {
-            if ((token.index || 0) >= startIndex && (token.index || 0) < endIndex) {
-                const tokenNode = new SubhutiCst()
-                tokenNode.name = token.tokenName
-                tokenNode.value = token.tokenValue
-                tokenNode.loc = {
-                    type: token.tokenName,
-                    value: token.tokenValue,
-                    start: {
-                        index: token.index || 0,
-                        line: token.rowNum || 0,
-                        column: token.columnStartNum || 0
-                    },
-                    end: {
-                        index: (token.index || 0) + (token.tokenValue?.length || 0),
-                        line: token.rowNum || 0,
-                        column: token.columnEndNum || 0
-                    }
-                }
-                errorNode.children.push(tokenNode)
-            }
-        }
-
-        // 设置 ErrorNode 的位置信息
-        if (errorNode.children.length > 0) {
-            const first = errorNode.children[0]
-            const last = errorNode.children[errorNode.children.length - 1]
-            errorNode.loc = {
-                type: 'ErrorNode',
-                start: first.loc.start,
-                end: last.loc.end
-            }
-        }
-
-        return errorNode
-    }
-
-    /**
      * Option 规则 - 0次或1次（EBNF [ ... ]）
      *
      * 尝试执行一次，失败则回溯，不影响整体解析状态
@@ -1315,27 +900,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const currentCst = this.curCst
         if (currentCst) {
             currentCst.children!.push(cst)
-        }
-
-        // 解析记录树：记录 token 并更新祖先的 endTokenIndex
-        if (this.errorRecoveryMode) {
-            const newEndIndex = this.currentTokenIndex  // consume 后会 +1
-            const tokenNode: ParseRecordNode = {
-                name: token.tokenName,
-                children: [],
-                startTokenIndex: this.lastTokenIndex,  // consume 后的索引
-                endTokenIndex: newEndIndex,
-                token: token,
-                value: token.tokenValue
-            }
-            const recordCurrent = this._parseRecordStack[this._parseRecordStack.length - 1]
-            if (recordCurrent) {
-                recordCurrent.children.push(tokenNode)
-            }
-            // 更新所有祖先的 endTokenIndex
-            for (const ancestor of this._parseRecordStack) {
-                ancestor.endTokenIndex = newEndIndex
-            }
         }
 
         return cst

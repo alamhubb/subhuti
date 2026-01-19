@@ -3,6 +3,7 @@ export default class SubhutiMatchToken {
     //只能为字符串，为parser解析时输入的字符串
     tokenValue: string;
     rowNum?: number;
+    endRowNum?: number;
     columnStartNum?: number;
     columnEndNum?: number;
     index?: number

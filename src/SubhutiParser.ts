@@ -474,8 +474,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             position: {
                 tokenIndex: this.currentTokenIndex,
                 codeIndex: currentToken.index,
-                line: currentToken?.rowNum,
-                column: currentToken?.columnStartNum
+                line: currentToken?.line,
+                column: currentToken?.column
             },
             ruleStack: [...ruleStack],
             loopRuleName: ruleName,
@@ -784,8 +784,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             position: {
                 tokenIndex: this.currentTokenIndex,
                 codeIndex: this.curToken?.index,
-                line: this.curToken?.rowNum,
-                column: this.curToken?.columnStartNum
+                line: this.curToken?.line,
+                column: this.curToken?.column
             },
             ruleStack: this.getRuleStack().length > 0 ? this.getRuleStack() : [ruleName]
         })
@@ -867,12 +867,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             value: token.tokenValue,
             start: {
                 index: token.index || 0,
-                line: token.rowNum || 0,
-                column: token.columnStartNum || 0
+                line: token.line || 0,
+                column: token.column || 0
             },
             end: {
                 index: (token.index || 0) + token.tokenValue.length,
-                line: token.rowNum || 0,
+                line: token.line || 0,
                 column: token.columnEndNum || 0
             }
         }
@@ -1088,8 +1088,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             position: {
                 tokenIndex: this.currentTokenIndex,
                 codeIndex: this.curToken?.index,
-                line: this.curToken?.rowNum,
-                column: this.curToken?.columnStartNum
+                line: this.curToken?.line,
+                column: this.curToken?.column
             },
             ruleStack: [...ruleStack],
             loopRuleName: ruleName,

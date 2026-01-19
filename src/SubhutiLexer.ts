@@ -118,9 +118,9 @@ export default class SubhutiLexer {
             tokenName: token.name,
             tokenValue: value,
             index: index,
-            rowNum: rowNum,
+            line: rowNum,
             endRowNum: endRowNum,
-            columnStartNum: columnNum,
+            column: columnNum,
             columnEndNum: columnEndNum,
             hasLineBreakBefore: rowNum > this._lastRowNum
         }
@@ -230,9 +230,9 @@ export default class SubhutiLexer {
                 tokenName: matched.token.tokenName,
                 tokenValue: matched.token.tokenValue,
                 index: pos,
-                rowNum: rowNum,
+                line: rowNum,
                 endRowNum: endRowNum,
-                columnStartNum: columnNum,
+                column: columnNum,
                 columnEndNum: columnEndNum,
                 hasLineBreakBefore: rowNum > lastRowNum
             }

@@ -51,7 +51,7 @@ try {
     parser.Statement()
     const tokens = parser.parsedTokens
     
-    if (tokens[0].rowNum === 1 && tokens[0].columnStartNum === 1) {
+    if (tokens[0].line === 1 && tokens[0].column === 1) {
         console.log('✅ 测试1: 单行位置正确')
         passed++
     } else {
@@ -70,7 +70,7 @@ try {
     const tokens = parser.parsedTokens
     
     // 每个 token 应该在不同行
-    const lines = tokens.map(t => t.rowNum)
+    const lines = tokens.map(t => t.line)
     if (lines[0] === 1 && lines[1] === 2 && lines[2] === 3) {
         console.log('✅ 测试2: 多行位置正确')
         passed++
@@ -90,7 +90,7 @@ try {
     const tokens = parser.parsedTokens
     
     // let 从第 1 列开始，abc 从第 5 列开始
-    if (tokens[0].columnStartNum === 1 && tokens[1].columnStartNum === 5) {
+    if (tokens[0].column === 1 && tokens[1].column === 5) {
         console.log('✅ 测试3: 列位置正确')
         passed++
     } else {

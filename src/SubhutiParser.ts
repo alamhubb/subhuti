@@ -45,7 +45,8 @@ export interface NextTokenInfo {
     columnNum: number
 }
 
-export interface SubhutiBackData extends NextTokenInfo {
+export interface SubhutiBackData {
+    nextTokenInfo: NextTokenInfo
     /** CST children 长度 */
     curCstChildrenLength: number
     /** 已解析 token 数量（用于恢复 parsedTokens） */
@@ -137,8 +138,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
     protected get _lastTokenName(): string | null {
-        const len = this._parsedTokens.length
-        return len > 0 ? this._parsedTokens[len - 1].tokenName : null
+        return this.currentTokenIndex > 0 ? this._parsedTokens[this.lastTokenIndex].tokenName : null
     }
 
     protected _nextTokenInfo: NextTokenInfo = null
@@ -222,7 +222,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * @returns token 索引，如果没有已解析的 token 则返回 -1
      */
     get lastTokenIndex(): number {
-        return this._parsedTokens.length - 1
+        return this.currentTokenIndex - 1
     }
 
     /**
@@ -545,19 +545,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
             // 缓存存储
             if (this.enableMemoization) {
-                const endTokenIndex = this.currentTokenIndex
-
                 // 提取本次规则消费的 token
                 const consumedTokens = this._parseSuccess
                     ? this._parsedTokens.slice(startTokenIndex)
                     : undefined
 
                 this._cache.set(ruleName, startTokenIndex, {
-                    endTokenIndex: endTokenIndex,
+                    endTokenIndex: this.currentTokenIndex,
                     cst: cst,
                     parseSuccess: this._parseSuccess,
                     parsedTokens: consumedTokens,
-                    nextTokenInfo: {...this._nextTokenInfo},
+                    nextTokenInfo: this.cloneThisNextTokenInfo(),
                 })
             }
 
@@ -690,7 +688,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return
         }
 
-        const savedState = this.saveState()
+        const savedState = this.getCurState()
         const startCodeIndex = this._codeIndex
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
@@ -891,26 +889,30 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     // 回溯机制
-    private saveState(): SubhutiBackData {
+    private getCurState(): SubhutiBackData {
         const currentCst = this.curCst
         return {
-            codeIndex: this._codeIndex,
-            lineNum: this._codeLine,
-            columnNum: this._codeColumn,
+            nextTokenInfo: this.cloneThisNextTokenInfo(),
             curCstChildrenLength: currentCst?.children?.length || 0,
-            parsedTokensLength: this._parsedTokens.length
+            parsedTokensLength: this.currentTokenIndex
         }
     }
 
+    private cloneThisNextTokenInfo() {
+        return this.cloneNextTokenInfo(this._nextTokenInfo)
+    }
+
+    private cloneNextTokenInfo(nextTokenInfo: NextTokenInfo) {
+        return {...nextTokenInfo}
+    }
+
     private setNextTokenIndex(nextTokenInfo: NextTokenInfo) {
-        this._nextTokenInfo = nextTokenInfo
+        this._nextTokenInfo = this.cloneNextTokenInfo(nextTokenInfo)
     }
 
 
     private restoreState(backData: SubhutiBackData): void {
-        this._codeIndex = backData.codeIndex
-        this._codeLine = backData.lineNum
-        this._codeColumn = backData.columnNum
+        this.setNextTokenIndex(backData.nextTokenInfo)
 
         this._parsedTokens.length = backData.parsedTokensLength
 
@@ -953,7 +955,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (this.parserFailOrIsEof) {
             return false
         }
-        const savedState = this.saveState()
+        const savedState = this.getCurState()
         const startIndex = this._codeIndex
 
         fn()

@@ -127,9 +127,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     /** 源代码 */
     protected _sourceCode: string = ''
 
-    /** 当前源码位置，如果用tokenindex会导致tokenindex动态变化缓存问题，因为同样的代码不同的模式解析出来的tokens不一致 */
-    protected _codeIndex: number = 0
-
     /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
     protected get _lastTokenName(): string | null {
         return this.currentTokenIndex > 0 ? this._parsedTokens[this.lastTokenIndex].tokenName : null
@@ -824,7 +821,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._parseSuccess = false
 
             this._debugger?.onTokenConsume(
-                token.codeIndex,
+                this.currentTokenIndex,
                 token.tokenValue,
                 token.tokenName,
                 tokenName,
@@ -835,7 +832,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         this._debugger?.onTokenConsume(
-            this._codeIndex,
+            this.currentTokenIndex,
             token.tokenValue,
             token.tokenName,
             tokenName,

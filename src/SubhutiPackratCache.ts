@@ -9,8 +9,8 @@
  */
 
 import type SubhutiCst from "./struct/SubhutiCst.ts";
-import type { ParseRecordNode } from "./SubhutiParser.ts";
-import { LRUCache } from "lru-cache";
+import type {NextTokenInfo, ParseRecordNode} from "./SubhutiParser.ts";
+import {LRUCache} from "lru-cache";
 
 // ============================================
 // [1] SubhutiPackratCache - SubhutiPackratCache Parsing缓存管理器（集成LRU）
@@ -32,11 +32,12 @@ export interface SubhutiPackratCacheResult {
     parseSuccess: boolean                 // 解析是否成功
     recordNode?: ParseRecordNode | null   // 解析记录节点（容错模式）
     parsedTokens?: any[]                  // 消费的 token 列表
+    nextTokenInfo: NextTokenInfo
 }
 
 /**
  * SubhutiPackratCache 基础统计字段
- * 
+ *
  * 用于 SubhutiPackratCacheStatsReport 接口的字段定义
  */
 interface SubhutiPackratCacheStats {
@@ -47,23 +48,23 @@ interface SubhutiPackratCacheStats {
 
 /**
  * SubhutiPackratCache 缓存统计报告（唯一对外接口）⭐
- * 
+ *
  * 通过 getStatsReport() 获取，包含完整的缓存分析数据：
- * 
+ *
  * 基础统计（继承自 SubhutiPackratCacheStats）：
  * - hits: 缓存命中次数
  * - misses: 缓存未命中次数
  * - stores: 缓存存储次数
- * 
+ *
  * 计算字段：
  * - total: 总查询次数（hits + misses）
  * - hitRate: 命中率（如："68.5%"）
- * 
+ *
  * 缓存信息：
  * - maxCacheSize: 最大容量
  * - currentSize: 当前大小
  * - usageRate: 使用率（如："45.2%" 或 "unlimited"）
- * 
+ *
  * 性能建议：
  * - suggestions: 根据统计数据自动生成的优化建议
  */
@@ -144,7 +145,7 @@ export class SubhutiPackratCache {
 
     /**
      * 缓存统计信息（内部存储）
-     * 
+     *
      * 简单对象存储三个计数器，无需额外封装
      */
     private stats = {
@@ -182,7 +183,7 @@ export class SubhutiPackratCache {
      */
     constructor(maxSize = 10000) {
         this.maxSize = maxSize
-        
+
         // 初始化 lru-cache
         if (maxSize === 0) {
             // 无限缓存：设置为无穷大

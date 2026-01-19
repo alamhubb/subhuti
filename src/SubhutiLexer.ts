@@ -7,7 +7,7 @@ import {NextTokenInfo} from "./SubhutiParser.ts";
  */
 export interface TokenCacheEntry {
     token: SubhutiMatchToken
-    nextTokenInfo:NextTokenInfo
+    nextTokenInfo: NextTokenInfo
 }
 
 /**
@@ -239,10 +239,11 @@ export default class SubhutiLexer {
 
             return {
                 token,
-                nextCodeIndex: nextPos,
-                nextLine: nextRowNum,
-                nextColumn: nextColumnNum,
-                lastTokenName: token.tokenName
+                nextTokenInfo: {
+                    codeIndex: nextPos,
+                    lineNum: nextRowNum,
+                    columnNum: nextColumnNum,
+                }
             }
         }
 

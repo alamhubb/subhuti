@@ -556,7 +556,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     endTokenIndex: endTokenIndex,
                     cst: cst,
                     parseSuccess: this._parseSuccess,
-                    parsedTokens: consumedTokens
+                    parsedTokens: consumedTokens,
+                    nextTokenInfo: {...this._nextTokenInfo},
                 })
             }
 

@@ -184,6 +184,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         return this.currentTokenIndex - 1
     }
 
+    get lastToken() {
+        return this._parsedTokens[this.lastTokenIndex]
+    }
+
+    get lastTokenEndCodeIndex() {
+        if (!this.lastToken) return
+        return this.lastToken.codeIndex + this.lastToken.tokenValue.length
+    }
+
     /**
      * 获取当前正在处理的 token 索引（下一个将被 consume 的 token）
      * @returns 当前 token 索引
@@ -698,22 +707,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     get isEof(): boolean {
         // 先检查是否已经到达代码末尾
-        if (this._nextTokenInfo.index >= this._sourceCode.length) {
+        if (this.lastTokenEndCodeIndex >= this._sourceCode.length) {
             return true
         }
 
         // 尝试获取下一个 token（会跳过空白）
-        try {
-            const entry = this._getOrParseToken(
-                this._nextTokenInfo,
-                DefaultMode
-            )
-            return entry === null
-        } catch {
-            // 如果词法分析器无法识别字符，说明不是 EOF
-            // 让后续的消费操作处理这个错误
-            return false
-        }
+        const entry = this._getOrParseToken(
+            this._nextTokenInfo,
+            DefaultMode
+        )
+        return entry === null
     }
 
     /**

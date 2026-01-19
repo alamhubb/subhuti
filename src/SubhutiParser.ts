@@ -588,7 +588,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._tokenCache.clear()
 
         // 重置调试器的缓存和统计
-        this._debugger?.resetForNewParse?.(this._parsedTokens)
+        this._debugger?.resetForNewParse(this._parsedTokens)
     }
 
     private checkRuleIsThisClass(ruleName: string, className: string): boolean {

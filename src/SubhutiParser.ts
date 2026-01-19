@@ -818,9 +818,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 获取当前 token（使用传入的 mode 或默认 mode）
         const effectiveMode = mode ?? DefaultMode
         const entry = this._getOrParseToken(
-            this._codeIndex,
-            this._codeLine,
-            this._codeColumn,
+            this._nextTokenInfo,
             effectiveMode
         )
 
@@ -856,9 +854,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const cst = this.generateCstByToken(token)
 
         // 更新位置
-        this._codeIndex = entry.nextCodeIndex
-        this._codeLine = entry.nextLine
-        this._codeColumn = entry.nextColumn
+        this._nextTokenInfo = entry.nextTokenInfo
 
         this._parsedTokens.push(token)
 
@@ -935,9 +931,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 尝试获取下一个 token（会跳过空白）
         try {
             const entry = this._getOrParseToken(
-                this._codeIndex,
-                this._codeLine,
-                this._codeColumn,
+                this._nextTokenInfo,
                 DefaultMode
             )
             return entry === null

@@ -163,17 +163,6 @@ export default class SubhutiTokenLookahead {
     // ============================================
 
     /**
-     * 前瞻：获取未来的 token（不消费）
-     *
-     * @param offset 偏移量（1 = 当前 token，2 = 下一个...）
-     * @param modes 每个位置的词法模式（可选，不传用默认值）
-     * @returns token 或 undefined（EOF）
-     */
-    protected peek(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
-        return this.LA(offset, modes)
-    }
-
-    /**
      * LA (LookAhead) - 前瞻获取 token（支持模式数组）
      *
      * 这是 parser 领域的标准术语：
@@ -239,7 +228,7 @@ export default class SubhutiTokenLookahead {
      * 规范：正向前瞻，检查下一个 token 是否匹配
      */
     protected lookahead(tokenName: string, offset: number = 1): boolean {
-        return this.peek(offset)?.tokenName === tokenName
+        return this.LA(offset)?.tokenName === tokenName
     }
 
     /**
@@ -247,7 +236,7 @@ export default class SubhutiTokenLookahead {
      * 规范：否定前瞻，检查下一个 token 是否不匹配
      */
     protected lookaheadNot(tokenName: string, offset: number = 1): boolean {
-        const token = this.peek(offset)
+        const token = this.LA(offset)
         // EOF 时返回 true（认为"不是任何具体 token"）
         return token ? token.tokenName !== tokenName : true
     }
@@ -257,7 +246,7 @@ export default class SubhutiTokenLookahead {
      * 规范：正向集合前瞻，检查下一个 token 是否在集合中
      */
     protected lookaheadIn(tokenNames: string[], offset: number = 1): boolean {
-        const token = this.peek(offset)
+        const token = this.LA(offset)
         return token ? tokenNames.includes(token.tokenName) : false
     }
 
@@ -266,7 +255,7 @@ export default class SubhutiTokenLookahead {
      * 规范：否定集合前瞻，检查下一个 token 是否不在集合中
      */
     protected lookaheadNotIn(tokenNames: string[], offset: number = 1): boolean {
-        const token = this.peek(offset)
+        const token = this.LA(offset)
         // EOF 时返回 true（认为"不在任何集合中"）
         return token ? !tokenNames.includes(token.tokenName) : true
     }

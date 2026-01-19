@@ -27,10 +27,8 @@ import {LRUCache} from "lru-cache";
  * - parsedTokens: 消费的 token 列表
  */
 export interface SubhutiPackratCacheResult {
-    endTokenIndex: number                 // 解析结束时的 token 索引
     cst: SubhutiCst                       // CST 节点
     parseSuccess: boolean                 // 解析是否成功
-    recordNode?: ParseRecordNode | null   // 解析记录节点（容错模式）
     parsedTokens?: any[]                  // 消费的 token 列表
     nextTokenInfo: NextTokenInfo
 }

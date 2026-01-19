@@ -405,7 +405,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     : undefined
 
                 this._cache.set(ruleName, startTokenIndex, {
-                    endTokenIndex: this.currentTokenIndex,
                     cst: cst,
                     parseSuccess: this._parseSuccess,
                     parsedTokens: consumedTokens,
@@ -521,8 +520,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
-        // 记录失败分支的 cst
-        const failedBranches: SubhutiCst[] = []
+        // 记录失败分支的状态快照
+        const failedStates: SubhutiBackData[] = []
 
         // 进入 Or（整个 Or 调用开始）
         this._debugger?.onOrEnter?.(parentRuleName, this.lastTokenIndex)
@@ -545,12 +544,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return
             }
 
-            const cst = this.curCst
-
-            // 失败：记录这个分支的 cst（在 restoreState 之前）
-            if (cst) {
-                failedBranches.push(cst)
-            }
+            // 失败：在 restoreState 之前保存当前状态快照
+            failedStates.push(this.getCurState())
 
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
@@ -560,21 +555,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 最后一个分支：失败后不回溯，保持失败状态
         }
 
-        if (this.parserFail) {
-            const best = failedBranches.reduce((a, b) => {
-                const aEnd = a.loc?.end?.index
-                const bEnd = b.loc?.end?.index
-                return aEnd >= bEnd ? a : b
+        if (this.parserFail && failedStates.length > 0) {
+            // 选择 codeIndex 变化最多的分支
+            const bestState = failedStates.reduce((a, b) => {
+                return a.nextTokenInfo.codeIndex >= b.nextTokenInfo.codeIndex ? a : b
             })
-            this.setCurCst(best)
+            // 恢复到最优分支的状态
+            this.restoreState(bestState)
         }
 
         // 退出 Or（整个 Or 调用失败结束）
         this._debugger?.onOrExit?.(parentRuleName)
-    }
-
-    setCurCst(curCst: SubhutiCst): void {
-        this.cstStack[this.cstStack.length - 1] = curCst
     }
 
     /**

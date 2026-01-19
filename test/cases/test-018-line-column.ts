@@ -109,7 +109,7 @@ try {
     const tokens = parser.parsedTokens
     
     // let 从 index 0 开始
-    if (tokens[0].index === 0 && tokens[1].index === 4) {
+    if (tokens[0].codeIndex === 0 && tokens[1].codeIndex === 4) {
         console.log('✅ 测试4: index 位置正确')
         passed++
     } else {

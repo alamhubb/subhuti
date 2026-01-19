@@ -467,7 +467,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: currentToken,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: currentToken.index,
+                codeIndex: currentToken.codeIndex,
                 line: currentToken?.line,
                 column: currentToken?.column
             },
@@ -561,7 +561,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     const nextToken = this.LA(1)
                     throw new Error(
                         `Parser internal error: parsing succeeded but source code remains unconsumed. ` +
-                        `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${nextToken.index}`
+                        `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${nextToken.codeIndex}`
                     )
                 }
             }
@@ -777,7 +777,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: found,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: this.curToken?.index,
+                codeIndex: this.curToken?.codeIndex,
                 line: this.curToken?.line,
                 column: this.curToken?.column
             },
@@ -824,7 +824,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._parseSuccess = false
 
             this._debugger?.onTokenConsume(
-                token.index,
+                token.codeIndex,
                 token.tokenValue,
                 token.tokenName,
                 tokenName,
@@ -860,12 +860,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             type: token.tokenName,
             value: token.tokenValue,
             start: {
-                index: token.index || 0,
+                index: token.codeIndex || 0,
                 line: token.line || 0,
                 column: token.column || 0
             },
             end: {
-                index: (token.index || 0) + token.tokenValue.length,
+                index: (token.codeIndex || 0) + token.tokenValue.length,
                 line: token.line || 0,
                 column: token.columnEndNum || 0
             }
@@ -1081,7 +1081,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: this.curToken,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: this.curToken?.index,
+                codeIndex: this.curToken?.codeIndex,
                 line: this.curToken?.line,
                 column: this.curToken?.column
             },

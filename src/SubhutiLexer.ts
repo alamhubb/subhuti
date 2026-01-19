@@ -117,7 +117,7 @@ export default class SubhutiLexer {
         return {
             tokenName: token.name,
             tokenValue: value,
-            index: index,
+            codeIndex: index,
             line: rowNum,
             column: columnNum,
             hasLineBreakBefore: rowNum > this._lastRowNum
@@ -227,7 +227,7 @@ export default class SubhutiLexer {
             const token: SubhutiMatchToken = {
                 tokenName: matched.token.tokenName,
                 tokenValue: matched.token.tokenValue,
-                index: pos,
+                codeIndex: pos,
                 line: rowNum,
                 column: columnNum,
                 hasLineBreakBefore: rowNum > lastRowNum

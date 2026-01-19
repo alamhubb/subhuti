@@ -27,7 +27,7 @@ import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiC
 
 export interface NextTokenInfo {
     /** 源码位置 */
-    index: number
+    codeIndex: number
     /** 行号 */
     line: number
     /** 列号 */
@@ -46,7 +46,7 @@ export default class SubhutiTokenLookahead {
     protected _sourceCode: string = ''
 
     /** 下一个 token 的位置信息 */
-    protected _nextTokenInfo: NextTokenInfo = { index: 0, line: 1, column: 1 }
+    protected _nextTokenInfo: NextTokenInfo = { codeIndex: 0, line: 1, column: 1 }
 
     /** Token 缓存：位置 → 模式 → 缓存条目 */
     protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
@@ -84,7 +84,7 @@ export default class SubhutiTokenLookahead {
         }
 
         // 1. 查缓存
-        const positionCache = this._tokenCache.get(nextTokenInfo.index)
+        const positionCache = this._tokenCache.get(nextTokenInfo.codeIndex)
         if (positionCache?.has(mode)) {
             return positionCache.get(mode)!
         }
@@ -101,9 +101,9 @@ export default class SubhutiTokenLookahead {
 
         // 3. 存入缓存
         if (!positionCache) {
-            this._tokenCache.set(nextTokenInfo.index, new Map())
+            this._tokenCache.set(nextTokenInfo.codeIndex, new Map())
         }
-        this._tokenCache.get(nextTokenInfo.index)!.set(mode, entry)
+        this._tokenCache.get(nextTokenInfo.codeIndex)!.set(mode, entry)
 
         return entry
     }
@@ -112,7 +112,7 @@ export default class SubhutiTokenLookahead {
      * 初始化下一个 token 位置信息
      */
     protected initNextTokenInfo(): void {
-        this._nextTokenInfo = { index: 0, line: 1, column: 1 }
+        this._nextTokenInfo = { codeIndex: 0, line: 1, column: 1 }
     }
 
     /**
@@ -209,7 +209,7 @@ export default class SubhutiTokenLookahead {
             }
 
             // 更新临时位置到下一个 token
-            tempInfo = entry.nextInfo
+            tempInfo = entry.nextTokenInfo
         }
 
         return undefined

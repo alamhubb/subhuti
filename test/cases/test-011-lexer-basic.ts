@@ -90,7 +90,7 @@ try {
 try {
     const lexer = new SubhutiLexer(tokens)
     const result = lexer.tokenize('let x')
-    if (result[0].index === 0 && result[1].index === 4) {
+    if (result[0].codeIndex === 0 && result[1].codeIndex === 4) {
         console.log('✅ 测试5: 位置信息正确')
         passed++
     } else {

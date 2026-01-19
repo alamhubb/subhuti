@@ -191,9 +191,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         // 初始化源代码和位置
         this._sourceCode = sourceCode
-        this._codeIndex = 0
-        this._codeLine = 1
-        this._codeColumn = 1
+
+        this.initNextTokenInfo()
+
         this._tokenCache = new Map()
         this._parsedTokens = []
 
@@ -473,9 +473,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: currentToken,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: this._codeIndex,
-                line: currentToken?.rowNum || this._codeLine,
-                column: currentToken?.columnStartNum || this._codeColumn
+                codeIndex: currentToken.index,
+                line: currentToken?.rowNum,
+                column: currentToken?.columnStartNum
             },
             ruleStack: [...ruleStack],
             loopRuleName: ruleName,
@@ -567,7 +567,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     const nextToken = this.LA(1)
                     throw new Error(
                         `Parser internal error: parsing succeeded but source code remains unconsumed. ` +
-                        `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${this._codeIndex}`
+                        `Next token: "${nextToken?.tokenValue}" (${nextToken?.tokenName}) at position ${nextToken.index}`
                     )
                 }
             }
@@ -592,9 +592,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._parseSuccess = true
         this.cstStack.length = 0
         this.loopDetectionSet.clear()
-        this._codeIndex = 0
-        this._codeLine = 1
-        this._codeColumn = 1
+        this.initNextTokenInfo()
         this._parsedTokens = []
         this._tokenCache.clear()
 
@@ -689,7 +687,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         const savedState = this.getCurState()
-        const startCodeIndex = this._codeIndex
+        const startCodeIndex = this._nextTokenInfo.codeIndex
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
@@ -785,9 +783,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: found,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: this._codeIndex,
-                line: found?.rowNum ?? this._codeLine,
-                column: found?.columnStartNum ?? this._codeColumn
+                codeIndex: this.curToken?.index,
+                line: this.curToken?.rowNum,
+                column: this.curToken?.columnStartNum
             },
             ruleStack: this.getRuleStack().length > 0 ? this.getRuleStack() : [ruleName]
         })
@@ -853,7 +851,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const cst = this.generateCstByToken(token)
 
         // 更新位置
-        this._nextTokenInfo = entry.nextTokenInfo
+        this.setNextTokenIndex(entry.nextTokenInfo)
 
         this._parsedTokens.push(token)
 
@@ -899,15 +897,19 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     private cloneThisNextTokenInfo() {
-        return this.cloneNextTokenInfo(this._nextTokenInfo)
-    }
-
-    private cloneNextTokenInfo(nextTokenInfo: NextTokenInfo) {
-        return {...nextTokenInfo}
+        return {...this._nextTokenInfo}
     }
 
     private setNextTokenIndex(nextTokenInfo: NextTokenInfo) {
-        this._nextTokenInfo = this.cloneNextTokenInfo(nextTokenInfo)
+        this._nextTokenInfo = {...nextTokenInfo}
+    }
+
+    private initNextTokenInfo() {
+        this.setNextTokenIndex({
+            codeIndex: 0,
+            lineNum: 1,
+            columnNum: 1
+        })
     }
 
     private restoreState(backData: SubhutiBackData): void {
@@ -926,7 +928,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     get isEof(): boolean {
         // 先检查是否已经到达代码末尾
-        if (this._codeIndex >= this._sourceCode.length) {
+        if (this._nextTokenInfo.codeIndex >= this._sourceCode.length) {
             return true
         }
 
@@ -955,7 +957,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return false
         }
         const savedState = this.getCurState()
-        const startIndex = this._codeIndex
+        const startIndex = this._nextTokenInfo.codeIndex
 
         fn()
 
@@ -967,7 +969,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         // 成功但没消费 token → 返回 false（防止无限循环）
-        return this._codeIndex !== startIndex
+        return this._nextTokenInfo.codeIndex !== startIndex
     }
 
     /**
@@ -977,12 +979,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 恢复消费的 token
         if (cached.parsedTokens && cached.parsedTokens.length > 0) {
             this._parsedTokens.push(...cached.parsedTokens)
-
-            // 从最后一个 token 恢复词法分析位置
-            const lastToken = cached.parsedTokens[cached.parsedTokens.length - 1]
-            this._codeIndex = lastToken.index + lastToken.tokenValue.length
-            this._codeLine = lastToken.rowNum
-            this._codeColumn = lastToken.columnEndNum
+            this.setNextTokenIndex(cached.nextTokenInfo)
         }
 
         this._parseSuccess = cached.parseSuccess
@@ -1090,9 +1087,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             found: this.curToken,
             position: {
                 tokenIndex: this.currentTokenIndex,
-                codeIndex: this._codeIndex,
-                line: this.curToken?.rowNum || this._codeLine,
-                column: this.curToken?.columnStartNum || this._codeColumn
+                codeIndex: this.curToken?.index,
+                line: this.curToken?.rowNum,
+                column: this.curToken?.columnStartNum
             },
             ruleStack: [...ruleStack],
             loopRuleName: ruleName,

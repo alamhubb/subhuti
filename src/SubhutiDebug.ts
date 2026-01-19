@@ -1407,12 +1407,12 @@ export class SubhutiTraceDebugger {
         }
     }
 
-    onBacktrack(
-        fromTokenIndex: number,
-        toTokenIndex: number
-    ): void {
-        // 不输出正常回溯（只在真正出错时才需要）
-    }
+    // onBacktrack(
+    //     fromTokenIndex: number,
+    //     toTokenIndex: number
+    // ): void {
+    //     // 不输出正常回溯（只在真正出错时才需要）
+    // }
 
     // ========================================
     // CST 验证方法（调用 SubhutiDebugUtils）

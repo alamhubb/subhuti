@@ -36,26 +36,20 @@ export interface SubhutiParserOr {
     alt: RuleFunction
 }
 
-export interface SubhutiBackData {
+export interface NextTokenInfo {
     /** 源码位置 */
-    codeIndex: number
+    nextCodeIndex: number
     /** 行号 */
-    codeLine: number
+    nextRowNum: number
     /** 列号 */
-    codeColumn: number
-    /** 上一个 token 名称 */
-    lastTokenName: string | null
+    nextColumnNum: number
+}
+
+export interface SubhutiBackData extends NextTokenInfo {
     /** CST children 长度 */
     curCstChildrenLength: number
     /** 已解析 token 数量（用于恢复 parsedTokens） */
     parsedTokensLength: number
-}
-
-
-export interface NextTokenInfo {
-    codeIndex: number,
-    rowNum: number,
-    columnNumber: number
 }
 
 // ============================================
@@ -881,7 +875,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._codeLine = entry.nextLine
         this._codeColumn = entry.nextColumn
 
-        // 添加到已解析列表（_lastTokenName 会自动从 parsedTokens 获取）
         this._parsedTokens.push(token)
 
         return cst
@@ -919,28 +912,24 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private saveState(): SubhutiBackData {
         const currentCst = this.curCst
         return {
-            codeIndex: this._codeIndex,
-            codeLine: this._codeLine,
-            codeColumn: this._codeColumn,
-            lastTokenName: this._lastTokenName,
+            nextCodeIndex: this._codeIndex,
+            nextRowNum: this._codeLine,
+            nextColumnNum: this._codeColumn,
             curCstChildrenLength: currentCst?.children?.length || 0,
             parsedTokensLength: this._parsedTokens.length
         }
     }
 
+    private setNextTokenIndex(nextTokenInfo: NextTokenInfo) {
+        this._nextTokenInfo = nextTokenInfo
+    }
+
+
     private restoreState(backData: SubhutiBackData): void {
-        const fromIndex = this._codeIndex
-        const toIndex = backData.codeIndex
+        this._codeIndex = backData.nextCodeIndex
+        this._codeLine = backData.nextRowNum
+        this._codeColumn = backData.nextColumnNum
 
-        if (fromIndex !== toIndex) {
-            this._debugger?.onBacktrack?.(fromIndex, toIndex)
-        }
-
-        this._codeIndex = backData.codeIndex
-        this._codeLine = backData.codeLine
-        this._codeColumn = backData.codeColumn
-
-        // 恢复 parsedTokens（_lastTokenName 会自动从 parsedTokens 获取）
         this._parsedTokens.length = backData.parsedTokensLength
 
         const currentCst = this.curCst
@@ -1013,7 +1002,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._codeIndex = lastToken.index + lastToken.tokenValue.length
             this._codeLine = lastToken.rowNum
             this._codeColumn = lastToken.columnEndNum
-            // _lastTokenName 会自动从 parsedTokens 获取
         }
 
         this._parseSuccess = cached.parseSuccess

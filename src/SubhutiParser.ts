@@ -910,7 +910,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._nextTokenInfo = this.cloneNextTokenInfo(nextTokenInfo)
     }
 
-
     private restoreState(backData: SubhutiBackData): void {
         this.setNextTokenIndex(backData.nextTokenInfo)
 

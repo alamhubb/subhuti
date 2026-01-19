@@ -44,6 +44,13 @@ export interface SubhutiBackData {
     parsedTokensLength: number
 }
 
+
+export interface SubhutiAllowErrorOrBranchContextBackData {
+    orParserTokens: SubhutiMatchToken[]
+    curCstChildren: SubhutiCst[],
+    nextTokenInfo: NextTokenInfo
+}
+
 // ============================================
 // 装饰器系统（兼容旧版 experimentalDecorators 和 Stage 3）
 // ============================================
@@ -164,7 +171,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.initNextTokenInfo()
 
         this._tokenCache = new Map()
-        this._parsedTokens = []
+        this.parsedTokens = []
 
         // 初始化词法分析器
         if (options?.tokenDefinitions) {
@@ -179,37 +186,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
     }
 
-    /**
-     * 获取已解析的 token 列表
-     */
-    get parsedTokens(): SubhutiMatchToken[] {
-        return this._parsedTokens
-    }
-
-    /**
-     * 获取最后解析的 token 索引
-     * @returns token 索引，如果没有已解析的 token 则返回 -1
-     */
-    get lastTokenIndex(): number {
-        return this.currentTokenIndex - 1
-    }
-
-    get lastToken() {
-        return this._parsedTokens[this.lastTokenIndex]
-    }
-
-    get lastTokenEndCodeIndex() {
-        if (!this.lastToken) return
-        return this.lastToken.codeIndex + this.lastToken.tokenValue.length
-    }
-
-    /**
-     * 获取当前正在处理的 token 索引（下一个将被 consume 的 token）
-     * @returns 当前 token 索引
-     */
-    get currentTokenIndex(): number {
-        return this._parsedTokens.length
-    }
 
     // ============================================
     // 公开给 TokenConsumer 使用的方法
@@ -264,7 +240,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     debug(showRulePath: boolean = true): this {
         setShowRulePath(showRulePath)
-        this._debugger = new SubhutiTraceDebugger(this._parsedTokens)
+        this._debugger = new SubhutiTraceDebugger(this.parsedTokens)
         return this
     }
 
@@ -401,14 +377,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             if (this.enableMemoization) {
                 // 提取本次规则消费的 token
                 const consumedTokens = this._parseSuccess
-                    ? this._parsedTokens.slice(startTokenIndex)
+                    ? this.parsedTokens.slice(startTokenIndex)
                     : undefined
 
                 this._cache.set(ruleName, startTokenIndex, {
                     cst: cst,
                     parseSuccess: this._parseSuccess,
                     parsedTokens: consumedTokens,
-                    nextTokenInfo: this.cloneThisNextTokenInfo(),
+                    nextTokenInfo: this.getNextTokenInfo(),
                 })
             }
 
@@ -446,11 +422,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.cstStack.length = 0
         this.loopDetectionSet.clear()
         this.initNextTokenInfo()
-        this._parsedTokens = []
+        this.initParserTokens()
         this._tokenCache.clear()
 
         // 重置调试器的缓存和统计
-        this._debugger?.resetForNewParse(this._parsedTokens)
+        this._debugger?.resetForNewParse(this.parsedTokens)
     }
 
     private checkRuleIsThisClass(ruleName: string, className: string): boolean {
@@ -521,10 +497,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const parentRuleName = this.curCst?.name || 'Unknown'
 
         // 记录失败分支的状态快照
-        const failedStates: SubhutiBackData[] = []
+        const failedStates: SubhutiAllowErrorOrBranchContextBackData[] = []
 
         // 进入 Or（整个 Or 调用开始）
         this._debugger?.onOrEnter?.(parentRuleName, this.lastTokenIndex)
+
+        const startTokenIndex = this.currentTokenIndex
 
         for (let i = 0; i < totalCount; i++) {
             const alt = alternatives[i]
@@ -544,8 +522,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return
             }
 
+            const orAllowErrorData: SubhutiAllowErrorOrBranchContextBackData = {
+                curCstChildren: [...this.curCst.children],
+                orParserTokens: [...this.parsedTokens.slice(startTokenIndex, this.currentTokenIndex)],
+                nextTokenInfo: this.getNextTokenInfo(),
+            }
+
+
             // 失败：在 restoreState 之前保存当前状态快照
-            failedStates.push(this.getCurState())
+            failedStates.push(orAllowErrorData)
 
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
@@ -561,7 +546,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return a.nextTokenInfo.codeIndex >= b.nextTokenInfo.codeIndex ? a : b
             })
             // 恢复到最优分支的状态
-            this.restoreState(bestState)
+            this.restoreAllowErrorContext(bestState)
         }
 
         // 退出 Or（整个 Or 调用失败结束）
@@ -703,7 +688,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 更新位置
         this.setNextTokenIndex(entry.nextTokenInfo)
 
-        this._parsedTokens.push(token)
+        this.parsedTokens.push(token)
 
         return cst
     }
@@ -740,16 +725,22 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private getCurState(): SubhutiBackData {
         const currentCst = this.curCst
         return {
-            nextTokenInfo: this.cloneThisNextTokenInfo(),
+            nextTokenInfo: this.getNextTokenInfo(),
             curCstChildrenLength: currentCst?.children?.length || 0,
             parsedTokensLength: this.currentTokenIndex
         }
     }
 
+    private restoreAllowErrorContext(backData:SubhutiAllowErrorOrBranchContextBackData) {
+        this.curCst.children = [...backData.curCstChildren]
+        this.parsedTokens.push(...backData.orParserTokens)
+
+    }
+
     private restoreState(backData: SubhutiBackData): void {
         this.setNextTokenIndex(backData.nextTokenInfo)
 
-        this._parsedTokens.length = backData.parsedTokensLength
+        this.parsedTokens.length = backData.parsedTokensLength
 
         const currentCst = this.curCst
         if (currentCst) {
@@ -806,7 +797,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private applyCachedResult(cached: SubhutiPackratCacheResult): SubhutiCst {
         // 恢复消费的 token
         if (cached.parsedTokens && cached.parsedTokens.length > 0) {
-            this._parsedTokens.push(...cached.parsedTokens)
+            this.parsedTokens.push(...cached.parsedTokens)
             this.setNextTokenIndex(cached.nextTokenInfo)
         }
 
@@ -834,7 +825,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * @returns token 上下文数组
      */
     private getTokenContext(contextSize: number = 2): SubhutiMatchToken[] {
-        const tokens = this._parsedTokens
+        const tokens = this.parsedTokens
         const len = tokens.length
         const start = Math.max(0, len - contextSize)
         return tokens.slice(start)

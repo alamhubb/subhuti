@@ -46,19 +46,53 @@ export default class SubhutiTokenLookahead {
     protected _sourceCode: string = ''
 
     /** 下一个 token 的位置信息 */
-    protected _nextTokenInfo: NextTokenInfo = { codeIndex: 0, line: 1, column: 1 }
+    protected _nextTokenInfo: NextTokenInfo = {codeIndex: 0, line: 1, column: 1}
 
     /** Token 缓存：位置 → 模式 → 缓存条目 */
     protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
 
     /** 已解析的 token 列表（用于输出给使用者） */
-    protected _parsedTokens: SubhutiMatchToken[] = []
+    private _parsedTokens: SubhutiMatchToken[] = []
 
     /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
     protected get _lastTokenName(): string | null {
-        return this._parsedTokens.length > 0
-            ? this._parsedTokens[this._parsedTokens.length - 1].tokenName
-            : null
+        return this.lastToken?.tokenName
+    }
+
+    /**
+     * 获取最后解析的 token 索引
+     * @returns token 索引，如果没有已解析的 token 则返回 -1
+     */
+    get lastTokenIndex(): number {
+        return this.currentTokenIndex - 1
+    }
+
+    get lastToken() {
+        return this._parsedTokens[this.lastTokenIndex]
+    }
+
+    get lastTokenEndCodeIndex() {
+        if (!this.lastToken) return
+        return this.lastToken.codeIndex + this.lastToken.tokenValue.length
+    }
+
+    /**
+     * 获取当前正在处理的 token 索引（下一个将被 consume 的 token）
+     * @returns 当前 token 索引
+     */
+    get currentTokenIndex(): number {
+        return this._parsedTokens.length
+    }
+
+    /**
+     * 获取已解析的 token 列表
+     */
+    get parsedTokens(): SubhutiMatchToken[] {
+        return this._parsedTokens
+    }
+
+    protected initParserTokens() {
+        this._parsedTokens = []
     }
 
     // ============================================
@@ -112,21 +146,21 @@ export default class SubhutiTokenLookahead {
      * 初始化下一个 token 位置信息
      */
     protected initNextTokenInfo(): void {
-        this._nextTokenInfo = { codeIndex: 0, line: 1, column: 1 }
+        this._nextTokenInfo = {codeIndex: 0, line: 1, column: 1}
     }
 
     /**
      * 设置下一个 token 位置信息
      */
     protected setNextTokenIndex(nextTokenInfo: NextTokenInfo): void {
-        this._nextTokenInfo = { ...nextTokenInfo }
+        this._nextTokenInfo = {...nextTokenInfo}
     }
 
     /**
      * 克隆当前的下一个 token 位置信息
      */
-    protected cloneThisNextTokenInfo(): NextTokenInfo {
-        return { ...this._nextTokenInfo }
+    protected getNextTokenInfo(): NextTokenInfo {
+        return {...this._nextTokenInfo}
     }
 
     // ============================================
@@ -159,11 +193,11 @@ export default class SubhutiTokenLookahead {
         this.setParserSuccessState(false)
     }
 
-    protected setParserSuccess(){
+    protected setParserSuccess() {
         this.setParserSuccessState(true)
     }
 
-    protected setParserSuccessState(success:boolean){
+    protected setParserSuccessState(success: boolean) {
         this._parseSuccess = success
     }
 
@@ -192,7 +226,7 @@ export default class SubhutiTokenLookahead {
      */
     protected LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
         // 临时位置信息，用于前瞻（不影响实际位置）
-        let tempInfo: NextTokenInfo = { ...this._nextTokenInfo }
+        let tempInfo: NextTokenInfo = {...this._nextTokenInfo}
 
         for (let i = 0; i < offset; i++) {
             // 确定当前 token 的词法模式
@@ -224,7 +258,7 @@ export default class SubhutiTokenLookahead {
      */
     protected peekSequence(count: number, modes?: LexerMode[]): SubhutiMatchToken[] {
         const result: SubhutiMatchToken[] = []
-        let tempInfo: NextTokenInfo = { ...this._nextTokenInfo }
+        let tempInfo: NextTokenInfo = {...this._nextTokenInfo}
 
         for (let i = 0; i < count; i++) {
             const mode = modes?.[i] ?? DefaultMode

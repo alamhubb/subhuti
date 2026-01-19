@@ -550,7 +550,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 })
             }
 
-            this.onRuleExitDebugHandler(ruleName, cst, isTopLevel, startTime)
+            this._debugger?.onRuleExitWithTopLevel(ruleName, cst, isTopLevel, false, startTime)
 
             // 顶层规则：检查是否所有源码都被消费
             if (isTopLevel && this._parseSuccess) {
@@ -598,29 +598,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             }
         }
         return false
-    }
-
-    private onRuleExitDebugHandler(
-        ruleName: string,
-        cst: SubhutiCst | undefined,
-        isTopLevel: boolean,
-        startTime?: number
-    ): void {
-        if (cst && !cst.children?.length) {
-            cst.children = undefined
-        }
-
-        if (!isTopLevel) {
-            this._debugger?.onRuleExit(ruleName, false, startTime)
-        } else {
-            // 顶层规则完成，输出调试信息
-            if (this._debugger) {
-                if ('setCst' in this._debugger) {
-                    (this._debugger as any).setCst(cst)
-                }
-                (this._debugger as any)?.autoOutput?.()
-            }
-        }
     }
 
     /**
@@ -864,7 +841,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             end: {
                 index: (token.codeIndex || 0) + token.tokenValue.length,
                 line: token.line || 0,
-                column: token.columnEndNum || 0
+                column: (token.column + token.tokenValue.length) || 0
             }
         }
 

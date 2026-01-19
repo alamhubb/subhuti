@@ -1022,6 +1022,39 @@ export class SubhutiTraceDebugger {
         return startTime
     }
 
+    /**
+     * 规则退出事件处理器（含顶层规则处理）
+     *
+     * 整合了原 Parser 中的 onRuleExitDebugHandler 逻辑
+     *
+     * @param ruleName - 规则名称
+     * @param cst - CST 节点
+     * @param isTopLevel - 是否是顶层规则
+     * @param cacheHit - 是否缓存命中
+     * @param startTime - 规则开始时间
+     */
+    onRuleExitWithTopLevel(
+        ruleName: string,
+        cst: SubhutiCst | undefined,
+        isTopLevel: boolean,
+        cacheHit: boolean,
+        startTime?: number
+    ): void {
+        // 清理空 children
+        if (cst && !cst.children?.length) {
+            cst.children = undefined
+        }
+
+        if (!isTopLevel) {
+            // 非顶层规则：调用常规退出处理
+            this.onRuleExit(ruleName, cacheHit, startTime)
+        } else {
+            // 顶层规则完成：设置 CST 并输出调试信息
+            this.setCst(cst)
+            this.autoOutput()
+        }
+    }
+
     onRuleExit(
         ruleName: string,
         cacheHit: boolean,

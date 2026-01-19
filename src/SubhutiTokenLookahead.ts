@@ -154,7 +154,7 @@ export default class SubhutiTokenLookahead {
     /**
      * 获取当前 token（使用默认词法模式）
      */
-    get curToken(): SubhutiMatchToken | undefined {
+    get nextToken(): SubhutiMatchToken | undefined {
         return this.LA(1)
     }
 
@@ -317,7 +317,7 @@ export default class SubhutiTokenLookahead {
      * 检查当前 token 前是否有换行符
      */
     protected lookaheadHasLineBreak(): boolean {
-        return this.curToken?.hasLineBreakBefore ?? false
+        return this.nextToken?.hasLineBreakBefore ?? false
     }
 
     // ============================================
@@ -423,7 +423,7 @@ export default class SubhutiTokenLookahead {
      * @param tokenName token 类型名称
      */
     protected match(tokenName: string): boolean {
-        return this.curToken?.tokenName === tokenName
+        return this.nextToken?.tokenName === tokenName
     }
 
 }

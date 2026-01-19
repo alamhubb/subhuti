@@ -299,7 +299,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // Parser 只负责收集数据，错误组装由 ErrorHandler 负责
         throw this._errorHandler.createLoopError({
             ruleName,
-            currentToken: this.curToken,
+            currentToken: this.nextToken,
             tokenIndex: this.currentTokenIndex,
             ruleStack: this.getRuleStack(),
             loopDetectionSet: Array.from(this.loopDetectionSet),
@@ -572,7 +572,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             ruleName,
             startIndex,
             currentTokenIndex: this.currentTokenIndex,
-            currentToken: this.curToken,
+            currentToken: this.nextToken,
             ruleStack: this.getRuleStack()
         })
     }

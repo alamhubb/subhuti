@@ -115,6 +115,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     private _analysisMode: boolean = false
 
+    /**
+     * 容错模式标志
+     * - true: 容错模式（遇错继续，收集错误）
+     * - false: 正常模式（遇错停止）
+     */
+    private _tolerant: boolean = false
+
+    /** 容错模式收集的错误列表 */
+    private _errors: ParsingError[] = []
+
     // 调试和错误处理
     private _debugger?: SubhutiTraceDebugger
     private readonly _errorHandler = new SubhutiErrorHandler()
@@ -237,6 +247,25 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
+     * 解析入口方法（建议子类覆写）
+     *
+     * 子类应覆写此方法，调用具体的顶层规则：
+     * ```typescript
+     * class JsParser extends SubhutiParser {
+     *     parse(): SubhutiCst | undefined {
+     *         return this.Module()
+     *     }
+     * }
+     * ```
+     */
+    parse(): SubhutiCst | undefined {
+        throw new Error(
+            `${this.constructor.name}.parse() not implemented. ` +
+            `Please override this method to call your entry rule.`
+        )
+    }
+
+    /**
      * 启用调试模式
      * @param showRulePath - 是否显示规则执行路径（默认 true）
      *                       传入 false 时只显示性能统计和 CST 验证报告
@@ -250,6 +279,26 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     errorHandler(enable: boolean = true): this {
         this._errorHandler.setDetailed(enable)
         return this
+    }
+
+    /**
+     * 启用容错模式（链式调用）
+     *
+     * 在容错模式下：
+     * - ManyTolerant 会在所有分支失败时选择最长匹配
+     * - 错误会被收集到 errors 数组中
+     * - 解析会继续而不是停止
+     */
+    tolerant(enable: boolean = true): this {
+        this._tolerant = enable
+        return this
+    }
+
+    /**
+     * 获取容错模式收集的错误列表
+     */
+    get errors(): ParsingError[] {
+        return this._errors
     }
 
     /**
@@ -451,12 +500,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         this.cstStack.pop()
 
-        // 成功时添加到父节点并设置位置
+        // 无条件添加到父节点（容错模式需要）
+        const parentCst = this.cstStack[this.cstStack.length - 1]
+        if (parentCst) {
+            parentCst.children!.push(cst)
+        }
+
+        // 成功时设置位置
         if (this._parseSuccess) {
-            const parentCst = this.cstStack[this.cstStack.length - 1]
-            if (parentCst) {
-                parentCst.children!.push(cst)
-            }
             this.setLocation(cst)
         }
 
@@ -480,9 +531,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      *
      * 核心逻辑：
      * - 依次尝试每个分支，第一个成功的分支生效
-     * - 所有分支都失败则整体失败
-     *
-     * 优化：只有消费了 token 才需要回溯（没消费 = 状态没变）
+     * - 所有分支都失败则选择 codeIndex 变化最多的分支
      */
     Or(alternatives: SubhutiParserOr[]): void {
         if (this.parserFail) {
@@ -494,6 +543,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
+        // 记录失败分支的 cst
+        const failedBranches: SubhutiCst[] = []
+
         // 进入 Or（整个 Or 调用开始）
         this._debugger?.onOrEnter?.(parentRuleName, startCodeIndex)
 
@@ -504,7 +556,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 进入 Or 分支
             this._debugger?.onOrBranch?.(i, totalCount, parentRuleName)
 
-            alt.alt()
+            const cst = alt.alt() as SubhutiCst | undefined
 
             // 退出 Or 分支（无论成功还是失败）
             this._debugger?.onOrBranchExit?.(parentRuleName, i)
@@ -515,12 +567,41 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return
             }
 
+            // 失败：记录这个分支的 cst（在 restoreState 之前）
+            if (cst) {
+                failedBranches.push(cst)
+            }
+
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
                 this.restoreState(savedState)
                 this._parseSuccess = true
             }
             // 最后一个分支：失败后不回溯，保持失败状态
+        }
+
+        // 所有分支都失败，选择 codeIndex 变化最多的分支
+        if (failedBranches.length > 0) {
+            const best = failedBranches.reduce((a, b) => {
+                const aEnd = a.loc?.end?.index ?? startCodeIndex
+                const bEnd = b.loc?.end?.index ?? startCodeIndex
+                return aEnd >= bEnd ? a : b
+            })
+
+            // 最后一个分支的 cst 在 parent.children 中（因为没有 restoreState）
+            // 替换为 best
+            const parentCst = this.curCst
+            if (parentCst && parentCst.children && parentCst.children.length > 0) {
+                parentCst.children.pop()  // 移除最后一个分支的 cst
+                parentCst.children.push(best)  // 添加 best
+            }
+
+            // 恢复位置到 best 的结束位置
+            if (best.loc?.end?.index && best.loc.end.index > startCodeIndex) {
+                this._nextTokenInfo.index = best.loc.end.index
+                this._nextTokenInfo.line = best.loc.end.line
+                this._nextTokenInfo.column = best.loc.end.column
+            }
         }
 
         // 退出 Or（整个 Or 调用失败结束）
@@ -535,6 +616,32 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     Many(fn: RuleFunction): void {
         while (this.tryAndRestore(fn)) {
             // 继续循环
+        }
+    }
+
+    /**
+     * ManyTolerant - 容错版 Many（用于 ModuleList 等顶层循环）
+     *
+     * 失败但有进展（codeIndex 变化了）时，改为 true 继续解析
+     */
+    ManyTolerant(fn: RuleFunction): void {
+        while (!this.isEof) {
+            const startCodeIndex = this._nextTokenInfo.index
+
+            fn()
+
+            if (this._parseSuccess) {
+                continue  // 成功，继续循环
+            }
+
+            // 失败但有进展（codeIndex 变化了），改为 true 继续
+            if (this._nextTokenInfo.index > startCodeIndex) {
+                this._parseSuccess = true
+                continue
+            }
+
+            // 失败且没进展，退出循环
+            break
         }
     }
 

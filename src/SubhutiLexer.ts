@@ -302,14 +302,18 @@ export default class SubhutiLexer {
         continue
       }
 
+      // 计算结束位置（考虑多行 token）
+      const { endRowNum, columnEndNum } = this._calcEndPosition(match[0], rowNum, columnNum)
+
       return {
         token: {
           tokenName: token.name,
           tokenValue: match[0],
           index: index,
           rowNum: rowNum,
+          endRowNum: endRowNum,
           columnStartNum: columnNum,
-          columnEndNum: columnNum + match[0].length - 1,
+          columnEndNum: columnEndNum,
           hasLineBreakBefore: rowNum > lastRowNum
         },
         skip: token.skip

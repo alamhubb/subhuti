@@ -16,13 +16,13 @@
 import SubhutiTokenLookahead from "./SubhutiTokenLookahead.ts"
 import SubhutiCst from "./struct/SubhutiCst.ts";
 import type SubhutiMatchToken from "./struct/SubhutiMatchToken.ts";
-import { SubhutiErrorHandler, ParsingError } from "./SubhutiError.ts";
-import { SubhutiTraceDebugger } from "./SubhutiDebug.ts";
-import { SubhutiPackratCache, type SubhutiPackratCacheResult } from "./SubhutiPackratCache.ts";
+import {SubhutiErrorHandler, ParsingError} from "./SubhutiError.ts";
+import {SubhutiTraceDebugger} from "./SubhutiDebug.ts";
+import {SubhutiPackratCache, type SubhutiPackratCacheResult} from "./SubhutiPackratCache.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
-import { SubhutiDebugRuleTracePrint, setShowRulePath } from "./SubhutiDebugRuleTracePrint.ts";
-import SubhutiLexer, { TokenCacheEntry } from "./SubhutiLexer.ts";
-import { SubhutiCreateToken, DefaultMode, type LexerMode } from "./struct/SubhutiCreateToken.ts";
+import {SubhutiDebugRuleTracePrint, setShowRulePath} from "./SubhutiDebugRuleTracePrint.ts";
+import SubhutiLexer, {TokenCacheEntry} from "./SubhutiLexer.ts";
+import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiCreateToken.ts";
 import {SubhutiGrammarValidator} from "./validation";
 
 
@@ -52,6 +52,12 @@ export interface SubhutiBackData {
 }
 
 
+export interface NextTokenInfo {
+    codeIndex: number,
+    rowNum: number,
+    columnNumber: number
+}
+
 // ============================================
 // 装饰器系统（兼容旧版 experimentalDecorators 和 Stage 3）
 // ============================================
@@ -67,7 +73,7 @@ function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
     const wrappedFunction = function (this: SubhutiParser, ...args: any[]): SubhutiCst | undefined {
         return this.executeRuleWrapper(originalMethod, ruleName, this.constructor.name, ...args)
     }
-    Object.defineProperty(wrappedFunction, 'name', { value: ruleName })
+    Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
     Object.defineProperty(wrappedFunction, '__originalFunction__', {
         value: originalMethod, writable: false, enumerable: false, configurable: false
     })
@@ -135,8 +141,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     /** 当前列号 */
     protected _codeColumn: number = 1
 
-    /** 上一个 token 名称（用于上下文约束） */
-    protected _lastTokenName: string | null = null
+    /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
+    protected get _lastTokenName(): string | null {
+        const len = this._parsedTokens.length
+        return len > 0 ? this._parsedTokens[len - 1].tokenName : null
+    }
+
+    protected _nextTokenInfo: NextTokenInfo | null = null
 
     /** Token 缓存：位置 → 模式 → 缓存条目 */
     protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
@@ -189,7 +200,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._codeIndex = 0
         this._codeLine = 1
         this._codeColumn = 1
-        this._lastTokenName = null
         this._tokenCache = new Map()
         this._parsedTokens = []
 
@@ -680,7 +690,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             cst.loc = {
                 type: cst.name,
                 start: cst.children[0].loc.start,
-                end: lastChild?.loc?.end || cst.children[0].loc.end
+                // end: lastChild?.loc?.end || cst.children[0].loc.end
+                end: lastChild?.loc?.end
             }
         }
     }
@@ -869,9 +880,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._codeIndex = entry.nextCodeIndex
         this._codeLine = entry.nextLine
         this._codeColumn = entry.nextColumn
-        this._lastTokenName = entry.lastTokenName
 
-        // 添加到已解析列表
+        // 添加到已解析列表（_lastTokenName 会自动从 parsedTokens 获取）
         this._parsedTokens.push(token)
 
         return cst
@@ -929,9 +939,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this._codeIndex = backData.codeIndex
         this._codeLine = backData.codeLine
         this._codeColumn = backData.codeColumn
-        this._lastTokenName = backData.lastTokenName
 
-        // 恢复 parsedTokens
+        // 恢复 parsedTokens（_lastTokenName 会自动从 parsedTokens 获取）
         this._parsedTokens.length = backData.parsedTokensLength
 
         const currentCst = this.curCst
@@ -1004,7 +1013,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._codeIndex = lastToken.index + lastToken.tokenValue.length
             this._codeLine = lastToken.rowNum
             this._codeColumn = lastToken.columnEndNum
-            this._lastTokenName = lastToken.tokenName
+            // _lastTokenName 会自动从 parsedTokens 获取
         }
 
         this._parseSuccess = cached.parseSuccess

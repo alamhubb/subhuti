@@ -14,6 +14,7 @@ export default class SubhutiMatchToken {
         this.tokenName = osvToken.tokenName;
         this.tokenValue = osvToken.tokenValue;
         this.rowNum = osvToken.rowNum;
+        this.endRowNum = osvToken.endRowNum;
         this.columnStartNum = osvToken.columnStartNum;
         this.columnEndNum = osvToken.columnEndNum;
         // this.length = osvToken.length;

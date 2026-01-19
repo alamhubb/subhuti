@@ -54,110 +54,6 @@ export default class SubhutiLexer {
   }
 
   /**
-   * 词法分析主入口（传统模式，一次性分析整个源码）
-   * @param code 源代码
-   * @returns Token 流
-   */
-  tokenize(code: string): SubhutiMatchToken[] {
-    const result: SubhutiMatchToken[] = []
-    let index = 0
-    let rowNum = 1
-    let columnNum = 1
-    this._lastRowNum = 1
-
-    while (index < code.length) {
-      const matched = this._matchToken(code, index, rowNum, columnNum, result, DefaultMode)
-
-      if (!matched) {
-        const errorChar = code[index]
-        throw new Error(
-          `Unexpected character "${errorChar}" at position ${index} (line ${rowNum}, column ${columnNum})`
-        )
-      }
-
-      if (!matched.skip) {
-        result.push(matched.token)
-        this._lastRowNum = rowNum
-      }
-
-      const valueLength = matched.token.tokenValue.length
-      index += valueLength
-
-      const lineBreaks = matched.token.tokenValue.match(/\r\n|[\n\r\u2028\u2029]/g)
-      if (lineBreaks && lineBreaks.length > 0) {
-        rowNum += lineBreaks.length
-        const lastBreakIndex = matched.token.tokenValue.lastIndexOf(lineBreaks[lineBreaks.length - 1])
-        const lastBreakLen = lineBreaks[lineBreaks.length - 1].length
-        columnNum = matched.token.tokenValue.length - lastBreakIndex - lastBreakLen + 1
-      } else {
-        columnNum += valueLength
-      }
-    }
-
-    return result
-  }
-
-  /**
-   * 匹配单个 token
-   */
-  private _matchToken(
-    code: string,
-    index: number,
-    rowNum: number,
-    columnNum: number,
-    matchedTokens: SubhutiMatchToken[],
-    mode: LexerMode
-  ) {
-    const remaining = code.slice(index)
-    const lastTokenName = matchedTokens.length > 0
-      ? matchedTokens[matchedTokens.length - 1].tokenName
-      : null
-
-    for (const token of this._allTokens) {
-      // mode 检查：如果 token 指定了 mode，必须匹配当前 mode
-      if (token.mode && token.mode !== mode) {
-        continue
-      }
-
-      const match = remaining.match(token.pattern!)
-      if (!match) continue
-
-      // 上下文约束检查
-      if (token.contextConstraint?.onlyAtStart && index !== 0) {
-        continue
-      }
-
-      if (token.contextConstraint?.onlyAtLineStart && rowNum <= this._lastRowNum) {
-        continue
-      }
-
-      if (token.contextConstraint?.onlyAfter) {
-        if (!lastTokenName || !token.contextConstraint.onlyAfter.has(lastTokenName)) {
-          continue
-        }
-      }
-
-      if (token.contextConstraint?.notAfter) {
-        if (lastTokenName && token.contextConstraint.notAfter.has(lastTokenName)) {
-          continue
-        }
-      }
-
-      // 词法层 lookahead 检查
-      if (!this._checkLookahead(token, remaining, match[0].length)) {
-        continue
-      }
-
-      return {
-        token: this._createMatchToken(token, match[0], index, rowNum, columnNum),
-        skip: token.skip
-      }
-    }
-
-    return null
-  }
-
-  /**
    * 检查 lookahead 约束
    * @returns true 表示通过检查，false 表示应跳过此 token
    */
@@ -217,15 +113,46 @@ export default class SubhutiLexer {
     rowNum: number,
     columnNum: number
   ): SubhutiMatchToken {
+    // 计算结束位置（考虑多行 token）
+    const { endRowNum, columnEndNum } = this._calcEndPosition(value, rowNum, columnNum)
+
     return {
       tokenName: token.name,
       tokenValue: value,
       index: index,
       rowNum: rowNum,
+      endRowNum: endRowNum,
       columnStartNum: columnNum,
-      columnEndNum: columnNum + value.length - 1,
+      columnEndNum: columnEndNum,
       hasLineBreakBefore: rowNum > this._lastRowNum
     }
+  }
+
+  /**
+   * 计算 token 的结束位置（行号和列号）
+   */
+  private _calcEndPosition(
+    value: string,
+    startRowNum: number,
+    startColumnNum: number
+  ): { endRowNum: number; columnEndNum: number } {
+    const lineBreaks = value.match(/\r\n|[\n\r\u2028\u2029]/g)
+
+    if (!lineBreaks || lineBreaks.length === 0) {
+      // 单行 token
+      return {
+        endRowNum: startRowNum,
+        columnEndNum: startColumnNum + value.length - 1
+      }
+    }
+
+    // 多行 token
+    const endRowNum = startRowNum + lineBreaks.length
+    const lastBreakIndex = value.lastIndexOf(lineBreaks[lineBreaks.length - 1])
+    const lastBreakLen = lineBreaks[lineBreaks.length - 1].length
+    const columnEndNum = value.length - lastBreakIndex - lastBreakLen
+
+    return { endRowNum, columnEndNum }
   }
 
   // ============================================
@@ -291,17 +218,10 @@ export default class SubhutiLexer {
       const valueLength = matched.token.tokenValue.length
       const nextPos = pos + valueLength
 
-      let nextRowNum = rowNum
-      let nextColumnNum = columnNum
-      const lineBreaks = matched.token.tokenValue.match(/\r\n|[\n\r\u2028\u2029]/g)
-      if (lineBreaks && lineBreaks.length > 0) {
-        nextRowNum += lineBreaks.length
-        const lastBreakIndex = matched.token.tokenValue.lastIndexOf(lineBreaks[lineBreaks.length - 1])
-        const lastBreakLen = lineBreaks[lineBreaks.length - 1].length
-        nextColumnNum = matched.token.tokenValue.length - lastBreakIndex - lastBreakLen + 1
-      } else {
-        nextColumnNum += valueLength
-      }
+      // 使用 _calcEndPosition 计算结束位置，避免重复代码
+      const { endRowNum, columnEndNum } = this._calcEndPosition(matched.token.tokenValue, rowNum, columnNum)
+      const nextRowNum = endRowNum
+      const nextColumnNum = endRowNum > rowNum ? columnEndNum + 1 : columnNum + valueLength
 
       if (matched.skip) {
         pos = nextPos
@@ -315,8 +235,9 @@ export default class SubhutiLexer {
         tokenValue: matched.token.tokenValue,
         index: pos,
         rowNum: rowNum,
+        endRowNum: endRowNum,
         columnStartNum: columnNum,
-        columnEndNum: columnNum + valueLength - 1,
+        columnEndNum: columnEndNum,
         hasLineBreakBefore: rowNum > lastRowNum
       }
 

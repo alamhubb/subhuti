@@ -38,11 +38,11 @@ export interface SubhutiParserOr {
 
 export interface NextTokenInfo {
     /** 源码位置 */
-    nextCodeIndex: number
+    codeIndex: number
     /** 行号 */
-    nextRowNum: number
+    lineNum: number
     /** 列号 */
-    nextColumnNum: number
+    columnNum: number
 }
 
 export interface SubhutiBackData extends NextTokenInfo {
@@ -141,7 +141,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         return len > 0 ? this._parsedTokens[len - 1].tokenName : null
     }
 
-    protected _nextTokenInfo: NextTokenInfo | null = null
+    protected _nextTokenInfo: NextTokenInfo = null
 
     /** Token 缓存：位置 → 模式 → 缓存条目 */
     protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
@@ -240,22 +240,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     /**
      * 获取或解析指定位置和模式的 token
      *
-     * @param codeIndex 源码位置
-     * @param line 行号
-     * @param column 列号
+     * @param nextTokenInfo
      * @param mode 词法模式（由插件提供，如 'regexp', 'templateTail' 等，空字符串表示默认模式）
      * @returns TokenCacheEntry 或 null（EOF）
      */
     protected _getOrParseToken(
-        codeIndex: number,
-        line: number,
-        column: number,
+        nextTokenInfo: NextTokenInfo,
         mode: LexerMode = DefaultMode
     ): TokenCacheEntry | null {
         if (!this._lexer) return null
 
         // 1. 查缓存
-        const positionCache = this._tokenCache.get(codeIndex)
+        const positionCache = this._tokenCache.get(nextTokenInfo.codeIndex)
         if (positionCache?.has(mode)) {
             return positionCache.get(mode)!
         }
@@ -263,9 +259,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         // 2. 解析新 token
         const entry = this._lexer.readTokenAt(
             this._sourceCode,
-            codeIndex,
-            line,
-            column,
+            nextTokenInfo,
             mode,
             this._lastTokenName
         )
@@ -274,9 +268,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         // 3. 存入缓存
         if (!positionCache) {
-            this._tokenCache.set(codeIndex, new Map())
+            this._tokenCache.set(nextTokenInfo.codeIndex, new Map())
         }
-        this._tokenCache.get(codeIndex)!.set(mode, entry)
+        this._tokenCache.get(nextTokenInfo.codeIndex)!.set(mode, entry)
 
         return entry
     }
@@ -289,16 +283,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * @returns token 或 undefined（EOF）
      */
     protected override LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
-        let currentIndex = this._codeIndex
-        let currentLine = this._codeLine
-        let currentColumn = this._codeColumn
-
         for (let i = 0; i < offset; i++) {
             // 确定当前 token 的词法模式
             const mode = modes?.[i] ?? DefaultMode
 
             // 从缓存获取或解析
-            const entry = this._getOrParseToken(currentIndex, currentLine, currentColumn, mode)
+            const entry = this._getOrParseToken(this._nextTokenInfo, mode)
 
             if (!entry) return undefined  // EOF
 
@@ -306,11 +296,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             if (i === offset - 1) {
                 return entry.token
             }
-
-            // 否则，移动到下一个位置
-            currentIndex = entry.nextCodeIndex
-            currentLine = entry.nextLine
-            currentColumn = entry.nextColumn
         }
 
         return undefined
@@ -912,9 +897,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private saveState(): SubhutiBackData {
         const currentCst = this.curCst
         return {
-            nextCodeIndex: this._codeIndex,
-            nextRowNum: this._codeLine,
-            nextColumnNum: this._codeColumn,
+            codeIndex: this._codeIndex,
+            lineNum: this._codeLine,
+            columnNum: this._codeColumn,
             curCstChildrenLength: currentCst?.children?.length || 0,
             parsedTokensLength: this._parsedTokens.length
         }
@@ -926,9 +911,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
 
     private restoreState(backData: SubhutiBackData): void {
-        this._codeIndex = backData.nextCodeIndex
-        this._codeLine = backData.nextRowNum
-        this._codeColumn = backData.nextColumnNum
+        this._codeIndex = backData.codeIndex
+        this._codeLine = backData.lineNum
+        this._codeColumn = backData.columnNum
 
         this._parsedTokens.length = backData.parsedTokensLength
 

@@ -623,6 +623,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * ManyTolerant - 容错版 Many（用于 ModuleList 等顶层循环）
      *
      * 失败但有进展（codeIndex 变化了）时，改为 true 继续解析
+     * 失败且没进展时，跳过一个 token 继续（容错恢复）
      */
     ManyTolerant(fn: RuleFunction): void {
         while (!this.isEof) {
@@ -640,8 +641,34 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 continue
             }
 
-            // 失败且没进展，退出循环
+            // 失败且没进展，退出循环（暂时不跳过 token）
             break
+        }
+    }
+
+    /**
+     * 跳过一个 token（用于容错恢复）
+     */
+    private skipOneToken(): void {
+        const token = this.LA(1)
+        if (token) {
+            // 创建一个错误节点来记录跳过的 token
+            const errorCst = new SubhutiCst()
+            errorCst.name = 'ErrorToken'
+            errorCst.children = [this.generateCstByToken(token)]
+
+            // 添加到当前 CST
+            const parentCst = this.curCst
+            if (parentCst) {
+                parentCst.children!.push(errorCst)
+            }
+
+            // 推进 token 位置
+            const entry = this._getOrParseToken(this._nextTokenInfo, DefaultMode)
+            if (entry) {
+                this._parsedTokens.push(token)
+                this.setNextTokenIndex(entry.nextTokenInfo)
+            }
         }
     }
 

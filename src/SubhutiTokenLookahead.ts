@@ -78,6 +78,9 @@ export default class SubhutiTokenLookahead {
     ): TokenCacheEntry | null {
         if (!this._lexer) return null
 
+        // 容错：nextTokenInfo 可能为 undefined（代码不完整时）
+        if (!nextTokenInfo) return null
+
         // 1. 查缓存
         const positionCache = this._tokenCache.get(nextTokenInfo.index)
         if (positionCache?.has(mode)) {

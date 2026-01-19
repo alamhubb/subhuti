@@ -186,12 +186,15 @@ export default class SubhutiTokenLookahead {
      * @returns token 或 undefined（EOF）
      */
     protected LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
+        // 临时位置信息，用于前瞻（不影响实际位置）
+        let tempInfo: NextTokenInfo = { ...this._nextTokenInfo }
+
         for (let i = 0; i < offset; i++) {
             // 确定当前 token 的词法模式
             const mode = modes?.[i] ?? DefaultMode
 
             // 从缓存获取或解析
-            const entry = this._getOrParseToken(this._nextTokenInfo, mode)
+            const entry = this._getOrParseToken(tempInfo, mode)
 
             if (!entry) return undefined  // EOF
 
@@ -199,6 +202,9 @@ export default class SubhutiTokenLookahead {
             if (i === offset - 1) {
                 return entry.token
             }
+
+            // 更新临时位置到下一个 token
+            tempInfo = entry.nextInfo
         }
 
         return undefined
@@ -208,15 +214,23 @@ export default class SubhutiTokenLookahead {
      * 前瞻：获取连续的 N 个 token
      *
      * @param count 要获取的 token 数量
+     * @param modes 每个位置的词法模式（可选）
      * @returns token 数组（长度可能小于 count，如果遇到 EOF）
      */
-    protected peekSequence(count: number): SubhutiMatchToken[] {
+    protected peekSequence(count: number, modes?: LexerMode[]): SubhutiMatchToken[] {
         const result: SubhutiMatchToken[] = []
-        for (let i = 1; i <= count; i++) {
-            const token = this.peek(i)
-            if (!token) break
-            result.push(token)
+        let tempInfo: NextTokenInfo = { ...this._nextTokenInfo }
+
+        for (let i = 0; i < count; i++) {
+            const mode = modes?.[i] ?? DefaultMode
+            const entry = this._getOrParseToken(tempInfo, mode)
+
+            if (!entry) break  // EOF
+
+            result.push(entry.token)
+            tempInfo = entry.nextInfo
         }
+
         return result
     }
 
@@ -315,6 +329,167 @@ export default class SubhutiTokenLookahead {
      */
     protected lookaheadHasLineBreak(): boolean {
         return this.curToken?.hasLineBreakBefore ?? false
+    }
+
+    // ============================================
+    // ES2025 规范常用前瞻组合方法
+    // ============================================
+
+    /**
+     * [lookahead ∉ { {, function, async [no LT] function, class, let [ }]
+     * ExpressionStatement 的前瞻约束
+     *
+     * @param letToken let 关键字的 token 名称
+     * @param asyncToken async 关键字的 token 名称
+     * @param functionToken function 关键字的 token 名称
+     * @param classToken class 关键字的 token 名称
+     * @param lBraceToken { 的 token 名称
+     * @param lBracketToken [ 的 token 名称
+     * @returns true = 不是这些 token 开头（可以解析 ExpressionStatement）
+     */
+    protected lookaheadNotExpressionStatementStart(
+        lBraceToken: string,
+        functionToken: string,
+        asyncToken: string,
+        classToken: string,
+        letToken: string,
+        lBracketToken: string
+    ): boolean {
+        const token = this.curToken
+        if (!token) return true  // EOF
+
+        const name = token.tokenName
+
+        // [lookahead ≠ {]
+        if (name === lBraceToken) return false
+
+        // [lookahead ≠ function]
+        if (name === functionToken) return false
+
+        // [lookahead ≠ class]
+        if (name === classToken) return false
+
+        // [lookahead ≠ async [no LT] function]
+        if (name === asyncToken) {
+            const tokens = this.peekSequence(2)
+            if (tokens.length === 2 &&
+                tokens[1].tokenName === functionToken &&
+                !tokens[1].hasLineBreakBefore) {
+                return false
+            }
+        }
+
+        // [lookahead ≠ let []
+        if (name === letToken) {
+            if (this.lookahead(lBracketToken, 2)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    /**
+     * [lookahead ≠ let []
+     * ForStatement 的前瞻约束
+     *
+     * @param letToken let 关键字的 token 名称
+     * @param lBracketToken [ 的 token 名称
+     * @returns true = 不是 let [ 开头
+     */
+    protected lookaheadNotLetBracket(letToken: string, lBracketToken: string): boolean {
+        if (!this.lookahead(letToken)) return true
+        return !this.lookahead(lBracketToken, 2)
+    }
+
+    /**
+     * [lookahead ∉ {let, async of}]
+     * ForInOfStatement 的前瞻约束
+     *
+     * @param letToken let 关键字的 token 名称
+     * @param asyncToken async 关键字的 token 名称
+     * @param ofToken of 关键字的 token 名称
+     * @returns true = 不是 let 或 async of 开头
+     */
+    protected lookaheadNotLetOrAsyncOf(
+        letToken: string,
+        asyncToken: string,
+        ofToken: string
+    ): boolean {
+        const token = this.curToken
+        if (!token) return true
+
+        // [lookahead ≠ let]
+        if (token.tokenName === letToken) return false
+
+        // [lookahead ≠ async of] (注意：这里没有 [no LT] 约束)
+        if (token.tokenName === asyncToken) {
+            if (this.lookahead(ofToken, 2)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    /**
+     * [lookahead ≠ {]
+     * ConciseBody / AsyncConciseBody 的前瞻约束
+     *
+     * @param lBraceToken { 的 token 名称
+     * @returns true = 不是 { 开头（是表达式体）
+     */
+    protected lookaheadNotLBrace(lBraceToken: string): boolean {
+        return this.lookaheadNot(lBraceToken)
+    }
+
+    /**
+     * [lookahead ∉ {function, async [no LT] function, class}]
+     * export default 的前瞻约束
+     *
+     * @param functionToken function 关键字的 token 名称
+     * @param asyncToken async 关键字的 token 名称
+     * @param classToken class 关键字的 token 名称
+     * @returns true = 不是 function/async function/class 开头（是表达式）
+     */
+    protected lookaheadNotExportDefaultDeclaration(
+        functionToken: string,
+        asyncToken: string,
+        classToken: string
+    ): boolean {
+        const token = this.curToken
+        if (!token) return true
+
+        const name = token.tokenName
+
+        // [lookahead ≠ function]
+        if (name === functionToken) return false
+
+        // [lookahead ≠ class]
+        if (name === classToken) return false
+
+        // [lookahead ≠ async [no LT] function]
+        if (name === asyncToken) {
+            const tokens = this.peekSequence(2)
+            if (tokens.length === 2 &&
+                tokens[1].tokenName === functionToken &&
+                !tokens[1].hasLineBreakBefore) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    /**
+     * [lookahead ≠ else]
+     * IfStatement 的前瞻约束（用于区分 if-else 和单独的 if）
+     *
+     * @param elseToken else 关键字的 token 名称
+     * @returns true = 下一个不是 else
+     */
+    protected lookaheadNotElse(elseToken: string): boolean {
+        return this.lookaheadNot(elseToken)
     }
 
     // ============================================

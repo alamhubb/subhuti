@@ -5,6 +5,7 @@
  * 1. Token 前瞻（只读查询）
  * 2. 行终止符检查
  * 3. 对应 ECMAScript® 2025 规范中的所有 [lookahead ...] 约束
+ * 4. 按需词法分析（On-Demand Lexing）
  *
  * 设计模式：
  * - 抽象类，定义访问接口
@@ -13,12 +14,116 @@
  *
  * 规范地址：https://tc39.es/ecma262/2025/#sec-grammar-summary
  *
- * @version 4.0.0 - 移除旧模式，只保留按需词法分析
+ * @version 5.0.0 - 整合按需词法分析
  */
 
 import type SubhutiMatchToken from "./struct/SubhutiMatchToken.ts"
+import SubhutiLexer, {TokenCacheEntry} from "./SubhutiLexer.ts"
+import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiCreateToken.ts"
+
+// ============================================
+// 类型定义
+// ============================================
+
+export interface NextTokenInfo {
+    /** 源码位置 */
+    index: number
+    /** 行号 */
+    line: number
+    /** 列号 */
+    column: number
+}
 
 export default class SubhutiTokenLookahead {
+    // ============================================
+    // 按需词法分析相关字段
+    // ============================================
+
+    /** 词法分析器 */
+    protected _lexer: SubhutiLexer | null = null
+
+    /** 源代码 */
+    protected _sourceCode: string = ''
+
+    /** 下一个 token 的位置信息 */
+    protected _nextTokenInfo: NextTokenInfo = { index: 0, line: 1, column: 1 }
+
+    /** Token 缓存：位置 → 模式 → 缓存条目 */
+    protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
+
+    /** 已解析的 token 列表（用于输出给使用者） */
+    protected _parsedTokens: SubhutiMatchToken[] = []
+
+    /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
+    protected get _lastTokenName(): string | null {
+        return this._parsedTokens.length > 0
+            ? this._parsedTokens[this._parsedTokens.length - 1].tokenName
+            : null
+    }
+
+    // ============================================
+    // 按需词法分析方法
+    // ============================================
+
+    /**
+     * 获取或解析指定位置和模式的 token
+     *
+     * @param nextTokenInfo 位置信息
+     * @param mode 词法模式（由插件提供，如 'regexp', 'templateTail' 等，空字符串表示默认模式）
+     * @returns TokenCacheEntry 或 null（EOF）
+     */
+    protected _getOrParseToken(
+        nextTokenInfo: NextTokenInfo,
+        mode: LexerMode = DefaultMode
+    ): TokenCacheEntry | null {
+        if (!this._lexer) return null
+
+        // 1. 查缓存
+        const positionCache = this._tokenCache.get(nextTokenInfo.index)
+        if (positionCache?.has(mode)) {
+            return positionCache.get(mode)!
+        }
+
+        // 2. 解析新 token
+        const entry = this._lexer.readTokenAt(
+            this._sourceCode,
+            nextTokenInfo,
+            mode,
+            this._lastTokenName
+        )
+
+        if (!entry) return null  // EOF
+
+        // 3. 存入缓存
+        if (!positionCache) {
+            this._tokenCache.set(nextTokenInfo.index, new Map())
+        }
+        this._tokenCache.get(nextTokenInfo.index)!.set(mode, entry)
+
+        return entry
+    }
+
+    /**
+     * 初始化下一个 token 位置信息
+     */
+    protected initNextTokenInfo(): void {
+        this._nextTokenInfo = { index: 0, line: 1, column: 1 }
+    }
+
+    /**
+     * 设置下一个 token 位置信息
+     */
+    protected setNextTokenIndex(nextTokenInfo: NextTokenInfo): void {
+        this._nextTokenInfo = { ...nextTokenInfo }
+    }
+
+    /**
+     * 克隆当前的下一个 token 位置信息
+     */
+    protected cloneThisNextTokenInfo(): NextTokenInfo {
+        return { ...this._nextTokenInfo }
+    }
+
     // ============================================
     // 核心状态
     // ============================================
@@ -47,11 +152,10 @@ export default class SubhutiTokenLookahead {
     }
 
     /**
-     * 获取当前 token（由子类实现）
+     * 获取当前 token（使用默认词法模式）
      */
     get curToken(): SubhutiMatchToken | undefined {
-        // 子类 SubhutiParser 会覆盖此 getter
-        return undefined
+        return this.LA(1)
     }
 
     // ============================================
@@ -60,18 +164,17 @@ export default class SubhutiTokenLookahead {
 
     /**
      * 前瞻：获取未来的 token（不消费）
-     * 由子类 SubhutiParser 覆盖实现
      *
      * @param offset 偏移量（1 = 当前 token，2 = 下一个...）
+     * @param modes 每个位置的词法模式（可选，不传用默认值）
      * @returns token 或 undefined（EOF）
      */
-    protected peek(offset: number = 1): SubhutiMatchToken | undefined {
-        // 子类 SubhutiParser 会覆盖此方法
-        return undefined
+    protected peek(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
+        return this.LA(offset, modes)
     }
 
     /**
-     * LA (LookAhead) - 前瞻获取 token（不消费）
+     * LA (LookAhead) - 前瞻获取 token（支持模式数组）
      *
      * 这是 parser 领域的标准术语：
      * - LA(1) = 当前 token
@@ -79,10 +182,26 @@ export default class SubhutiTokenLookahead {
      * - LA(n) = 第 n 个 token
      *
      * @param offset 偏移量（1 = 当前 token，2 = 下一个...）
+     * @param modes 每个位置的词法模式（可选，不传用默认值）
      * @returns token 或 undefined（EOF）
      */
-    protected LA(offset: number = 1): SubhutiMatchToken | undefined {
-        return this.peek(offset)
+    protected LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
+        for (let i = 0; i < offset; i++) {
+            // 确定当前 token 的词法模式
+            const mode = modes?.[i] ?? DefaultMode
+
+            // 从缓存获取或解析
+            const entry = this._getOrParseToken(this._nextTokenInfo, mode)
+
+            if (!entry) return undefined  // EOF
+
+            // 如果是最后一个，返回 token
+            if (i === offset - 1) {
+                return entry.token
+            }
+        }
+
+        return undefined
     }
 
     /**

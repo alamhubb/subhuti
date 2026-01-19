@@ -6,14 +6,14 @@
  * - 返回值语义（成功返回 CST，失败返回 undefined）
  *
  * 架构设计：
- * - 继承 SubhutiTokenLookahead（前瞻能力）
+ * - 继承 SubhutiTokenLookahead（前瞻能力 + 按需词法分析）
  * - 实现 ITokenConsumerContext（提供消费接口）
  * - 支持泛型扩展 SubhutiTokenConsumer
  *
  * @version 5.0.0
  */
 
-import SubhutiTokenLookahead from "./SubhutiTokenLookahead.ts"
+import SubhutiTokenLookahead, {NextTokenInfo} from "./SubhutiTokenLookahead.ts"
 import SubhutiCst from "./struct/SubhutiCst.ts";
 import type SubhutiMatchToken from "./struct/SubhutiMatchToken.ts";
 import {SubhutiErrorHandler, ParsingError} from "./SubhutiError.ts";
@@ -21,7 +21,7 @@ import {SubhutiTraceDebugger} from "./SubhutiDebug.ts";
 import {SubhutiPackratCache, type SubhutiPackratCacheResult} from "./SubhutiPackratCache.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import {SubhutiDebugRuleTracePrint, setShowRulePath} from "./SubhutiDebugRuleTracePrint.ts";
-import SubhutiLexer, {TokenCacheEntry} from "./SubhutiLexer.ts";
+import SubhutiLexer from "./SubhutiLexer.ts";
 import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiCreateToken.ts";
 import {SubhutiGrammarValidator} from "./validation";
 
@@ -34,15 +34,6 @@ export type RuleFunction = () => void
 
 export interface SubhutiParserOr {
     alt: RuleFunction
-}
-
-export interface NextTokenInfo {
-    /** 源码位置 */
-    index: number
-    /** 行号 */
-    line: number
-    /** 列号 */
-    column: number
 }
 
 export interface SubhutiBackData {
@@ -116,29 +107,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     private readonly cstStack: SubhutiCst[] = []
     private readonly className: string
-
-    // ============================================
-    // 按需词法分析相关字段（新架构）
-    // ============================================
-
-    /** 词法分析器 */
-    protected _lexer: SubhutiLexer | null = null
-
-    /** 源代码 */
-    protected _sourceCode: string = ''
-
-    /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
-    protected get _lastTokenName(): string | null {
-        return this.currentTokenIndex > 0 ? this._parsedTokens[this.lastTokenIndex].tokenName : null
-    }
-
-    protected _nextTokenInfo: NextTokenInfo = null
-
-    /** Token 缓存：位置 → 模式 → 缓存条目 */
-    protected _tokenCache: Map<number, Map<LexerMode, TokenCacheEntry>> = new Map()
-
-    /** 已解析的 token 列表（用于输出给使用者） */
-    protected _parsedTokens: SubhutiMatchToken[] = []
 
     /**
      * 分析模式标志
@@ -222,88 +190,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     get currentTokenIndex(): number {
         return this._parsedTokens.length
-    }
-
-    // ============================================
-    // 按需词法分析
-    // ============================================
-
-    /**
-     * 获取或解析指定位置和模式的 token
-     *
-     * @param nextTokenInfo
-     * @param mode 词法模式（由插件提供，如 'regexp', 'templateTail' 等，空字符串表示默认模式）
-     * @returns TokenCacheEntry 或 null（EOF）
-     */
-    protected _getOrParseToken(
-        nextTokenInfo: NextTokenInfo,
-        mode: LexerMode = DefaultMode
-    ): TokenCacheEntry | null {
-        if (!this._lexer) return null
-
-        // 1. 查缓存
-        const positionCache = this._tokenCache.get(nextTokenInfo.index)
-        if (positionCache?.has(mode)) {
-            return positionCache.get(mode)!
-        }
-
-        // 2. 解析新 token
-        const entry = this._lexer.readTokenAt(
-            this._sourceCode,
-            nextTokenInfo,
-            mode,
-            this._lastTokenName
-        )
-
-        if (!entry) return null  // EOF
-
-        // 3. 存入缓存
-        if (!positionCache) {
-            this._tokenCache.set(nextTokenInfo.index, new Map())
-        }
-        this._tokenCache.get(nextTokenInfo.index)!.set(mode, entry)
-
-        return entry
-    }
-
-    /**
-     * LA (LookAhead) - 前瞻获取 token（支持模式数组）
-     *
-     * @param offset 偏移量（1 = 当前 token，2 = 下一个...）
-     * @param modes 每个位置的词法模式（可选，不传用默认值）
-     * @returns token 或 undefined（EOF）
-     */
-    protected override LA(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
-        for (let i = 0; i < offset; i++) {
-            // 确定当前 token 的词法模式
-            const mode = modes?.[i] ?? DefaultMode
-
-            // 从缓存获取或解析
-            const entry = this._getOrParseToken(this._nextTokenInfo, mode)
-
-            if (!entry) return undefined  // EOF
-
-            // 如果是最后一个，返回 token
-            if (i === offset - 1) {
-                return entry.token
-            }
-        }
-
-        return undefined
-    }
-
-    /**
-     * peek - 前瞻获取 token（支持模式数组）
-     */
-    protected override peek(offset: number = 1, modes?: LexerMode[]): SubhutiMatchToken | undefined {
-        return this.LA(offset, modes)
-    }
-
-    /**
-     * 获取当前 token（使用默认词法目标）
-     */
-    override get curToken(): SubhutiMatchToken | undefined {
-        return this.LA(1)
     }
 
     // ============================================
@@ -399,87 +285,27 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
-     * 检测是否是直接或间接左递归
-     *
-     * ✅ 这个方法可以准确判断左递归
-     * ❌ 不能判断是否是 Or 分支遮蔽（返回 false 只表示不是左递归）
-     *
-     * @param ruleName 当前规则名称
-     * @param ruleStack 规则调用栈
-     * @returns true: 确定是左递归, false: 不是左递归（但不能确定是什么问题）
-     */
-    private isDirectLeftRecursion(ruleName: string, ruleStack: string[]): boolean {
-        // 检查规则栈中是否有任何规则出现了 >= 2 次
-        // 这可以检测直接左递归和间接左递归
-
-        const ruleCounts = new Map<string, number>()
-
-        for (const rule of ruleStack) {
-            ruleCounts.set(rule, (ruleCounts.get(rule) || 0) + 1)
-        }
-
-        // 如果任何规则出现 >= 2 次，说明有递归
-        for (const count of ruleCounts.values()) {
-            if (count >= 2) {
-                return true  // ✅ 确定是左递归（直接或间接）
-            }
-        }
-
-        // 否则，不是左递归
-        // 但可能是其他问题：Or 分支遮蔽、规则实现错误、语法错误等
-        return false  // ❌ 不是左递归（但不确定具体是什么问题）
-    }
-
-    /**
      * 抛出循环错误信息
      *
      * @param ruleName 当前规则名称
      */
     private throwLoopError(ruleName: string): never {
-        // 🔍 分析模式：不抛异常，直接返回
+        // 分析模式：不抛异常，直接返回
         if (this._analysisMode) {
-            // 标记解析失败，让 RuleCollector 知道这个规则有问题
             this._parseSuccess = false
             return undefined as never
         }
 
-        // 获取当前 token 信息
-        const currentToken = this.curToken
-
-        // 从 parsedTokens 获取上下文（最近 2 个 token）
-        const tokenContext = this.getTokenContext(2)
-
-        // 获取缓存统计
-        const cacheStatsReport = this._cache.getStatsReport()
-
-        // 🔍 分析循环类型：真正的左递归 vs Or 分支遮蔽
-        const ruleStack = this.getRuleStack()
-        const isDirectLeftRecursion = this.isDirectLeftRecursion(ruleName, ruleStack)
-        const errorType = isDirectLeftRecursion ? 'left-recursion' : 'or-branch-shadowing'
-
-        // 创建循环错误（平铺结构）
-        throw this._errorHandler.createError({
-            type: errorType,
-            expected: '',
-            found: currentToken,
-            position: {
-                tokenIndex: this.currentTokenIndex,
-                codeIndex: currentToken.codeIndex,
-                line: currentToken?.line,
-                column: currentToken?.column
-            },
-            ruleStack: [...ruleStack],
-            loopRuleName: ruleName,
+        // Parser 只负责收集数据，错误组装由 ErrorHandler 负责
+        throw this._errorHandler.createLoopError({
+            ruleName,
+            currentToken: this.curToken,
+            tokenIndex: this.currentTokenIndex,
+            ruleStack: this.getRuleStack(),
             loopDetectionSet: Array.from(this.loopDetectionSet),
-            loopCstDepth: this.cstStack.length,
-            loopCacheStats: {
-                hits: cacheStatsReport.hits,
-                misses: cacheStatsReport.misses,
-                hitRate: cacheStatsReport.hitRate,
-                currentSize: cacheStatsReport.currentSize
-            },
-            loopTokenContext: tokenContext,
-            hint: '检查规则定义，确保在递归前消费了 token'
+            cstDepth: this.cstStack.length,
+            cacheStats: this._cache.getStatsReport(),
+            tokenContext: this.getTokenContext(2)
         })
     }
 
@@ -741,21 +567,13 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return
         }
 
-        // 正常模式：抛出解析错误
-        const noTokenConsumed = this.currentTokenIndex === startIndex
-        const found = this.curToken
-
-        throw this._errorHandler.createError({
-            type: 'parsing',
-            expected: noTokenConsumed ? 'valid syntax' : 'EOF (end of file)',
-            found: found,
-            position: {
-                tokenIndex: this.currentTokenIndex,
-                codeIndex: this.curToken?.codeIndex,
-                line: this.curToken?.line,
-                column: this.curToken?.column
-            },
-            ruleStack: this.getRuleStack().length > 0 ? this.getRuleStack() : [ruleName]
+        // Parser 只负责收集数据，错误组装由 ErrorHandler 负责
+        throw this._errorHandler.createTopLevelError({
+            ruleName,
+            startIndex,
+            currentTokenIndex: this.currentTokenIndex,
+            currentToken: this.curToken,
+            ruleStack: this.getRuleStack()
         })
     }
 
@@ -862,22 +680,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             curCstChildrenLength: currentCst?.children?.length || 0,
             parsedTokensLength: this.currentTokenIndex
         }
-    }
-
-    private cloneThisNextTokenInfo() {
-        return {...this._nextTokenInfo}
-    }
-
-    private setNextTokenIndex(nextTokenInfo: NextTokenInfo) {
-        this._nextTokenInfo = {...nextTokenInfo}
-    }
-
-    private initNextTokenInfo() {
-        this.setNextTokenIndex({
-            index: 0,
-            line: 1,
-            column: 1
-        })
     }
 
     private restoreState(backData: SubhutiBackData): void {

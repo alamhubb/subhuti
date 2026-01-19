@@ -522,25 +522,68 @@ export class ParsingError extends Error {
 }
 
 /**
+ * 循环错误上下文（由 Parser 提供原始数据）
+ */
+export interface LoopErrorContext {
+    /** 循环的规则名 */
+    ruleName: string
+    /** 当前 token */
+    currentToken?: SubhutiMatchToken
+    /** 当前 token 索引 */
+    tokenIndex: number
+    /** 规则调用栈 */
+    ruleStack: string[]
+    /** 循环检测集合 */
+    loopDetectionSet: string[]
+    /** CST 栈深度 */
+    cstDepth: number
+    /** 缓存统计 */
+    cacheStats?: {
+        hits: number
+        misses: number
+        hitRate: string
+        currentSize: number
+    }
+    /** Token 上下文 */
+    tokenContext?: SubhutiMatchToken[]
+}
+
+/**
+ * 顶层错误上下文（由 Parser 提供原始数据）
+ */
+export interface TopLevelErrorContext {
+    /** 规则名 */
+    ruleName: string
+    /** 规则开始时的 token 索引 */
+    startIndex: number
+    /** 当前 token 索引 */
+    currentTokenIndex: number
+    /** 当前 token */
+    currentToken?: SubhutiMatchToken
+    /** 规则调用栈 */
+    ruleStack: string[]
+}
+
+/**
  * Subhuti 错误处理器
- * 
+ *
  * 管理错误创建和格式化
  */
 export class SubhutiErrorHandler {
     private enableDetailedErrors: boolean = true
-    
+
     /**
      * 设置是否启用详细错误
-     * 
+     *
      * @param enable - true: 详细错误（Rust风格+建议），false: 简单错误
      */
     setDetailed(enable: boolean): void {
         this.enableDetailedErrors = enable
     }
-    
+
     /**
      * 创建解析错误
-     * 
+     *
      * @param details - 错误详情
      * @returns ParsingError 实例
      */
@@ -550,5 +593,84 @@ export class SubhutiErrorHandler {
             details,
             this.enableDetailedErrors
         )
+    }
+
+    /**
+     * 创建循环错误（左递归 / Or分支遮蔽）
+     *
+     * Parser 只需提供原始数据，错误类型检测和格式化由 ErrorHandler 负责
+     *
+     * @param context - 循环错误上下文
+     * @returns ParsingError 实例
+     */
+    createLoopError(context: LoopErrorContext): ParsingError {
+        const errorType = this.detectLoopType(context.ruleStack)
+
+        return this.createError({
+            type: errorType,
+            expected: '',
+            found: context.currentToken,
+            position: {
+                tokenIndex: context.tokenIndex,
+                codeIndex: context.currentToken?.codeIndex ?? 0,
+                line: context.currentToken?.line ?? 0,
+                column: context.currentToken?.column ?? 0
+            },
+            ruleStack: [...context.ruleStack],
+            loopRuleName: context.ruleName,
+            loopDetectionSet: context.loopDetectionSet,
+            loopCstDepth: context.cstDepth,
+            loopCacheStats: context.cacheStats,
+            loopTokenContext: context.tokenContext,
+            hint: '检查规则定义，确保在递归前消费了 token'
+        })
+    }
+
+    /**
+     * 创建顶层规则失败错误
+     *
+     * @param context - 顶层错误上下文
+     * @returns ParsingError 实例
+     */
+    createTopLevelError(context: TopLevelErrorContext): ParsingError {
+        const noTokenConsumed = context.currentTokenIndex === context.startIndex
+
+        return this.createError({
+            type: 'parsing',
+            expected: noTokenConsumed ? 'valid syntax' : 'EOF (end of file)',
+            found: context.currentToken,
+            position: {
+                tokenIndex: context.currentTokenIndex,
+                codeIndex: context.currentToken?.codeIndex ?? 0,
+                line: context.currentToken?.line ?? 0,
+                column: context.currentToken?.column ?? 0
+            },
+            ruleStack: context.ruleStack.length > 0 ? context.ruleStack : [context.ruleName]
+        })
+    }
+
+    /**
+     * 检测循环类型：左递归 vs Or分支遮蔽
+     *
+     * @param ruleStack - 规则调用栈
+     * @returns 错误类型
+     */
+    private detectLoopType(ruleStack: string[]): 'left-recursion' | 'or-branch-shadowing' {
+        // 检查规则栈中是否有任何规则出现了 >= 2 次
+        const ruleCounts = new Map<string, number>()
+
+        for (const rule of ruleStack) {
+            ruleCounts.set(rule, (ruleCounts.get(rule) || 0) + 1)
+        }
+
+        // 如果任何规则出现 >= 2 次，说明有递归
+        for (const count of ruleCounts.values()) {
+            if (count >= 2) {
+                return 'left-recursion'
+            }
+        }
+
+        // 否则是 Or 分支遮蔽
+        return 'or-branch-shadowing'
     }
 }

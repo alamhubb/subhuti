@@ -171,7 +171,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.initNextTokenInfo()
 
         this._tokenCache = new Map()
-        this.parsedTokens = []
+        this.initParserTokens()
 
         // 初始化词法分析器
         if (options?.tokenDefinitions) {

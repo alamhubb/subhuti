@@ -224,14 +224,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         return this.consume(tokenName, mode)
     }
 
-    /**
-     * 供 TokenConsumer 使用的标记解析失败方法
-     * 用于软关键字检查失败时标记解析失败
-     */
-    _markParseFail(): void {
-        this._parseSuccess = false
-    }
-
     // ============================================
     // Parser 内部 Getter
     // ============================================
@@ -278,19 +270,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     errorHandler(enable: boolean = true): this {
         this._errorHandler.setDetailed(enable)
-        return this
-    }
-
-    /**
-     * 启用容错模式（链式调用）
-     *
-     * 在容错模式下：
-     * - ManyTolerant 会在所有分支失败时选择最长匹配
-     * - 错误会被收集到 errors 数组中
-     * - 解析会继续而不是停止
-     */
-    tolerant(enable: boolean = true): this {
-        this._tolerant = enable
         return this
     }
 
@@ -350,7 +329,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     private throwLoopError(ruleName: string): never {
         // 分析模式：不抛异常，直接返回
         if (this._analysisMode) {
-            this._parseSuccess = false
+            this.setParseFail()
             return undefined as never
         }
 
@@ -464,7 +443,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     private initTopLevelData() {
         // 【顶层规则开始】重置解析器状态
-        this._parseSuccess = true
+        this.setParserSuccess()
         this.cstStack.length = 0
         this.loopDetectionSet.clear()
         this.initNextTokenInfo()
@@ -576,15 +555,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 前 N-1 个分支：失败后回溯并重置状态，继续尝试下一个
             if (!isLast) {
                 this.restoreState(savedState)
-                this._parseSuccess = true
+                this.setParserSuccess()
             }
             // 最后一个分支：失败后不回溯，保持失败状态
         }
 
         if (this.parserFail) {
             const best = failedBranches.reduce((a, b) => {
-                const aEnd = a.loc?.end?.index ?? startCodeIndex
-                const bEnd = b.loc?.end?.index ?? startCodeIndex
+                const aEnd = a.loc?.end?.index
+                const bEnd = b.loc?.end?.index
                 return aEnd >= bEnd ? a : b
             })
             this.setCurCst(best)
@@ -618,7 +597,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     ManyTolerant(fn: RuleFunction): void {
         while (!this.isEof) {
             if (!this.tryAndRestore(fn)) {
-
+                this.setParserSuccess()
             }
         }
     }
@@ -688,7 +667,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         if (this.isEof) {
-            this._parseSuccess = false
+            this.setParseFail()
             return
         }
 
@@ -700,14 +679,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         )
 
         if (!entry) {
-            this._parseSuccess = false
+            this.setParseFail()
             return
         }
 
         const token = entry.token
 
         if (token.tokenName !== tokenName) {
-            this._parseSuccess = false
+            this.setParseFail()
 
             this._debugger?.onTokenConsume(
                 this.currentTokenIndex,
@@ -822,7 +801,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (this.parserFail) {
             // 记录部分匹配并回溯
             this.restoreState(savedState)
-            this._parseSuccess = true
+            this.setParserSuccess()
             return false
         }
 
@@ -840,7 +819,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this.setNextTokenIndex(cached.nextTokenInfo)
         }
 
-        this._parseSuccess = cached.parseSuccess
+        this.setParserSuccessState(cached.parseSuccess)
 
         // 成功时添加到父节点
         if (cached.parseSuccess) {

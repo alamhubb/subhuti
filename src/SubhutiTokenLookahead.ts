@@ -141,7 +141,11 @@ export default class SubhutiTokenLookahead {
     protected _parseSuccess = true
 
     get parserFail() {
-        return !this._parseSuccess
+        return !this.parserSuccess
+    }
+
+    get parserSuccess() {
+        return this._parseSuccess
     }
 
     /**
@@ -151,9 +155,16 @@ export default class SubhutiTokenLookahead {
      *
      * @returns never (实际返回 undefined，但类型声明为 never 以便链式调用)
      */
-    protected setParseFail(): never {
-        this._parseSuccess = false
-        return undefined as never
+    protected setParseFail() {
+        this.setParserSuccessState(false)
+    }
+
+    protected setParserSuccess(){
+        this.setParserSuccessState(true)
+    }
+
+    protected setParserSuccessState(success:boolean){
+        this._parseSuccess = success
     }
 
     /**

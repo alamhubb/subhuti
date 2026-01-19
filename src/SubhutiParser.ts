@@ -598,9 +598,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         while (!this.isEof) {
             if (!this.tryAndRestore(fn)) {
                 this.setParserSuccess()
-                this.setNextTokenIndex({
-                    codeIndex: index
-                })
             }
         }
     }

@@ -119,9 +119,7 @@ export default class SubhutiLexer {
             tokenValue: value,
             index: index,
             line: rowNum,
-            endRowNum: endRowNum,
             column: columnNum,
-            columnEndNum: columnEndNum,
             hasLineBreakBefore: rowNum > this._lastRowNum
         }
     }
@@ -187,10 +185,10 @@ export default class SubhutiLexer {
         mode: LexerMode = DefaultMode,
         lastTokenName: string | null = null
     ): TokenCacheEntry | null {
-        let pos = nextTokenInfo.codeIndex
-        let rowNum = nextTokenInfo.lineNum
-        let columnNum = nextTokenInfo.columnNum
-        let lastRowNum = nextTokenInfo.lineNum
+        let pos = nextTokenInfo.index
+        let rowNum = nextTokenInfo.line
+        let columnNum = nextTokenInfo.column
+        let lastRowNum = nextTokenInfo.line
         let currentLastTokenName = lastTokenName
 
         while (pos < code.length) {
@@ -231,18 +229,16 @@ export default class SubhutiLexer {
                 tokenValue: matched.token.tokenValue,
                 index: pos,
                 line: rowNum,
-                endRowNum: endRowNum,
                 column: columnNum,
-                columnEndNum: columnEndNum,
                 hasLineBreakBefore: rowNum > lastRowNum
             }
 
             return {
                 token,
                 nextTokenInfo: {
-                    codeIndex: nextPos,
-                    lineNum: nextRowNum,
-                    columnNum: nextColumnNum,
+                    index: nextPos,
+                    line: nextRowNum,
+                    column: nextColumnNum,
                 }
             }
         }

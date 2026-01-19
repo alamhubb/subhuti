@@ -38,11 +38,11 @@ export interface SubhutiParserOr {
 
 export interface NextTokenInfo {
     /** 源码位置 */
-    codeIndex: number
+    index: number
     /** 行号 */
-    lineNum: number
+    line: number
     /** 列号 */
-    columnNum: number
+    column: number
 }
 
 export interface SubhutiBackData {
@@ -129,12 +129,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     /** 当前源码位置，如果用tokenindex会导致tokenindex动态变化缓存问题，因为同样的代码不同的模式解析出来的tokens不一致 */
     protected _codeIndex: number = 0
-
-    /** 当前行号 */
-    protected _codeLine: number = 1
-
-    /** 当前列号 */
-    protected _codeColumn: number = 1
 
     /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
     protected get _lastTokenName(): string | null {
@@ -251,7 +245,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (!this._lexer) return null
 
         // 1. 查缓存
-        const positionCache = this._tokenCache.get(nextTokenInfo.codeIndex)
+        const positionCache = this._tokenCache.get(nextTokenInfo.index)
         if (positionCache?.has(mode)) {
             return positionCache.get(mode)!
         }
@@ -268,9 +262,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         // 3. 存入缓存
         if (!positionCache) {
-            this._tokenCache.set(nextTokenInfo.codeIndex, new Map())
+            this._tokenCache.set(nextTokenInfo.index, new Map())
         }
-        this._tokenCache.get(nextTokenInfo.codeIndex)!.set(mode, entry)
+        this._tokenCache.get(nextTokenInfo.index)!.set(mode, entry)
 
         return entry
     }
@@ -687,7 +681,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         const savedState = this.getCurState()
-        const startCodeIndex = this._nextTokenInfo.codeIndex
+        const startCodeIndex = this._nextTokenInfo.index
         const totalCount = alternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
@@ -830,7 +824,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this._parseSuccess = false
 
             this._debugger?.onTokenConsume(
-                this._codeIndex,
+                token.index,
                 token.tokenValue,
                 token.tokenName,
                 tokenName,
@@ -906,9 +900,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     private initNextTokenInfo() {
         this.setNextTokenIndex({
-            codeIndex: 0,
-            lineNum: 1,
-            columnNum: 1
+            index: 0,
+            line: 1,
+            column: 1
         })
     }
 
@@ -928,7 +922,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     get isEof(): boolean {
         // 先检查是否已经到达代码末尾
-        if (this._nextTokenInfo.codeIndex >= this._sourceCode.length) {
+        if (this._nextTokenInfo.index >= this._sourceCode.length) {
             return true
         }
 
@@ -957,7 +951,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return false
         }
         const savedState = this.getCurState()
-        const startIndex = this._nextTokenInfo.codeIndex
+        const startIndex = this._nextTokenInfo.index
 
         fn()
 
@@ -969,7 +963,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         // 成功但没消费 token → 返回 false（防止无限循环）
-        return this._nextTokenInfo.codeIndex !== startIndex
+        return this._nextTokenInfo.index !== startIndex
     }
 
     /**

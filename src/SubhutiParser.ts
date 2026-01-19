@@ -731,10 +731,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
     }
 
-    private restoreAllowErrorContext(backData:SubhutiAllowErrorOrBranchContextBackData) {
+    private restoreAllowErrorContext(backData: SubhutiAllowErrorOrBranchContextBackData) {
         this.curCst.children = [...backData.curCstChildren]
         this.parsedTokens.push(...backData.orParserTokens)
-
+        this.setNextTokenIndex(backData.nextTokenInfo)
     }
 
     private restoreState(backData: SubhutiBackData): void {

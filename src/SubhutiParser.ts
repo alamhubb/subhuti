@@ -571,9 +571,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 失败且没进展时，跳过一个 token 继续（容错恢复）
      */
     ManyTolerant(fn: RuleFunction): void {
-        while (!this.isEof) {
-            if (!this.tryAndRestore(fn)) {
-                this.setParserSuccess()
+        while (!this.parserFailOrIsEof) {
+            const startIndex = this.lastTokenIndex
+
+            fn()
+
+            if (this.parserFail) {
+                if (this.lastTokenIndex > startIndex) {
+                    // 记录部分匹配并回溯
+                    this.setParserSuccess()
+                } else {
+                    throw Error('系统错误')
+                }
             }
         }
     }

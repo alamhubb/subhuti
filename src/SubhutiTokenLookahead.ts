@@ -267,7 +267,7 @@ export default class SubhutiTokenLookahead {
             if (!entry) break  // EOF
 
             result.push(entry.token)
-            tempInfo = entry.nextInfo
+            tempInfo = entry.nextTokenInfo
         }
 
         return result

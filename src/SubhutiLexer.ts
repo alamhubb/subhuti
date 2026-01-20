@@ -185,7 +185,7 @@ export default class SubhutiLexer {
         mode: LexerMode = DefaultMode,
         lastTokenName: string | null = null
     ): TokenCacheEntry | null {
-        let pos = nextTokenInfo.index
+        let pos = nextTokenInfo.codeIndex
         let rowNum = nextTokenInfo.line
         let columnNum = nextTokenInfo.column
         let lastRowNum = nextTokenInfo.line
@@ -236,7 +236,7 @@ export default class SubhutiLexer {
             return {
                 token,
                 nextTokenInfo: {
-                    index: nextPos,
+                    codeIndex: nextPos,
                     line: nextRowNum,
                     column: nextColumnNum,
                 }

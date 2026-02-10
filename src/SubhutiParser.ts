@@ -567,19 +567,25 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     /**
      * ManyTolerant - 容错版 Many（用于 ModuleList 等顶层循环）
      *
-     * 失败但有进展（codeIndex 变化了）时，改为 true 继续解析
-     * 失败且没进展时，跳过一个 token 继续（容错恢复）
+     * 失败但有进展（codeIndex 变化了）时，设置成功继续解析
+     * 失败且没进展时，EOF 则退出，否则报错
      */
     ManyTolerant(fn: RuleFunction): void {
         while (!this.parserFailOrIsEof) {
-            const startIndex = this.lastTokenIndex
+            const startCodeIndex = this._nextTokenInfo.codeIndex
 
             fn()
 
             if (this.parserFail) {
-                if (this.lastTokenIndex > startIndex) {
-                    // 记录部分匹配并回溯
+                // 检查源码位置是否有进展（而不是 parsedTokens 数量）
+                // 因为 Or 的 restoreAllowErrorContext 会更新 nextTokenInfo
+                if (this._nextTokenInfo.codeIndex > startCodeIndex) {
+                    // 有进展，设置成功继续
                     this.setParserSuccess()
+                } else if (this.isEof) {
+                    // EOF 时直接退出
+                    this.setParserSuccess()
+                    break
                 } else {
                     throw Error('系统错误')
                 }
@@ -785,19 +791,31 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return false
         }
         const savedState = this.getCurState()
-        const startIndex = this.lastTokenIndex
+        const startCodeIndex = this._nextTokenInfo.codeIndex
 
         fn()
 
         if (this.parserFail) {
-            // 记录部分匹配并回溯
-            this.restoreState(savedState)
+            // 检查源码位置是否有进展（Or 的 restoreAllowErrorContext 会更新 nextTokenInfo）
+            if (this._nextTokenInfo.codeIndex > startCodeIndex) {
+                // 有进展但失败：保留 nextTokenInfo 的进展，只回滚 CST children
+                // 这样外层的 ManyTolerant 可以检测到进展
+                const currentCst = this.curCst
+                if (currentCst) {
+                    currentCst.children!.length = savedState.curCstChildrenLength
+                }
+                this.parsedTokens.length = savedState.parsedTokensLength
+                // 注意：不回滚 nextTokenInfo，保留进展
+            } else {
+                // 没有进展：完全回滚
+                this.restoreState(savedState)
+            }
             this.setParserSuccess()
             return false
         }
 
         // 成功但没消费 token → 返回 false（防止无限循环）
-        return this.lastTokenIndex !== startIndex
+        return this._nextTokenInfo.codeIndex !== startCodeIndex
     }
 
     /**

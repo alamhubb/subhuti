@@ -798,14 +798,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (this.parserFail) {
             // 检查源码位置是否有进展（Or 的 restoreAllowErrorContext 会更新 nextTokenInfo）
             if (this._nextTokenInfo.codeIndex > startCodeIndex) {
-                // 有进展但失败：保留 nextTokenInfo 的进展，只回滚 CST children
-                // 这样外层的 ManyTolerant 可以检测到进展
-                const currentCst = this.curCst
-                if (currentCst) {
-                    currentCst.children!.length = savedState.curCstChildrenLength
-                }
-                this.parsedTokens.length = savedState.parsedTokensLength
-                // 注意：不回滚 nextTokenInfo，保留进展
+                // 有进展但失败：保留 Or 恢复的所有内容（parsedTokens、CST children、nextTokenInfo）
+                // 这样不完整的代码片段（如 console. ）中已消费的 token 不会丢失
             } else {
                 // 没有进展：完全回滚
                 this.restoreState(savedState)

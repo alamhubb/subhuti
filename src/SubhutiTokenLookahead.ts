@@ -60,11 +60,13 @@ export default class SubhutiTokenLookahead {
         bestCodeIndex: number
         /** Or 进入前的状态（用于恢复） */
         savedState: {
+            nextTokenInfo: NextTokenInfo
             curCstChildrenLength: number
             parsedTokensLength: number
         }
         /** Or 进入时的 nextTokenInfo */
-        startNextTokenInfo: NextTokenInfo
+        savedCst?: any
+        bestNextTokenInfo: NextTokenInfo
         /** 最远分支新增的 tokens */
         bestTokens: SubhutiMatchToken[]
         /** 最远分支新增的 CST children */

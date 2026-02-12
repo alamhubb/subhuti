@@ -146,6 +146,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     // Packrat Parsing（默认 LRU 缓存）
     enableMemoization: boolean = true
     private readonly _cache: SubhutiPackratCache
+    private _tryAndRestoreDepth: number = 0
+    private _activeManyTolerantTryDepth: number | null = null
 
     getRuleStack() {
         return this.cstStack.map(item => item.name)
@@ -421,6 +423,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.setParserSuccess()
         this.cstStack.length = 0
         this.loopDetectionSet.clear()
+        this._allowErrorContext = null
+        this._inManyTolerantContext = false
         this.initNextTokenInfo()
         this.initParserTokens()
         this._tokenCache.clear()
@@ -546,7 +550,20 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return a.nextTokenInfo.codeIndex >= b.nextTokenInfo.codeIndex ? a : b
             })
             // 恢复到最优分支的状态
-            this.restoreAllowErrorContext(bestState)
+            this.restoreAllowErrorContext(savedState, bestState)
+
+            if (this._inManyTolerantContext) {
+                if (!this._allowErrorContext || bestState.nextTokenInfo.codeIndex > this._allowErrorContext.bestCodeIndex) {
+                    this._allowErrorContext = {
+                        bestCodeIndex: bestState.nextTokenInfo.codeIndex,
+                        savedState: {...savedState},
+                        savedCst: this.curCst,
+                        bestNextTokenInfo: {...bestState.nextTokenInfo},
+                        bestTokens: [...bestState.orParserTokens],
+                        bestChildren: [...bestState.curCstChildren]
+                    }
+                }
+            }
         }
 
         // 退出 Or（整个 Or 调用失败结束）
@@ -571,25 +588,42 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 失败且没进展时，EOF 则退出，否则报错
      */
     ManyTolerant(fn: RuleFunction): void {
-        while (!this.parserFailOrIsEof) {
-            const startCodeIndex = this._nextTokenInfo.codeIndex
+        const previousInManyTolerantContext = this._inManyTolerantContext
+        const previousAllowErrorContext = this._allowErrorContext
+        const previousActiveManyTolerantTryDepth = this._activeManyTolerantTryDepth
+        this._inManyTolerantContext = true
+        try {
+            while (!this.parserFailOrIsEof) {
+                const startCodeIndex = this._nextTokenInfo.codeIndex
+                this._allowErrorContext = null
 
-            fn()
-
-            if (this.parserFail) {
-                // 检查源码位置是否有进展（而不是 parsedTokens 数量）
-                // 因为 Or 的 restoreAllowErrorContext 会更新 nextTokenInfo
-                if (this._nextTokenInfo.codeIndex > startCodeIndex) {
-                    // 有进展，设置成功继续
-                    this.setParserSuccess()
-                } else if (this.isEof) {
-                    // EOF 时直接退出
-                    this.setParserSuccess()
-                    break
-                } else {
-                    throw Error('系统错误')
+                this._activeManyTolerantTryDepth = this._tryAndRestoreDepth + 1
+                let consumed = false
+                try {
+                    consumed = this.tryAndRestore(fn)
+                } finally {
+                    this._activeManyTolerantTryDepth = null
                 }
+
+                if (consumed) {
+                    continue
+                }
+
+                if (this._nextTokenInfo.codeIndex > startCodeIndex) {
+                    continue
+                }
+
+                if (this.isEof) {
+                    break
+                }
+
+                throw Error('系统错误')
             }
+        } finally {
+            this._inManyTolerantContext = previousInManyTolerantContext
+            this._allowErrorContext = previousAllowErrorContext
+            this._activeManyTolerantTryDepth = previousActiveManyTolerantTryDepth
+            this.setParserSuccess()
         }
     }
 
@@ -746,10 +780,32 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
     }
 
-    private restoreAllowErrorContext(backData: SubhutiAllowErrorOrBranchContextBackData) {
-        this.curCst.children = [...backData.curCstChildren]
+    private restoreAllowErrorContext(savedState: SubhutiBackData, backData: SubhutiAllowErrorOrBranchContextBackData) {
+        this.restoreState(savedState)
+
+        const currentCst = this.curCst
+        if (currentCst) {
+            currentCst.children = [...backData.curCstChildren]
+        }
+
         this.parsedTokens.push(...backData.orParserTokens)
         this.setNextTokenIndex(backData.nextTokenInfo)
+    }
+
+    private applyGlobalAllowErrorContext(): void {
+        if (!this._allowErrorContext) {
+            return
+        }
+        const ctx = this._allowErrorContext
+
+        this.parsedTokens.length = ctx.savedState.parsedTokensLength
+        this.parsedTokens.push(...ctx.bestTokens)
+
+        if (ctx.savedCst) {
+            ctx.savedCst.children = [...ctx.bestChildren]
+        }
+
+        this.setNextTokenIndex(ctx.bestNextTokenInfo)
     }
 
     private restoreState(backData: SubhutiBackData): void {
@@ -790,26 +846,45 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (this.parserFailOrIsEof) {
             return false
         }
+        this._tryAndRestoreDepth++
         const savedState = this.getCurState()
         const startCodeIndex = this._nextTokenInfo.codeIndex
+        try {
+            fn()
 
-        fn()
+            if (this.parserFail) {
+                const isTopLevelManyTolerantTry = (
+                    this._activeManyTolerantTryDepth !== null &&
+                    this._activeManyTolerantTryDepth === this._tryAndRestoreDepth &&
+                    this._inManyTolerantContext
+                )
+                const hasAllowContextProgress = !!(
+                    this._allowErrorContext &&
+                    this._allowErrorContext.bestCodeIndex > startCodeIndex
+                )
+                const hasRawCodeProgress = this._nextTokenInfo.codeIndex > startCodeIndex
+                const shouldKeepFailureProgress = !!(
+                    isTopLevelManyTolerantTry &&
+                    (hasAllowContextProgress || hasRawCodeProgress)
+                )
 
-        if (this.parserFail) {
-            // 检查源码位置是否有进展（Or 的 restoreAllowErrorContext 会更新 nextTokenInfo）
-            if (this._nextTokenInfo.codeIndex > startCodeIndex) {
-                // 有进展但失败：保留 Or 恢复的所有内容（parsedTokens、CST children、nextTokenInfo）
-                // 这样不完整的代码片段（如 console. ）中已消费的 token 不会丢失
-            } else {
-                // 没有进展：完全回滚
-                this.restoreState(savedState)
+                if (!shouldKeepFailureProgress) {
+                    this.restoreState(savedState)
+                } else if (
+                    this._allowErrorContext &&
+                    this._allowErrorContext.bestCodeIndex > this._nextTokenInfo.codeIndex
+                ) {
+                    this.applyGlobalAllowErrorContext()
+                }
+
+                this.setParserSuccess()
+                return false
             }
-            this.setParserSuccess()
-            return false
-        }
 
-        // 成功但没消费 token → 返回 false（防止无限循环）
-        return this._nextTokenInfo.codeIndex !== startCodeIndex
+            return this._nextTokenInfo.codeIndex !== startCodeIndex
+        } finally {
+            this._tryAndRestoreDepth--
+        }
     }
 
     /**

@@ -54,28 +54,6 @@ export default class SubhutiTokenLookahead {
     /** 已解析的 token 列表（用于输出给使用者） */
     private _parsedTokens: SubhutiMatchToken[] = []
 
-    /** 全局容错上下文：记录最深层的 Or 走的最远分支 */
-    protected _allowErrorContext: {
-        /** 最远的 codeIndex */
-        bestCodeIndex: number
-        /** Or 进入前的状态（用于恢复） */
-        savedState: {
-            nextTokenInfo: NextTokenInfo
-            curCstChildrenLength: number
-            parsedTokensLength: number
-        }
-        /** Or 进入时的 nextTokenInfo */
-        savedCst?: any
-        bestNextTokenInfo: NextTokenInfo
-        /** 最远分支新增的 tokens */
-        bestTokens: SubhutiMatchToken[]
-        /** 最远分支新增的 CST children */
-        bestChildren: any[]
-    } | null = null
-
-    /** 是否处于 ManyTolerant 容错上下文中 */
-    protected _inManyTolerantContext: boolean = false
-
     /** 上一个 token 名称（用于上下文约束）- 从 parsedTokens 动态获取 */
     protected get _lastTokenName(): string | null {
         return this.lastToken?.tokenName
@@ -276,6 +254,10 @@ export default class SubhutiTokenLookahead {
         }
 
         return undefined
+    }
+
+    protected peek(offset: number = 1): SubhutiMatchToken | undefined {
+        return this.LA(offset + 1)
     }
 
     /**

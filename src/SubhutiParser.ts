@@ -51,6 +51,20 @@ export interface SubhutiAllowErrorOrBranchContextBackData {
     nextTokenInfo: NextTokenInfo
 }
 
+interface SubhutiAllowErrorContext {
+    bestCodeIndex: number
+    savedState: SubhutiBackData
+    savedCst?: SubhutiCst
+    bestNextTokenInfo: NextTokenInfo
+    bestTokens: SubhutiMatchToken[]
+    bestChildren: SubhutiCst[]
+}
+
+interface SubhutiManyTolerantFrame {
+    tryDepth: number
+    bestMatchErrorCst: SubhutiAllowErrorContext | null
+}
+
 // ============================================
 // 装饰器系统（兼容旧版 experimentalDecorators 和 Stage 3）
 // ============================================
@@ -147,7 +161,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     enableMemoization: boolean = true
     private readonly _cache: SubhutiPackratCache
     private _tryAndRestoreDepth: number = 0
-    private _activeManyTolerantTryDepth: number | null = null
+    private _activeManyTolerantFrame: SubhutiManyTolerantFrame | null = null
 
     getRuleStack() {
         return this.cstStack.map(item => item.name)
@@ -423,8 +437,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.setParserSuccess()
         this.cstStack.length = 0
         this.loopDetectionSet.clear()
-        this._allowErrorContext = null
-        this._inManyTolerantContext = false
+        this._activeManyTolerantFrame = null
         this.initNextTokenInfo()
         this.initParserTokens()
         this._tokenCache.clear()
@@ -552,16 +565,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             // 恢复到最优分支的状态
             this.restoreAllowErrorContext(savedState, bestState)
 
-            if (this._inManyTolerantContext) {
-                if (!this._allowErrorContext || bestState.nextTokenInfo.codeIndex > this._allowErrorContext.bestCodeIndex) {
-                    this._allowErrorContext = {
-                        bestCodeIndex: bestState.nextTokenInfo.codeIndex,
-                        savedState: {...savedState},
-                        savedCst: this.curCst,
-                        bestNextTokenInfo: {...bestState.nextTokenInfo},
-                        bestTokens: [...bestState.orParserTokens],
-                        bestChildren: [...bestState.curCstChildren]
-                    }
+            const frame = this._activeManyTolerantFrame
+            if (frame && (
+                !frame.bestMatchErrorCst ||
+                bestState.nextTokenInfo.codeIndex > frame.bestMatchErrorCst.bestCodeIndex
+            )) {
+                frame.bestMatchErrorCst = {
+                    bestCodeIndex: bestState.nextTokenInfo.codeIndex,
+                    savedState: {...savedState},
+                    savedCst: this.curCst,
+                    bestNextTokenInfo: {...bestState.nextTokenInfo},
+                    bestTokens: [...bestState.orParserTokens],
+                    bestChildren: [...bestState.curCstChildren]
                 }
             }
         }
@@ -588,22 +603,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 失败且没进展时，EOF 则退出，否则报错
      */
     ManyTolerant(fn: RuleFunction): void {
-        const previousInManyTolerantContext = this._inManyTolerantContext
-        const previousAllowErrorContext = this._allowErrorContext
-        const previousActiveManyTolerantTryDepth = this._activeManyTolerantTryDepth
-        this._inManyTolerantContext = true
+        const previousFrame = this._activeManyTolerantFrame
         try {
             while (!this.parserFailOrIsEof) {
                 const startCodeIndex = this._nextTokenInfo.codeIndex
-                this._allowErrorContext = null
-
-                this._activeManyTolerantTryDepth = this._tryAndRestoreDepth + 1
-                let consumed = false
-                try {
-                    consumed = this.tryAndRestore(fn)
-                } finally {
-                    this._activeManyTolerantTryDepth = null
+                this._activeManyTolerantFrame = {
+                    tryDepth: this._tryAndRestoreDepth + 1,
+                    bestMatchErrorCst: null
                 }
+                const consumed = this.tryAndRestore(fn)
 
                 if (consumed) {
                     continue
@@ -620,9 +628,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 throw Error('系统错误')
             }
         } finally {
-            this._inManyTolerantContext = previousInManyTolerantContext
-            this._allowErrorContext = previousAllowErrorContext
-            this._activeManyTolerantTryDepth = previousActiveManyTolerantTryDepth
+            this._activeManyTolerantFrame = previousFrame
             this.setParserSuccess()
         }
     }
@@ -792,12 +798,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.setNextTokenIndex(backData.nextTokenInfo)
     }
 
-    private applyGlobalAllowErrorContext(): void {
-        if (!this._allowErrorContext) {
-            return
-        }
-        const ctx = this._allowErrorContext
-
+    private applyAllowErrorContext(ctx: SubhutiAllowErrorContext): void {
         this.parsedTokens.length = ctx.savedState.parsedTokensLength
         this.parsedTokens.push(...ctx.bestTokens)
 
@@ -853,14 +854,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             fn()
 
             if (this.parserFail) {
+                const frame = this._activeManyTolerantFrame
                 const isTopLevelManyTolerantTry = (
-                    this._activeManyTolerantTryDepth !== null &&
-                    this._activeManyTolerantTryDepth === this._tryAndRestoreDepth &&
-                    this._inManyTolerantContext
+                    !!frame &&
+                    frame.tryDepth === this._tryAndRestoreDepth
                 )
+                const allowCtx = frame?.bestMatchErrorCst || null
                 const hasAllowContextProgress = !!(
-                    this._allowErrorContext &&
-                    this._allowErrorContext.bestCodeIndex > startCodeIndex
+                    allowCtx &&
+                    allowCtx.bestCodeIndex > startCodeIndex
                 )
                 const hasRawCodeProgress = this._nextTokenInfo.codeIndex > startCodeIndex
                 const shouldKeepFailureProgress = !!(
@@ -871,10 +873,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 if (!shouldKeepFailureProgress) {
                     this.restoreState(savedState)
                 } else if (
-                    this._allowErrorContext &&
-                    this._allowErrorContext.bestCodeIndex > this._nextTokenInfo.codeIndex
+                    allowCtx &&
+                    allowCtx.bestCodeIndex > this._nextTokenInfo.codeIndex
                 ) {
-                    this.applyGlobalAllowErrorContext()
+                    this.applyAllowErrorContext(allowCtx)
                 }
 
                 this.setParserSuccess()

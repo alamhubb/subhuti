@@ -61,7 +61,6 @@ interface SubhutiAllowErrorContext {
 }
 
 interface SubhutiManyTolerantFrame {
-    tryDepth: number
     bestMatchErrorCst: SubhutiAllowErrorContext | null
 }
 
@@ -160,7 +159,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     // Packrat Parsing（默认 LRU 缓存）
     enableMemoization: boolean = true
     private readonly _cache: SubhutiPackratCache
-    private _tryAndRestoreDepth: number = 0
     private _activeManyTolerantFrame: SubhutiManyTolerantFrame | null = null
 
     getRuleStack() {
@@ -606,25 +604,47 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const previousFrame = this._activeManyTolerantFrame
         try {
             while (!this.parserFailOrIsEof) {
-                const startCodeIndex = this._nextTokenInfo.codeIndex
+                const startState = this.getCurState()
+                const startCodeIndex = startState.nextTokenInfo.codeIndex
                 this._activeManyTolerantFrame = {
-                    tryDepth: this._tryAndRestoreDepth + 1,
                     bestMatchErrorCst: null
                 }
-                const consumed = this.tryAndRestore(fn)
+                fn()
 
-                if (consumed) {
+                if (!this.parserFail) {
+                    if (this._nextTokenInfo.codeIndex > startCodeIndex) {
+                        continue
+                    }
+                    if (this.isEof) {
+                        break
+                    }
+                    throw Error('系统错误')
+                }
+
+                const allowCtx = this._activeManyTolerantFrame.bestMatchErrorCst
+                const hasAllowContextProgress = !!(
+                    allowCtx &&
+                    allowCtx.bestCodeIndex > startCodeIndex
+                )
+                const hasRawCodeProgress = this._nextTokenInfo.codeIndex > startCodeIndex
+
+                if (hasAllowContextProgress || hasRawCodeProgress) {
+                    if (
+                        hasAllowContextProgress &&
+                        allowCtx &&
+                        allowCtx.bestCodeIndex > this._nextTokenInfo.codeIndex
+                    ) {
+                        this.applyAllowErrorContext(allowCtx)
+                    }
+                    this.setParserSuccess()
                     continue
                 }
 
-                if (this._nextTokenInfo.codeIndex > startCodeIndex) {
-                    continue
-                }
-
+                this.restoreState(startState)
+                this.setParserSuccess()
                 if (this.isEof) {
                     break
                 }
-
                 throw Error('系统错误')
             }
         } finally {
@@ -847,46 +867,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         if (this.parserFailOrIsEof) {
             return false
         }
-        this._tryAndRestoreDepth++
         const savedState = this.getCurState()
         const startCodeIndex = this._nextTokenInfo.codeIndex
-        try {
-            fn()
+        fn()
 
-            if (this.parserFail) {
-                const frame = this._activeManyTolerantFrame
-                const isTopLevelManyTolerantTry = (
-                    !!frame &&
-                    frame.tryDepth === this._tryAndRestoreDepth
-                )
-                const allowCtx = frame?.bestMatchErrorCst || null
-                const hasAllowContextProgress = !!(
-                    allowCtx &&
-                    allowCtx.bestCodeIndex > startCodeIndex
-                )
-                const hasRawCodeProgress = this._nextTokenInfo.codeIndex > startCodeIndex
-                const shouldKeepFailureProgress = !!(
-                    isTopLevelManyTolerantTry &&
-                    (hasAllowContextProgress || hasRawCodeProgress)
-                )
-
-                if (!shouldKeepFailureProgress) {
-                    this.restoreState(savedState)
-                } else if (
-                    allowCtx &&
-                    allowCtx.bestCodeIndex > this._nextTokenInfo.codeIndex
-                ) {
-                    this.applyAllowErrorContext(allowCtx)
-                }
-
-                this.setParserSuccess()
-                return false
-            }
-
-            return this._nextTokenInfo.codeIndex !== startCodeIndex
-        } finally {
-            this._tryAndRestoreDepth--
+        if (this.parserFail) {
+            this.restoreState(savedState)
+            this.setParserSuccess()
+            return false
         }
+
+        return this._nextTokenInfo.codeIndex !== startCodeIndex
     }
 
     /**

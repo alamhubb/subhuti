@@ -643,7 +643,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     if (this.handleManyTolerantNoProgress(startState) === 'break') {
                         break
                     }
-                    continue
             }
         } finally {
             this._activeManyTolerantFrame = previousFrame

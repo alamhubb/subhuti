@@ -602,6 +602,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     ManyTolerant(fn: RuleFunction): void {
         const previousFrame = this._activeManyTolerantFrame
+        const isNestedTolerant = !!previousFrame
+        const noProgressStrategy: 'break' | 'skip' = isNestedTolerant ? 'break' : 'skip'
         try {
             while (!this.parserFailOrIsEof) {
                 const startState = this.getCurState()
@@ -615,7 +617,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     if (this._nextTokenInfo.codeIndex > startCodeIndex) {
                         continue
                     }
-                    if (this.handleManyTolerantNoProgress(startState) === 'break') {
+                    if (this.handleManyTolerantNoProgress(startState, noProgressStrategy) === 'break') {
                         break
                     }
                     continue
@@ -637,12 +639,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                         this.applyAllowErrorContext(allowCtx)
                     }
                     this.setParserSuccess()
+                    if (isNestedTolerant) {
+                        // 嵌套容错层：保留本次最大进展后立即上抛，让外层从当前 token 继续。
+                        break
+                    }
                     continue
                 }
 
-                    if (this.handleManyTolerantNoProgress(startState) === 'break') {
-                        break
-                    }
+                if (this.handleManyTolerantNoProgress(startState, noProgressStrategy) === 'break') {
+                    break
+                }
             }
         } finally {
             this._activeManyTolerantFrame = previousFrame
@@ -656,10 +662,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 尝试执行丢次，失败则回溯，不影响整体解析状
      */
 
-    private handleManyTolerantNoProgress(startState: SubhutiBackData): 'break' | 'continue' {
+    private handleManyTolerantNoProgress(
+        startState: SubhutiBackData,
+        strategy: 'break' | 'skip'
+    ): 'break' | 'continue' {
         this.restoreState(startState)
         this.setParserSuccess()
         if (this.isEof) {
+            return 'break'
+        }
+        if (strategy === 'break') {
             return 'break'
         }
         if (this.skipOneTokenForRecovery()) {

@@ -602,8 +602,6 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
     ManyTolerant(fn: RuleFunction): void {
         const previousFrame = this._activeManyTolerantFrame
-        const isNestedTolerant = !!previousFrame
-        const noProgressStrategy: 'break' | 'skip' = isNestedTolerant ? 'break' : 'skip'
         try {
             while (!this.parserFailOrIsEof) {
                 const startState = this.getCurState()
@@ -617,7 +615,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     if (this._nextTokenInfo.codeIndex > startCodeIndex) {
                         continue
                     }
-                    if (this.handleManyTolerantNoProgress(startState, noProgressStrategy) === 'break') {
+                    if (this.handleManyTolerantNoProgress(startState) === 'break') {
                         break
                     }
                     continue
@@ -639,14 +637,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                         this.applyAllowErrorContext(allowCtx)
                     }
                     this.setParserSuccess()
-                    if (isNestedTolerant) {
-                        // 嵌套容错层：保留本次最大进展后立即上抛，让外层从当前 token 继续。
-                        break
-                    }
-                    continue
+                    break
                 }
 
-                if (this.handleManyTolerantNoProgress(startState, noProgressStrategy) === 'break') {
+                if (this.handleManyTolerantNoProgress(startState) === 'break') {
                     break
                 }
             }
@@ -663,15 +657,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
 
     private handleManyTolerantNoProgress(
-        startState: SubhutiBackData,
-        strategy: 'break' | 'skip'
+        startState: SubhutiBackData
     ): 'break' | 'continue' {
         this.restoreState(startState)
         this.setParserSuccess()
         if (this.isEof) {
-            return 'break'
-        }
-        if (strategy === 'break') {
             return 'break'
         }
         if (this.skipOneTokenForRecovery()) {

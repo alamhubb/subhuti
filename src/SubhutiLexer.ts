@@ -1,6 +1,6 @@
 import {SubhutiCreateToken, DefaultMode, type LexerMode} from './struct/SubhutiCreateToken.ts'
 import SubhutiMatchToken from './struct/SubhutiMatchToken.ts'
-import {NextTokenInfo} from "./SubhutiParser.ts";
+import type {NextTokenInfo} from './SubhutiTokenLookahead.ts'
 
 /**
  * Token 缓存条目

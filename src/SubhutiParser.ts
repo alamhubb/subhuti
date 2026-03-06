@@ -637,7 +637,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                         this.applyAllowErrorContext(allowCtx)
                     }
                     this.setParserSuccess()
-                    break
+                    // 有进展时继续下一轮，尽可能消费后续 token，避免提前退出导致残留 token
+                    continue
                 }
 
                 if (this.handleManyTolerantNoProgress(startState) === 'break') {

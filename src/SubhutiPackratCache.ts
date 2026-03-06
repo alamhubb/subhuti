@@ -9,7 +9,7 @@
  */
 
 import type SubhutiCst from "./struct/SubhutiCst.ts";
-import type {NextTokenInfo, ParseRecordNode} from "./SubhutiParser.ts";
+import type {NextTokenInfo} from "./SubhutiTokenLookahead.ts";
 import {LRUCache} from "lru-cache";
 
 // ============================================

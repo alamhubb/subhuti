@@ -1,6 +1,14 @@
 // Core Parser
 export { default as SubhutiParser, Subhuti, SubhutiRule } from './SubhutiParser.ts'
-export type { RuleFunction, SubhutiParserOr, SubhutiBackData, SubhutiParserOptions, SubhutiTokenConsumerConstructor } from './SubhutiParser.ts'
+export type {
+    RuleFunction,
+    SubhutiParserOr,
+    SubhutiBackData,
+    SubhutiParserOptions,
+    SubhutiTokenConsumerConstructor,
+    SubhutiStopTokenMatcher,
+    SubhutiManyTolerantOptions
+} from './SubhutiParser.ts'
 
 // Lexer
 export { default as SubhutiLexer } from './SubhutiLexer.ts'

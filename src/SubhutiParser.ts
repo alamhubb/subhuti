@@ -51,6 +51,15 @@ export interface SubhutiAllowErrorOrBranchContextBackData {
     nextTokenInfo: NextTokenInfo
 }
 
+export interface SubhutiStopTokenMatcher {
+    tokenName: string
+    tokenValue?: string
+}
+
+export interface SubhutiManyTolerantOptions {
+    stopTokens?: SubhutiStopTokenMatcher[]
+}
+
 interface SubhutiAllowErrorContext {
     bestCodeIndex: number
     savedState: SubhutiBackData
@@ -62,6 +71,7 @@ interface SubhutiAllowErrorContext {
 
 interface SubhutiManyTolerantFrame {
     bestMatchErrorCst: SubhutiAllowErrorContext | null
+    stopTokens: SubhutiStopTokenMatcher[]
 }
 
 // ============================================
@@ -600,14 +610,19 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * 失败但有进展（codeIndex 变化了）时，设置成功继续解析
      * 失败且没进展时，EOF 则出，否则报错
      */
-    ManyTolerant(fn: RuleFunction): void {
+    ManyTolerant(fn: RuleFunction, options: SubhutiManyTolerantOptions = {}): void {
         const previousFrame = this._activeManyTolerantFrame
+        const stopTokens = options.stopTokens ?? []
         try {
             while (!this.parserFailOrIsEof) {
+                if (this.isCurrentTokenStopToken(stopTokens)) {
+                    break
+                }
                 const startState = this.getCurState()
                 const startCodeIndex = startState.nextTokenInfo.codeIndex
                 this._activeManyTolerantFrame = {
-                    bestMatchErrorCst: null
+                    bestMatchErrorCst: null,
+                    stopTokens
                 }
                 fn()
 
@@ -615,7 +630,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     if (this._nextTokenInfo.codeIndex > startCodeIndex) {
                         continue
                     }
-                    if (this.handleManyTolerantNoProgress(startState) === 'break') {
+                    if (this.handleManyTolerantNoProgress(startState, stopTokens) === 'break') {
                         break
                     }
                     continue
@@ -641,7 +656,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     continue
                 }
 
-                if (this.handleManyTolerantNoProgress(startState) === 'break') {
+                if (this.handleManyTolerantNoProgress(startState, stopTokens) === 'break') {
                     break
                 }
             }
@@ -658,14 +673,18 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      */
 
     private handleManyTolerantNoProgress(
-        startState: SubhutiBackData
+        startState: SubhutiBackData,
+        stopTokens: SubhutiStopTokenMatcher[]
     ): 'break' | 'continue' {
         this.restoreState(startState)
         this.setParserSuccess()
         if (this.isEof) {
             return 'break'
         }
-        if (this.skipOneTokenForRecovery()) {
+        if (this.isCurrentTokenStopToken(stopTokens)) {
+            return 'break'
+        }
+        if (this.skipOneTokenForRecovery(stopTokens)) {
             this.setParserSuccess()
             return 'continue'
         }
@@ -846,7 +865,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
 
-    private skipOneTokenForRecovery(): boolean {
+    private skipOneTokenForRecovery(stopTokens: SubhutiStopTokenMatcher[] = []): boolean {
+        if (this.isCurrentTokenStopToken(stopTokens)) {
+            return false
+        }
         const currentCodeIndex = this._nextTokenInfo.codeIndex
         const entry = this._getOrParseToken(this._nextTokenInfo, DefaultMode)
         if (!entry) {
@@ -858,6 +880,21 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.parsedTokens.push(entry.token)
         this.setNextTokenIndex(entry.nextTokenInfo)
         return true
+    }
+
+    private isCurrentTokenStopToken(stopTokens: SubhutiStopTokenMatcher[]): boolean {
+        if (!stopTokens.length) {
+            return false
+        }
+        const entry = this._getOrParseToken(this._nextTokenInfo, DefaultMode)
+        if (!entry) {
+            return false
+        }
+        const token = entry.token
+        return stopTokens.some(stopToken =>
+            stopToken.tokenName === token.tokenName
+            && (stopToken.tokenValue === undefined || stopToken.tokenValue === token.tokenValue)
+        )
     }
     private restoreState(backData: SubhutiBackData): void {
         this.setNextTokenIndex(backData.nextTokenInfo)

@@ -637,14 +637,23 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 }
 
                 const allowCtx = this._activeManyTolerantFrame.bestMatchErrorCst
+                // allowCtx 表示“本轮内部失败路径里走得最远的快照”。
+                // 它不是当前状态，而是候选回放状态。
                 const hasAllowContextProgress = !!(
                     allowCtx &&
                     allowCtx.bestCodeIndex > startCodeIndex
                 )
+                // hasRawCodeProgress 表示“当前这次 fn() 返回时，真实游标是否前进”。
+                // true 说明当前路径已经吃掉了源码；false 说明当前路径表面无进展。
                 const hasRawCodeProgress = this._nextTokenInfo.codeIndex > startCodeIndex
 
                 if (hasAllowContextProgress || hasRawCodeProgress) {
                     if (
+                        // 关键约束：只有“当前路径没有真实前进”时，才允许回放 allowCtx。
+                        // 原因：
+                        // 1) 若当前路径已前进，再回放 allowCtx 会覆盖当前 parsedTokens/CST/游标；
+                        // 2) 覆盖会导致当前路径已消费片段丢失（表现为 token 片段消失）；
+                        // 3) 无真实前进时回放 allowCtx 才是安全增益（用内部最远快照替代原地不动）。
                         !hasRawCodeProgress &&
                         hasAllowContextProgress &&
                         allowCtx &&

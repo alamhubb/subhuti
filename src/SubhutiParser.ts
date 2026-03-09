@@ -645,6 +645,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
                 if (hasAllowContextProgress || hasRawCodeProgress) {
                     if (
+                        !hasRawCodeProgress &&
                         hasAllowContextProgress &&
                         allowCtx &&
                         allowCtx.bestCodeIndex > this._nextTokenInfo.codeIndex

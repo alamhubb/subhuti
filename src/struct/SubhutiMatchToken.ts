@@ -21,6 +21,34 @@ export default class SubhutiMatchToken {
         this.codeIndex = osvToken.codeIndex;
         this.hasLineBreakBefore = osvToken.hasLineBreakBefore;
     }
+
+    getTokenName(): string {
+        return this.tokenName
+    }
+
+    getTokenValue(): string {
+        return this.tokenValue
+    }
+
+    getRowNum(): number | undefined {
+        return this.line
+    }
+
+    getColumnStartNum(): number | undefined {
+        return this.column
+    }
+
+    getColumnEndNum(): number | undefined {
+        return this.column === undefined ? undefined : this.column + this.tokenValue.length
+    }
+
+    getIndex(): number | undefined {
+        return this.codeIndex
+    }
+
+    getHasLineBreakBefore(): boolean | undefined {
+        return this.hasLineBreakBefore
+    }
 }
 
 export function createMatchToken(osvToken: SubhutiMatchToken) {

@@ -27,8 +27,25 @@ export default class SubhutiCst {
             this.name = cst.name;
             // this.pathName = cst.pathName;
             this.children = cst.children;
+            this.loc = cst.loc;
             this.value = cst.value;
         }
+    }
+
+    getName(): string {
+        return this.name
+    }
+
+    getValue(): string | undefined {
+        return this.value
+    }
+
+    getLoc(): SubhutiSourceLocation {
+        return this.loc
+    }
+
+    getLocation(): SubhutiSourceLocation {
+        return this.loc
     }
 
     // ========================================
@@ -66,8 +83,9 @@ export default class SubhutiCst {
      * const allStatements = cst.getChildren('Statement')
      * ```
      */
-    getChildren(name: string): SubhutiCst[] {
+    getChildren(name?: string): SubhutiCst[] {
         if (!this.children) return []
+        if (name === undefined) return this.children
 
         return this.children.filter(c => c.name === name)
     }

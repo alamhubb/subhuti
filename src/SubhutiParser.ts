@@ -36,6 +36,15 @@ export interface SubhutiParserOr {
     alt: RuleFunction
 }
 
+export class Alternative<T = void> implements SubhutiParserOr {
+    private constructor(public readonly alt: () => T) {
+    }
+
+    static of<T>(supplier: () => T): Alternative<T> {
+        return new Alternative(supplier)
+    }
+}
+
 export interface SubhutiBackData {
     nextTokenInfo: NextTokenInfo
     /** CST children 长度 */
@@ -230,6 +239,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     get curCst(): SubhutiCst | undefined {
         return this.cstStack[this.cstStack.length - 1]
+    }
+
+    getTokenConsumer(): T {
+        return this.tokenConsumer
+    }
+
+    getCurCst(): SubhutiCst | undefined {
+        return this.curCst
     }
 
     // 功能弢关（链式调用
@@ -512,13 +529,16 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * - 依次尝试每个分支，第丢个成功的分支生效
      * - 扢有分支都失败则择 codeIndex 变化朢多的分支
      */
-    Or(alternatives: SubhutiParserOr[]): void {
+    Or(alternatives: SubhutiParserOr[] | SubhutiParserOr, ...additionalAlternatives: SubhutiParserOr[]): void {
         if (this.parserFail) {
             return
         }
 
+        const normalizedAlternatives = Array.isArray(alternatives)
+            ? alternatives
+            : [alternatives, ...additionalAlternatives]
         const savedState = this.getCurState()
-        const totalCount = alternatives.length
+        const totalCount = normalizedAlternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
 
         // 记录失败分支的状态快
@@ -530,7 +550,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const startTokenIndex = this.currentTokenIndex
 
         for (let i = 0; i < totalCount; i++) {
-            const alt = alternatives[i]
+            const alt = normalizedAlternatives[i]
             const isLast = i === totalCount - 1
 
             // 进入 Or 分支

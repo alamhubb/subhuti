@@ -114,14 +114,14 @@ export default class SubhutiLexer {
         // 计算结束位置（考虑多行 token）
         const {endRowNum, columnEndNum} = this._calcEndPosition(value, rowNum, columnNum)
 
-        return {
+        return new SubhutiMatchToken({
             tokenName: token.name,
             tokenValue: value,
             codeIndex: index,
             line: rowNum,
             column: columnNum,
             hasLineBreakBefore: rowNum > this._lastRowNum
-        }
+        })
     }
 
     /**
@@ -224,14 +224,14 @@ export default class SubhutiLexer {
                 continue
             }
 
-            const token: SubhutiMatchToken = {
+            const token: SubhutiMatchToken = new SubhutiMatchToken({
                 tokenName: matched.token.tokenName,
                 tokenValue: matched.token.tokenValue,
                 codeIndex: pos,
                 line: rowNum,
                 column: columnNum,
                 hasLineBreakBefore: rowNum > lastRowNum
-            }
+            })
 
             return {
                 token,

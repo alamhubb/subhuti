@@ -1,5 +1,5 @@
 // Core Parser
-export { default as SubhutiParser, Subhuti, SubhutiRule } from './SubhutiParser.ts'
+export { default as SubhutiParser, Subhuti, SubhutiRule, Alternative } from './SubhutiParser.ts'
 export type {
     RuleFunction,
     SubhutiParserOr,

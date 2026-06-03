@@ -193,6 +193,10 @@ export default class SubhutiTokenLookahead {
         this.setParserSuccessState(false)
     }
 
+    _markParseFail(): void {
+        this.setParseFail()
+    }
+
     protected setParserSuccess() {
         this.setParserSuccessState(true)
     }

@@ -37,11 +37,36 @@ export interface SubhutiParserOr {
 }
 
 export class Alternative<T = void> implements SubhutiParserOr {
-    private constructor(public readonly alt: () => T) {
+    public readonly alt: () => T
+
+    private constructor(alt: () => T) {
+        this.alt = alt
+        const runAlternative = () => this.alt()
+        ;(this as any).__qinSubhutiAlternative = true
+        ;(this as any).run = runAlternative
+        ;(this as any).get = runAlternative
+        ;(this as any).execute = runAlternative
+        ;(this as any).apply = runAlternative
     }
 
     static of<T>(supplier: () => T): Alternative<T> {
         return new Alternative(supplier)
+    }
+
+    run(): T {
+        return this.alt()
+    }
+
+    get(): T {
+        return this.alt()
+    }
+
+    execute(): T {
+        return this.alt()
+    }
+
+    apply(): T {
+        return this.alt()
     }
 }
 
@@ -96,7 +121,9 @@ export function Subhuti<T extends new (...args: any[]) => SubhutiParser>(
 
 function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
     const wrappedFunction = function (this: SubhutiParser, ...args: any[]): SubhutiCst | undefined {
-        return this.executeRuleWrapper(originalMethod, ruleName, this.constructor.name, ...args)
+        const receiver = this
+        const targetFun = () => originalMethod.apply(receiver, args)
+        return receiver.executeRuleWrapper(targetFun, ruleName, receiver.constructor.name, subhutiRuleCacheKey(args))
     }
     Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
     Object.defineProperty(wrappedFunction, '__originalFunction__', {
@@ -106,6 +133,38 @@ function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
         value: true, writable: false, enumerable: false, configurable: false
     })
     return wrappedFunction
+}
+
+const subhutiRuleObjectIds = new WeakMap<object, number>()
+let subhutiNextRuleObjectId = 1
+
+function subhutiRuleCacheKey(args: any[]): string {
+    if (args == null || args.length === 0) {
+        return ''
+    }
+    return `[${args.map(subhutiRuleCachePart).join(', ')}]`
+}
+
+function subhutiRuleCachePart(value: any): string {
+    if (value == null) {
+        return 'null'
+    }
+    const type = typeof value
+    if (type === 'string' || type === 'number' || type === 'boolean' || type === 'bigint') {
+        return String(value)
+    }
+    if (Array.isArray(value)) {
+        return `[${value.map(subhutiRuleCachePart).join(', ')}]`
+    }
+    if (type === 'object' || type === 'function') {
+        let id = subhutiRuleObjectIds.get(value)
+        if (id == null) {
+            id = subhutiNextRuleObjectId++
+            subhutiRuleObjectIds.set(value, id)
+        }
+        return `${type}#identity:${id}`
+    }
+    return String(value)
 }
 
 export function SubhutiRule(
@@ -372,6 +431,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             return
         }
         const isTopLevel = this.cstStack.length === 0
+        const cacheKeyExtra = args.length > 0 && args[0] != null ? String(args[0]) : ''
+        const memoRuleName = cacheKeyExtra ? `${ruleName}:${cacheKeyExtra}` : ruleName
 
         if (isTopLevel) {
             this.initTopLevelData()
@@ -382,7 +443,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
 
         const tokenIndex = this.currentTokenIndex
-        const key = `${ruleName}:${tokenIndex}`
+        const key = `${memoRuleName}:${tokenIndex}`
 
         // O(1) 快检测是否重复（循环棢测）
         if (this.loopDetectionSet.has(key)) {
@@ -397,7 +458,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
             // Packrat Parsing 缓存查询
             if (this.enableMemoization) {
-                const cached = this._cache.get(ruleName, tokenIndex)
+                const cached = this._cache.get(memoRuleName, tokenIndex)
                 if (cached !== undefined) {
                     this._debugger?.onRuleExit(ruleName, true, startTime)
 
@@ -421,7 +482,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                     ? this.parsedTokens.slice(startTokenIndex)
                     : undefined
 
-                this._cache.set(ruleName, startTokenIndex, {
+                this._cache.set(memoRuleName, startTokenIndex, {
                     cst: cst,
                     parseSuccess: this._parseSuccess,
                     parsedTokens: consumedTokens,

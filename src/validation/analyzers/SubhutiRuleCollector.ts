@@ -108,6 +108,41 @@ export class SubhutiRuleCollector {
     private createAnalyzeProxy(parser: SubhutiParser): SubhutiParser {
         const collector = this
 
+        const proxy: any = Object.create(parser as any)
+        proxy.Or = (alternatives: Array<{ alt: () => any }>) => collector.handleOr(alternatives, proxy)
+        proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
+        proxy.Option = (fn: () => any) => collector.handleOption(fn, proxy)
+        proxy.AtLeastOne = (fn: () => any) => collector.handleAtLeastOne(fn, proxy)
+        proxy.consume = (tokenName: string) => collector.handleConsume(tokenName)
+        proxy._consumeToken = (tokenName: string) => collector.handleConsume(tokenName)
+        proxy.tokenConsumer = collector.createTokenConsumerProxy((parser as any).tokenConsumer)
+
+        for (const ruleName of this.getAllRuleNames(parser)) {
+            const original = (parser as any)[ruleName]
+            if (typeof original !== 'function') {
+                continue
+            }
+            proxy[ruleName] = function (...args: any[]) {
+                if (collector.isExecutingTopLevelRule && ruleName === collector.currentRuleName) {
+                    collector.isExecutingTopLevelRule = false
+                    if (collector.executingRuleStack.has(ruleName)) {
+                        return collector.handleSubrule(ruleName)
+                    }
+                    collector.executingRuleStack.add(ruleName)
+                    try {
+                        const originalFun = (original as any).__originalFunction__ || original
+                        return originalFun.call(proxy, ...args)
+                    } finally {
+                        collector.executingRuleStack.delete(ruleName)
+                    }
+                }
+                return collector.handleSubrule(ruleName)
+            }
+        }
+
+        return proxy as SubhutiParser
+
+        /*
         const proxy = new Proxy(parser, {
             get(target: any, prop: string | symbol) {
                 // if (prop === 'Or' || prop === 'Arguments') {
@@ -196,6 +231,7 @@ export class SubhutiRuleCollector {
         })
 
         return proxy
+         */
     }
 
     /**
@@ -204,6 +240,23 @@ export class SubhutiRuleCollector {
     private createTokenConsumerProxy(tokenConsumer: any): any {
         const collector = this
 
+        const facade: any = Object.create(tokenConsumer)
+        let proto: any = tokenConsumer
+        while (proto != null) {
+            for (const prop of Object.getOwnPropertyNames(proto)) {
+                if (prop === 'constructor' || typeof tokenConsumer[prop] !== 'function') {
+                    continue
+                }
+                facade[prop] = function () {
+                    collector.handleConsume(prop)
+                    return undefined
+                }
+            }
+            proto = Object.getPrototypeOf(proto)
+        }
+        return facade
+
+        /*
         return new Proxy(tokenConsumer, {
             get(target: any, prop: string | symbol) {
                 const original = Reflect.get(target, prop)
@@ -232,6 +285,7 @@ export class SubhutiRuleCollector {
                 return original
             }
         })
+         */
     }
 
     /**

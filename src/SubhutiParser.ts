@@ -125,13 +125,9 @@ function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
         const targetFun = () => originalMethod.apply(receiver, args)
         return receiver.executeRuleWrapper(targetFun, ruleName, receiver.constructor.name, subhutiRuleCacheKey(args))
     }
-    Object.defineProperty(wrappedFunction, 'name', {value: ruleName})
-    Object.defineProperty(wrappedFunction, '__originalFunction__', {
-        value: originalMethod, writable: false, enumerable: false, configurable: false
-    })
-    Object.defineProperty(wrappedFunction, '__isSubhutiRule__', {
-        value: true, writable: false, enumerable: false, configurable: false
-    })
+    ;(wrappedFunction as any).__subhutiRuleName__ = ruleName
+    ;(wrappedFunction as any).__originalFunction__ = originalMethod
+    ;(wrappedFunction as any).__isSubhutiRule__ = true
     return wrappedFunction
 }
 

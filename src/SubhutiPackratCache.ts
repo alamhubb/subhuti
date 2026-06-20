@@ -10,7 +10,43 @@
 
 import type SubhutiCst from "./struct/SubhutiCst.ts";
 import type {NextTokenInfo} from "./SubhutiTokenLookahead.ts";
-import {LRUCache} from "lru-cache";
+
+class SubhutiLocalLruCache<K, V> {
+    private readonly max: number
+    private readonly entries = new Map<K, V>()
+
+    constructor(max: number) {
+        this.max = max
+    }
+
+    get(key: K): V | undefined {
+        const value = this.entries.get(key)
+        if (value !== undefined) {
+            this.entries.delete(key)
+            this.entries.set(key, value)
+        }
+        return value
+    }
+
+    set(key: K, value: V): void {
+        if (this.entries.has(key)) {
+            this.entries.delete(key)
+        }
+        this.entries.set(key, value)
+        if (this.max > 0 && this.entries.size > this.max) {
+            const oldest = this.entries.keys().next().value
+            this.entries.delete(oldest)
+        }
+    }
+
+    clear(): void {
+        this.entries.clear()
+    }
+
+    get size(): number {
+        return this.entries.size
+    }
+}
 
 // ============================================
 // [1] SubhutiPackratCache - SubhutiPackratCache Parsing缓存管理器（集成LRU）
@@ -130,7 +166,7 @@ export class SubhutiPackratCache {
      * 复合键格式：`${ruleName}:${tokenIndex}`
      * 示例："Expression:5" → 规则Expression在第5个token位置的缓存结果
      */
-    private cache: LRUCache<string, SubhutiPackratCacheResult>
+    private cache: SubhutiLocalLruCache<string, SubhutiPackratCacheResult>
 
     /**
      * 最大容量（0 表示无限缓存）
@@ -182,18 +218,7 @@ export class SubhutiPackratCache {
     constructor(maxSize = 10000) {
         this.maxSize = maxSize
 
-        // 初始化 lru-cache
-        if (maxSize === 0) {
-            // 无限缓存：设置为无穷大
-            this.cache = new LRUCache<string, SubhutiPackratCacheResult>({
-                max: Infinity
-            })
-        } else {
-            // LRU 模式：设置最大容量
-            this.cache = new LRUCache<string, SubhutiPackratCacheResult>({
-                max: maxSize
-            })
-        }
+        this.cache = new SubhutiLocalLruCache<string, SubhutiPackratCacheResult>(maxSize)
     }
 
     // ========================================

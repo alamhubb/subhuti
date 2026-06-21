@@ -170,7 +170,16 @@ export function SubhutiRule(
 ): any {
     const isLegacy = typeof propertyKeyOrContext === 'string'
     if (isLegacy) {
-        descriptor!.value = wrapRuleMethod(descriptor!.value, propertyKeyOrContext as string)
+        const key = propertyKeyOrContext as string
+        if (!descriptor) {
+            descriptor = {
+                value: targetOrMethod[key],
+                writable: true,
+                enumerable: false,
+                configurable: true
+            }
+        }
+        descriptor.value = wrapRuleMethod(descriptor.value, key)
         return descriptor
     } else {
         return wrapRuleMethod(targetOrMethod, targetOrMethod.name)

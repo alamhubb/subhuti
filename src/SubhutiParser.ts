@@ -122,9 +122,15 @@ export function Subhuti<T extends new (...args: any[]) => SubhutiParser>(
 function wrapRuleMethod(originalMethod: Function, ruleName: string): Function {
     const wrappedFunction = function (this: SubhutiParser, ...args: any[]): SubhutiCst | undefined {
         const receiver = this
-        const targetFun = () => originalMethod.apply(receiver, args)
+        const targetFun = function () {
+            return originalMethod.apply(receiver, args)
+        }
         return receiver.executeRuleWrapper(targetFun, ruleName, receiver.constructor.name, subhutiRuleCacheKey(args))
     }
+    Object.defineProperty(wrappedFunction, 'name', {
+        value: ruleName,
+        configurable: true
+    })
     ;(wrappedFunction as any).__subhutiRuleName__ = ruleName
     ;(wrappedFunction as any).__originalFunction__ = originalMethod
     ;(wrappedFunction as any).__isSubhutiRule__ = true

@@ -56,6 +56,55 @@ assert.deepEqual(collected.cstMap.get('Entry'), {
 assert.deepEqual([...collected.tokenMap.keys()], ['A', 'B', 'C'])
 assert.equal((covered as any)._analysisMode, false)
 
+class Variadic extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+
+    @SubhutiRule
+    Entry() {
+        this.Or(
+            { alt: () => this.ManyTolerant(() => this.tokenConsumer.A()) },
+            { alt: () => this.tokenConsumer.B() },
+        )
+    }
+}
+
+const variadic = SubhutiRuleCollector.collectRules(new Variadic())
+assert.deepEqual(variadic.cstMap.get('Entry')?.nodes, [{
+    type: 'or',
+    alternatives: [
+        { type: 'sequence', nodes: [{
+            type: 'many',
+            node: { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'A' }] },
+        }] },
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'B' }] },
+    ],
+}])
+
+class Rooted extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+
+    @SubhutiRule
+    Entry() { this.Child() }
+
+    @SubhutiRule
+    Child() { this.tokenConsumer.A() }
+
+    @SubhutiRule
+    Unused() { throw new Error('unreachable rule') }
+}
+
+const rooted = new Rooted()
+const reachable = SubhutiRuleCollector.collectRules(rooted, ['Entry'])
+assert.deepEqual([...reachable.cstMap.keys()], ['Entry', 'Child'])
+assert.deepEqual([...reachable.tokenMap.keys()], ['A'])
+assert.equal((rooted as any)._analysisMode, false)
+assert.throws(() => SubhutiRuleCollector.collectRules(new Rooted(), ['Missing']), /Unknown rule "Missing"/)
+assert.throws(() => SubhutiRuleCollector.collectRules(new Rooted(), []), /At least one root rule/)
+
 type FailureKind = 'rule' | 'or' | 'orFiltered' | 'many' | 'manyFiltered' | 'option' | 'atLeastOne'
 class Failing extends SubhutiParser<Consumer> {
     constructor(private readonly kind: FailureKind) {
@@ -92,4 +141,4 @@ for (const kind of ['rule', 'or', 'orFiltered', 'many', 'manyFiltered', 'option'
     assert.equal((parser as any)._analysisMode, false, kind)
 }
 
-console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=8')
+console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=12')

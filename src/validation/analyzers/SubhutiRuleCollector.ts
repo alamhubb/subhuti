@@ -1,7 +1,7 @@
 /**
  * Subhuti Grammar Validation - 规则收集器
  *
- * 功能：收集 Parser 中所有规则的 AST 结构
+ * 功能：收集分析执行可见的 Parser 规则 AST
  *
  * 实现方案：使用双层Proxy拦截Parser方法调用，记录规则结构
  *
@@ -23,6 +23,9 @@
  * 收集到的AST用途：
  * - 提供给SubhutiGrammarAnalyzer计算路径（展开subrule为实际token序列）
  * - 提供给SubhutiConflictDetector检测Or分支冲突（基于token路径的前缀检测）
+ *
+ * 参数化规则与依赖运行时状态的条件分支可能在单次收集中不可见。
+ * 返回的 AST 不能单独作为完整预测图的证明。
  *
  * @version 3.0.0 - 使用分析模式，不再依赖异常处理
  */
@@ -65,32 +68,54 @@ export class SubhutiRuleCollector {
     private executingRuleStack: Set<string> = new Set()
 
     /**
-     * 收集所有规则 - 静态方法
+     * 收集所有规则，或仅收集指定根规则可达的规则
      *
      * @param parser Parser 实例
+     * @param roots 可选根规则；省略时收集所有带装饰器的规则
      * @returns 规则名称 → AST 的映射
      */
-    static collectRules(parser: SubhutiParser): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
+    static collectRules(
+        parser: SubhutiParser,
+        roots?: readonly string[]
+    ): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
         const collector = new SubhutiRuleCollector()
-        return collector.collect(parser)
+        return collector.collect(parser, roots)
     }
 
     /**
      * 收集所有规则（私有实现）
      */
-    private collect(parser: SubhutiParser): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
+    private collect(
+        parser: SubhutiParser,
+        roots?: readonly string[]
+    ): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
+        if (roots && roots.length === 0) throw new Error('At least one root rule is required')
         // ✅ 启用分析模式（不抛异常）
         parser.enableAnalysisMode()
 
-        // 创建代理，拦截方法调用
-        const proxy = this.createAnalyzeProxy(parser)
-
-        // 获取所有 @SubhutiRule 方法
-        const ruleNames = this.getAllRuleNames(parser)
-
         try {
-            for (const ruleName of ruleNames) {
+            const proxy = this.createAnalyzeProxy(parser)
+            const knownRules = new Set(this.getAllRuleNames(parser))
+            const pending = roots ? [...roots] : [...knownRules]
+            const queued = new Set(pending)
+            for (let index = 0; index < pending.length; index++) {
+                const ruleName = pending[index]
+                if (this.ruleASTs.has(ruleName)) continue
+                if (!knownRules.has(ruleName)) throw new Error(`Unknown rule "${ruleName}"`)
                 this.collectRule(proxy, ruleName)
+                if (roots) {
+                    const references = new Set<string>()
+                    this.collectReferences(this.ruleASTs.get(ruleName)!, references)
+                    for (const reference of references) {
+                        if (!knownRules.has(reference)) {
+                            throw new Error(`Rule "${ruleName}" references unknown rule "${reference}"`)
+                        }
+                        if (!queued.has(reference)) {
+                            queued.add(reference)
+                            pending.push(reference)
+                        }
+                    }
+                }
             }
         } finally {
             parser.disableAnalysisMode()
@@ -102,6 +127,25 @@ export class SubhutiRuleCollector {
         }
     }
 
+    private collectReferences(node: RuleNode, references: Set<string>): void {
+        switch (node.type) {
+            case 'subrule':
+                references.add(node.ruleName)
+                break
+            case 'sequence':
+                node.nodes.forEach(child => this.collectReferences(child, references))
+                break
+            case 'or':
+                node.alternatives.forEach(child => this.collectReferences(child, references))
+                break
+            case 'many':
+            case 'option':
+            case 'atLeastOne':
+                this.collectReferences(node.node, references)
+                break
+        }
+    }
+
     /**
      * 创建分析代理（拦截 Parser 方法调用）
      */
@@ -109,11 +153,15 @@ export class SubhutiRuleCollector {
         const collector = this
 
         const proxy: any = Object.create(parser as any)
-        proxy.Or = (alternatives: Array<{ alt: () => any }>) => collector.handleOr(alternatives, proxy)
+        proxy.Or = (
+            alternatives: Array<{ alt: () => any }> | { alt: () => any },
+            ...additional: Array<{ alt: () => any }>
+        ) => collector.handleOr(Array.isArray(alternatives) ? alternatives : [alternatives, ...additional], proxy)
         proxy.OrFiltered = (_filter: unknown, alternatives: Array<{ alt: () => any }>) =>
             collector.handleOr(alternatives, proxy)
         proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
         proxy.ManyFiltered = (_filter: unknown, fn: () => any) => collector.handleMany(fn, proxy)
+        proxy.ManyTolerant = (fn: () => any) => collector.handleMany(fn, proxy)
         proxy.Option = (fn: () => any) => collector.handleOption(fn, proxy)
         proxy.AtLeastOne = (fn: () => any) => collector.handleAtLeastOne(fn, proxy)
         proxy.consume = (tokenName: string) => collector.handleConsume(tokenName)

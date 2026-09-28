@@ -1,5 +1,10 @@
 // Core Parser
 export { default as SubhutiParser, Subhuti, SubhutiRule, Alternative } from './SubhutiParser.ts'
+export {
+    SubhutiLazyRuleFilter, pathToken, pathRule, pathSequence,
+    pathChoice, pathOptional, pathRepeat
+} from './SubhutiLazyRuleFilter.ts'
+export type { LookaheadPath } from './SubhutiLazyRuleFilter.ts'
 export type {
     RuleFunction,
     SubhutiParserOr,

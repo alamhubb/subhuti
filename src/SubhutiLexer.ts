@@ -169,6 +169,28 @@ export default class SubhutiLexer {
     }
 
     /**
+     * 兼容旧版调用方式，一次性扫描完整输入。
+     *
+     * Parser 内部仍使用 readTokenAt() 做按需词法分析；
+     * 这个方法只是把同一套增量 API 顺序串起来，避免维护两套实现。
+     */
+    tokenize(code: string, mode: LexerMode = DefaultMode): SubhutiMatchToken[] {
+        const tokens: SubhutiMatchToken[] = []
+        let nextTokenInfo: NextTokenInfo = {codeIndex: 0, line: 1, column: 1}
+        let lastTokenName: string | null = null
+
+        while (true) {
+            const entry = this.readTokenAt(code, nextTokenInfo, mode, lastTokenName)
+            if (!entry) break
+            tokens.push(entry.token)
+            nextTokenInfo = entry.nextTokenInfo
+            lastTokenName = entry.token.tokenName
+        }
+
+        return tokens
+    }
+
+    /**
      * 在指定位置用指定模式读取单个 token
      *
      * @param code 源代码

@@ -21,9 +21,10 @@ import {SubhutiTraceDebugger} from "./SubhutiDebug.ts";
 import {SubhutiPackratCache, type SubhutiPackratCacheResult} from "./SubhutiPackratCache.ts";
 import SubhutiTokenConsumer from "./SubhutiTokenConsumer.ts";
 import {SubhutiDebugRuleTracePrint, setShowRulePath} from "./SubhutiDebugRuleTracePrint.ts";
-import SubhutiLexer from "./SubhutiLexer.ts";
+import SubhutiLexer, {type TokenCacheEntry} from "./SubhutiLexer.ts";
 import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiCreateToken.ts";
 import {SubhutiGrammarValidator} from "./validation";
+import {SubhutiLazyRuleFilter} from "./SubhutiLazyRuleFilter.ts";
 
 
 // ============================================
@@ -250,7 +251,14 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     // Packrat Parsing（默LRU 缓存
     enableMemoization: boolean = true
     private _filterOrByFirstToken = false
+    private _filterOrByLazyRules = false
     private readonly _cache: SubhutiPackratCache
+    /**
+     * 前瞻筛选专用缓存。懒前瞻沿着假想前缀读取 token，
+     * 因此必须把前一个 token 名称也纳入缓存上下文。
+     */
+    private readonly _lazyLookaheadCache:
+        Map<number, Map<LexerMode, Map<string | null, TokenCacheEntry | null>>> = new Map()
     private _activeManyTolerantFrame: SubhutiManyTolerantFrame | null = null
 
     getRuleStack() {
@@ -331,6 +339,21 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     filterOrByFirstToken(enable: boolean = true): this {
         this._filterOrByFirstToken = enable
         return this
+    }
+
+    filterOrByLazyRules(enable: boolean = true): this {
+        this._filterOrByLazyRules = enable
+        return this
+    }
+
+    ManyFiltered(filter: SubhutiLazyRuleFilter, fn: RuleFunction): void {
+        if (!this._filterOrByLazyRules || this.parserFail) {
+            this.Many(fn)
+            return
+        }
+        while (filter.canStart(this.LA(1)?.tokenName) !== false && this.tryAndRestore(fn)) {
+            // Continue only while the next token can begin another iteration.
+        }
     }
 
     /**
@@ -546,6 +569,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.initNextTokenInfo()
         this.initParserTokens()
         this._tokenCache.clear()
+        this._lazyLookaheadCache.clear()
 
         // 重置调试器的缓存和统
         this._debugger?.resetForNewParse(this.parsedTokens)
@@ -610,13 +634,77 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
      * - 扢有分支都失败则择 codeIndex 变化朢多的分支
      */
     Or(alternatives: SubhutiParserOr[] | SubhutiParserOr, ...additionalAlternatives: SubhutiParserOr[]): void {
+        const normalized = Array.isArray(alternatives)
+            ? alternatives
+            : [alternatives, ...additionalAlternatives]
+        this.executeOr(normalized)
+    }
+
+    OrFiltered(filter: SubhutiLazyRuleFilter, alternatives: SubhutiParserOr[]): void {
+        if (!this._filterOrByLazyRules || this.parserFail) {
+            this.executeOr(alternatives)
+            return
+        }
+        let nextInfo = this.getNextTokenInfo()
+        let lastTokenName = this._lastTokenName
+        let offset = 0
+        let failed = false
+        const predicted = filter.predict(requestedOffset => {
+            if (failed || requestedOffset !== ++offset || !this._lexer) return undefined
+            try {
+                const entry = requestedOffset === 1
+                    ? this._getOrParseToken(nextInfo, DefaultMode)
+                    : this.getLazyLookaheadToken(nextInfo, DefaultMode, lastTokenName)
+                if (!entry) return undefined
+                nextInfo = entry.nextTokenInfo
+                lastTokenName = entry.token.tokenName
+                return lastTokenName
+            } catch {
+                failed = true
+                return undefined
+            }
+        })
+        this.executeOr(alternatives, predicted)
+    }
+
+    private getLazyLookaheadToken(
+        nextTokenInfo: NextTokenInfo,
+        mode: LexerMode,
+        lastTokenName: string | null,
+    ): TokenCacheEntry | null {
+        if (!this._lexer) return null
+
+        let modeCache = this._lazyLookaheadCache.get(nextTokenInfo.codeIndex)
+        if (!modeCache) {
+            modeCache = new Map()
+            this._lazyLookaheadCache.set(nextTokenInfo.codeIndex, modeCache)
+        }
+
+        let contextCache = modeCache.get(mode)
+        if (!contextCache) {
+            contextCache = new Map()
+            modeCache.set(mode, contextCache)
+        }
+
+        if (contextCache.has(lastTokenName)) {
+            return contextCache.get(lastTokenName) ?? null
+        }
+
+        const entry = this._lexer.readTokenAt(
+            this._sourceCode,
+            nextTokenInfo,
+            mode,
+            lastTokenName,
+        )
+        contextCache.set(lastTokenName, entry)
+        return entry
+    }
+
+    private executeOr(normalizedAlternatives: SubhutiParserOr[], predicted: number | null = null): void {
         if (this.parserFail) {
             return
         }
 
-        const normalizedAlternatives = Array.isArray(alternatives)
-            ? alternatives
-            : [alternatives, ...additionalAlternatives]
         const savedState = this.getCurState()
         const totalCount = normalizedAlternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
@@ -627,7 +715,12 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const hasMatchingHint = tokenName !== undefined
             && normalizedAlternatives.some(alt => alt.firstTokens?.includes(tokenName))
         let order: number[] | undefined
-        if (hasMatchingHint) {
+        if (predicted !== null && predicted >= 0 && predicted < totalCount) {
+            order = [predicted]
+            for (let i = 0; i < totalCount; i++) {
+                if (i !== predicted) order.push(i)
+            }
+        } else if (hasMatchingHint) {
             const skipped: number[] = []
             order = []
             for (let i = 0; i < totalCount; i++) {

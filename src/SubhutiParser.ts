@@ -39,6 +39,16 @@ export interface SubhutiParserOr {
     firstTokens?: readonly string[]
 }
 
+export interface SubhutiTokenSwitchAlternative {
+    /**
+     * Token discriminator for this branch. Leave it undefined only on the
+     * final fallback branch.
+     */
+    tokenName?: string
+    tokenValue?: string
+    alt: RuleFunction
+}
+
 export class Alternative<T = void> implements SubhutiParserOr {
     public readonly alt: () => T
 
@@ -677,6 +687,31 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
         const token = this.LA(1)
         const chosen = alternatives.find(alt => alt.tokenName === token?.tokenName
+            && (alt.tokenValue === undefined || alt.tokenValue === token?.tokenValue))
+            ?? alternatives[alternatives.length - 1]
+        this.executeOr([chosen])
+    }
+
+    /**
+     * Deterministic token switch for grammar alternatives.
+     *
+     * Unlike the opt-in OrSingleTokenValues fast path, this combinator always
+     * dispatches by the current token during normal parsing. The final
+     * alternative is the fallback for a token not covered by the listed
+     * discriminators. Analysis mode expands every branch so the rule graph
+     * remains complete.
+     */
+    TokenSwitch(alternatives: readonly SubhutiTokenSwitchAlternative[]): void {
+        if (alternatives.length === 0) {
+            return
+        }
+        if (this._analysisMode || this._debugger) {
+            this.executeOr(alternatives)
+            return
+        }
+        const token = this.LA(1)
+        const chosen = alternatives.find(alt => alt.tokenName !== undefined
+            && alt.tokenName === token?.tokenName
             && (alt.tokenValue === undefined || alt.tokenValue === token?.tokenValue))
             ?? alternatives[alternatives.length - 1]
         this.executeOr([chosen])

@@ -8,6 +8,7 @@ export type { LookaheadPath } from './SubhutiLazyRuleFilter.ts'
 export type {
     RuleFunction,
     SubhutiParserOr,
+    SubhutiTokenSwitchAlternative,
     SubhutiBackData,
     SubhutiParserOptions,
     SubhutiTokenConsumerConstructor,

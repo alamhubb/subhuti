@@ -83,8 +83,8 @@ assert.deepEqual(variadic.cstMap.get('Entry')?.nodes, [{
 }])
 
 class SingleTokens extends SubhutiParser<Consumer> {
-    constructor() {
-        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    constructor(source = '') {
+        super(source, { tokenDefinitions: tokens, tokenConsumer: Consumer })
     }
     @SubhutiRule
     Entry() {
@@ -112,6 +112,33 @@ class SingleTokenValues extends SingleTokens {
 }
 assert.deepEqual(SubhutiRuleCollector.collectRules(new SingleTokenValues()).cstMap.get('Entry')?.nodes,
     SubhutiRuleCollector.collectRules(new SingleTokens()).cstMap.get('Entry')?.nodes)
+
+class TokenSwitchParser extends SingleTokens {
+    constructor(source: string) {
+        super(source)
+    }
+
+    @SubhutiRule
+    override Entry() {
+        this.TokenSwitch([
+            { tokenName: 'A', alt: () => this.tokenConsumer.A() },
+            { tokenName: 'B', alt: () => this.tokenConsumer.B() },
+            { alt: () => this.tokenConsumer.C() },
+        ])
+    }
+}
+assert.deepEqual(SubhutiRuleCollector.collectRules(new TokenSwitchParser()).cstMap.get('Entry')?.nodes, [{
+    type: 'or', alternatives: [
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'A' }] },
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'B' }] },
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'C' }] },
+    ],
+}])
+for (const source of ['a', 'b', 'c']) {
+    const baseline = new TokenSwitchParser(source)
+    const filtered = new TokenSwitchParser(source).filterOrByFirstToken(false)
+    assert.equal(JSON.stringify(filtered.Entry()), JSON.stringify(baseline.Entry()), source)
+}
 
 class PartialToken extends SingleTokens {
     @SubhutiRule
@@ -310,4 +337,4 @@ assert.equal(failingLookahead.LA(1), undefined)
 assert.equal(Object.hasOwn(failingLookahead, 'LA'), false)
 assert.equal((failingLookahead as any)._analysisMode, false)
 
-console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=21')
+console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=22')

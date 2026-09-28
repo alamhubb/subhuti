@@ -88,13 +88,13 @@ export class SubhutiRuleCollector {
         // 获取所有 @SubhutiRule 方法
         const ruleNames = this.getAllRuleNames(parser)
 
-        // 遍历执行每个规则
-        for (const ruleName of ruleNames) {
-            this.collectRule(proxy, ruleName)
+        try {
+            for (const ruleName of ruleNames) {
+                this.collectRule(proxy, ruleName)
+            }
+        } finally {
+            parser.disableAnalysisMode()
         }
-
-        // ✅ 恢复正常模式
-        parser.disableAnalysisMode()
 
         return {
             cstMap: this.ruleASTs,
@@ -110,7 +110,10 @@ export class SubhutiRuleCollector {
 
         const proxy: any = Object.create(parser as any)
         proxy.Or = (alternatives: Array<{ alt: () => any }>) => collector.handleOr(alternatives, proxy)
+        proxy.OrFiltered = (_filter: unknown, alternatives: Array<{ alt: () => any }>) =>
+            collector.handleOr(alternatives, proxy)
         proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
+        proxy.ManyFiltered = (_filter: unknown, fn: () => any) => collector.handleMany(fn, proxy)
         proxy.Option = (fn: () => any) => collector.handleOption(fn, proxy)
         proxy.AtLeastOne = (fn: () => any) => collector.handleAtLeastOne(fn, proxy)
         proxy.consume = (tokenName: string) => collector.handleConsume(tokenName)
@@ -288,18 +291,7 @@ export class SubhutiRuleCollector {
          */
     }
 
-    /**
-     * 收集单个规则
-     *
-     * 异常处理说明：
-     * - ✅ Parser 在分析模式下不会抛出解析相关的异常（左递归、无限循环、Token 消费失败等）
-     * - ✅ 但仍需 try-catch 捕获业务逻辑错误（如废弃方法主动抛出的 Error）
-     * - ✅ 即使抛出错误，Proxy 也已经收集到了部分 AST，仍然保存
-     *
-     * 这与之前的设计不同：
-     * - 之前：依赖异常来控制流程（不好的设计）
-     * - 现在：只捕获真正的业务错误（正常的异常处理）
-     */
+    /** An incomplete rule cannot be used for validation or prediction. */
     private collectRule(proxy: SubhutiParser, ruleName: string): void {
         // ⏱️ 记录开始时间
         const startTime = Date.now()
@@ -321,11 +313,9 @@ export class SubhutiRuleCollector {
             // 执行规则（分析模式下会记录调用，不会抛解析异常）
             // 注意：这里调用proxy的方法，让内部的子规则调用被拦截
             const ruleMethod = (proxy as any)[ruleName]
-            if (typeof ruleMethod === 'function') {
-                this.isExecutingTopLevelRule = true
-                ruleMethod.call(proxy)
-                this.isExecutingTopLevelRule = false
-            }
+            if (typeof ruleMethod !== 'function') throw new Error('Missing rule method')
+            this.isExecutingTopLevelRule = true
+            ruleMethod.call(proxy)
 
             // 保存 AST
             this.ruleASTs.set(ruleName, rootNode)
@@ -337,15 +327,11 @@ export class SubhutiRuleCollector {
             if (elapsed > 10000) {
                 console.error(`❌❌❌ Rule "${ruleName}" took ${elapsed}ms (${(elapsed / 1000).toFixed(2)}s) - EXTREMELY SLOW!`)
             }
-        } catch (error: any) {
-            // 捕获业务逻辑错误（如废弃方法、未实现方法等）
-            // 即使抛出错误，我们也已经通过 Proxy 收集到了部分 AST
-            this.ruleASTs.set(ruleName, rootNode)
-
-            // ⏱️ 计算耗时
-            const elapsed = Date.now() - startTime
-
-            // 规则收集失败，但已保存部分 AST（不输出日志）
+        } catch (error) {
+            throw new Error(`Cannot collect rule "${ruleName}"`, { cause: error })
+        } finally {
+            this.isExecutingTopLevelRule = false
+            this.currentRuleStack = []
         }
     }
 
@@ -389,7 +375,7 @@ export class SubhutiRuleCollector {
      * 处理 Or 规则
      */
     private handleOr(alternatives: Array<{ alt: () => any }>, target: any): void {
-        const altNodes: any[] = []
+        const altNodes: SequenceNode[] = []
 
         for (let i = 0; i < alternatives.length; i++) {
             const alt = alternatives[i]
@@ -398,30 +384,14 @@ export class SubhutiRuleCollector {
             this.currentRuleStack.push(seqNode)
 
             try {
-                // 执行分支（会通过 proxy 拦截）
                 alt.alt.call(target)
-
-                // 退出序列，获取结果
-                const result = this.currentRuleStack.pop()
-                if (result) {
-                    altNodes.push(result)
-                }
-            } catch (error: any) {
-                // 分支执行失败（可能是缺少token或其他错误）
-                // 但我们仍然尝试保存已收集的部分AST
-                const result = this.currentRuleStack.pop()
-                if (result && result.nodes && result.nodes.length > 0) {
-                    // 如果收集到了部分节点，仍然保存
-                    altNodes.push(result)
-                }
-                // 注意：我们不抛出异常，继续处理下一个分支
+            } finally {
+                this.currentRuleStack.pop()
             }
+            altNodes.push(seqNode)
         }
 
-        // 记录 Or 节点（即使某些分支失败，只要有至少一个分支成功）
-        if (altNodes.length > 0) {
-            this.recordNode({ type: 'or', alternatives: altNodes })
-        }
+        this.recordNode({ type: 'or', alternatives: altNodes })
     }
 
     /**
@@ -432,20 +402,11 @@ export class SubhutiRuleCollector {
         this.currentRuleStack.push(seqNode)
 
         try {
-            // 执行一次（收集内部结构）
             fn.call(target)
-
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode) {
-                this.recordNode({ type: 'many', node: innerNode })
-            }
-        } catch (error: any) {
-            // 执行失败，但仍然尝试保存已收集的部分
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({ type: 'many', node: innerNode })
-            }
+        } finally {
+            this.currentRuleStack.pop()
         }
+        this.recordNode({ type: 'many', node: seqNode })
     }
 
     /**
@@ -457,18 +418,10 @@ export class SubhutiRuleCollector {
 
         try {
             fn.call(target)
-
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode) {
-                this.recordNode({ type: 'option', node: innerNode })
-            }
-        } catch (error: any) {
-            // 执行失败，但仍然尝试保存已收集的部分
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({ type: 'option', node: innerNode })
-            }
+        } finally {
+            this.currentRuleStack.pop()
         }
+        this.recordNode({ type: 'option', node: seqNode })
     }
 
     /**
@@ -480,18 +433,10 @@ export class SubhutiRuleCollector {
 
         try {
             fn.call(target)
-
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode) {
-                this.recordNode({ type: 'atLeastOne', node: innerNode })
-            }
-        } catch (error: any) {
-            // 执行失败，但仍然尝试保存已收集的部分
-            const innerNode = this.currentRuleStack.pop()
-            if (innerNode && innerNode.nodes && innerNode.nodes.length > 0) {
-                this.recordNode({ type: 'atLeastOne', node: innerNode })
-            }
+        } finally {
+            this.currentRuleStack.pop()
         }
+        this.recordNode({ type: 'atLeastOne', node: seqNode })
     }
 
     /**

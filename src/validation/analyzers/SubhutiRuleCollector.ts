@@ -33,6 +33,11 @@
 import type SubhutiParser from "../../SubhutiParser"
 import type { ConsumeNode, RuleNode, SequenceNode } from "../types/SubhutiValidationError"
 
+export interface RuleCollectionVariant {
+    readonly args?: readonly unknown[]
+    readonly lookahead?: Readonly<Record<number, { tokenName: string; tokenValue?: string }>>
+}
+
 /**
  * 规则收集器
  *
@@ -76,10 +81,11 @@ export class SubhutiRuleCollector {
      */
     static collectRules(
         parser: SubhutiParser,
-        roots?: readonly string[]
+        roots?: readonly string[],
+        variants: Readonly<Record<string, readonly RuleCollectionVariant[]>> = {}
     ): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
         const collector = new SubhutiRuleCollector()
-        return collector.collect(parser, roots)
+        return collector.collect(parser, roots, variants)
     }
 
     /**
@@ -87,7 +93,8 @@ export class SubhutiRuleCollector {
      */
     private collect(
         parser: SubhutiParser,
-        roots?: readonly string[]
+        roots: readonly string[] | undefined,
+        variants: Readonly<Record<string, readonly RuleCollectionVariant[]>>
     ): { cstMap: Map<string, SequenceNode>, tokenMap: Map<string, ConsumeNode> } {
         if (roots && roots.length === 0) throw new Error('At least one root rule is required')
         // ✅ 启用分析模式（不抛异常）
@@ -96,13 +103,24 @@ export class SubhutiRuleCollector {
         try {
             const proxy = this.createAnalyzeProxy(parser)
             const knownRules = new Set(this.getAllRuleNames(parser))
+            for (const name of Object.keys(variants)) {
+                if (!knownRules.has(name)) throw new Error(`Unknown variant rule "${name}"`)
+            }
             const pending = roots ? [...roots] : [...knownRules]
             const queued = new Set(pending)
             for (let index = 0; index < pending.length; index++) {
                 const ruleName = pending[index]
                 if (this.ruleASTs.has(ruleName)) continue
                 if (!knownRules.has(ruleName)) throw new Error(`Unknown rule "${ruleName}"`)
-                this.collectRule(proxy, ruleName)
+                const alternatives = [
+                    this.collectRule(proxy, ruleName, {}),
+                    ...(variants[ruleName] ?? []).map(variant => this.collectRule(proxy, ruleName, variant)),
+                ]
+                this.ruleASTs.set(ruleName, alternatives.length === 1 ? alternatives[0] : {
+                    type: 'sequence',
+                    ruleName,
+                    nodes: [{ type: 'or', alternatives }],
+                })
                 if (roots) {
                     const references = new Set<string>()
                     this.collectReferences(this.ruleASTs.get(ruleName)!, references)
@@ -340,7 +358,7 @@ export class SubhutiRuleCollector {
     }
 
     /** An incomplete rule cannot be used for validation or prediction. */
-    private collectRule(proxy: SubhutiParser, ruleName: string): void {
+    private collectRule(proxy: SubhutiParser, ruleName: string, variant: RuleCollectionVariant): SequenceNode {
         // ⏱️ 记录开始时间
         const startTime = Date.now()
 
@@ -356,17 +374,21 @@ export class SubhutiRuleCollector {
             nodes: []
         }
         this.currentRuleStack.push(rootNode)
+        const proxyObject = proxy as any
+        const ownLA = Object.getOwnPropertyDescriptor(proxyObject, 'LA')
 
         try {
+            if (variant.lookahead) {
+                const originalLA = proxyObject.LA
+                proxyObject.LA = (offset: number) =>
+                    variant.lookahead![offset] ?? originalLA.call(proxyObject, offset)
+            }
             // 执行规则（分析模式下会记录调用，不会抛解析异常）
             // 注意：这里调用proxy的方法，让内部的子规则调用被拦截
             const ruleMethod = (proxy as any)[ruleName]
             if (typeof ruleMethod !== 'function') throw new Error('Missing rule method')
             this.isExecutingTopLevelRule = true
-            ruleMethod.call(proxy)
-
-            // 保存 AST
-            this.ruleASTs.set(ruleName, rootNode)
+            ruleMethod.call(proxy, ...(variant.args ?? []))
 
             // ⏱️ 计算耗时
             const elapsed = Date.now() - startTime
@@ -375,9 +397,12 @@ export class SubhutiRuleCollector {
             if (elapsed > 10000) {
                 console.error(`❌❌❌ Rule "${ruleName}" took ${elapsed}ms (${(elapsed / 1000).toFixed(2)}s) - EXTREMELY SLOW!`)
             }
+            return rootNode
         } catch (error) {
             throw new Error(`Cannot collect rule "${ruleName}"`, { cause: error })
         } finally {
+            if (ownLA) Object.defineProperty(proxyObject, 'LA', ownLA)
+            else delete proxyObject.LA
             this.isExecutingTopLevelRule = false
             this.currentRuleStack = []
         }

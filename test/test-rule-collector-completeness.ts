@@ -105,6 +105,72 @@ assert.equal((rooted as any)._analysisMode, false)
 assert.throws(() => SubhutiRuleCollector.collectRules(new Rooted(), ['Missing']), /Unknown rule "Missing"/)
 assert.throws(() => SubhutiRuleCollector.collectRules(new Rooted(), []), /At least one root rule/)
 
+class Parameterized extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+
+    @SubhutiRule
+    Entry(mode: 'default' | 'extra' = 'default') {
+        if (mode === 'extra') this.Child()
+        else this.tokenConsumer.A()
+    }
+
+    @SubhutiRule
+    Child() { this.tokenConsumer.B() }
+}
+
+const parameterized = new Parameterized()
+const variants = SubhutiRuleCollector.collectRules(parameterized, ['Entry'], {
+    Entry: [{ args: ['extra'] }],
+})
+assert.deepEqual([...variants.cstMap.keys()], ['Entry', 'Child'])
+assert.deepEqual(variants.cstMap.get('Entry'), {
+    type: 'sequence',
+    ruleName: 'Entry',
+    nodes: [{
+        type: 'or',
+        alternatives: [
+            { type: 'sequence', ruleName: 'Entry',
+                nodes: [{ type: 'consume', tokenName: 'A' }] },
+            { type: 'sequence', ruleName: 'Entry',
+                nodes: [{ type: 'subrule', ruleName: 'Child' }] },
+        ],
+    }],
+})
+assert.deepEqual([...variants.tokenMap.keys()], ['A', 'B'])
+assert.equal((parameterized as any)._analysisMode, false)
+assert.throws(() => SubhutiRuleCollector.collectRules(new Parameterized(), ['Entry'], {
+    Missing: [{}],
+}), /Unknown variant rule "Missing"/)
+
+class LookaheadVariant extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+
+    @SubhutiRule
+    Entry() {
+        if (this.LA(1)?.tokenValue === 'b') this.tokenConsumer.B()
+        else this.tokenConsumer.A()
+    }
+}
+const lookaheadParser = new LookaheadVariant()
+const lookaheadVariants = SubhutiRuleCollector.collectRules(lookaheadParser, ['Entry'], {
+    Entry: [{ lookahead: { 1: { tokenName: 'B', tokenValue: 'b' } } }],
+})
+assert.deepEqual(lookaheadVariants.cstMap.get('Entry')?.nodes, [{
+    type: 'or',
+    alternatives: [
+        { type: 'sequence', ruleName: 'Entry',
+            nodes: [{ type: 'consume', tokenName: 'A' }] },
+        { type: 'sequence', ruleName: 'Entry',
+            nodes: [{ type: 'consume', tokenName: 'B' }] },
+    ],
+}])
+assert.equal(lookaheadParser.LA(1), undefined)
+assert.equal((lookaheadParser as any)._analysisMode, false)
+
 type FailureKind = 'rule' | 'or' | 'orFiltered' | 'many' | 'manyFiltered' | 'option' | 'atLeastOne'
 class Failing extends SubhutiParser<Consumer> {
     constructor(private readonly kind: FailureKind) {
@@ -141,4 +207,38 @@ for (const kind of ['rule', 'or', 'orFiltered', 'many', 'manyFiltered', 'option'
     assert.equal((parser as any)._analysisMode, false, kind)
 }
 
-console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=12')
+class FailingVariant extends Parameterized {
+    @SubhutiRule
+    override Entry(mode: 'default' | 'extra' = 'default') {
+        if (mode === 'extra') throw new Error('variant failed')
+        super.Entry(mode)
+    }
+}
+const failingVariant = new FailingVariant()
+assert.throws(() => SubhutiRuleCollector.collectRules(failingVariant, ['Entry'], {
+    Entry: [{ args: ['extra'] }],
+}), error => error instanceof Error
+    && error.message === 'Cannot collect rule "Entry"'
+    && error.cause instanceof Error
+    && error.cause.message === 'variant failed')
+assert.equal((failingVariant as any)._analysisMode, false)
+
+class FailingLookaheadVariant extends LookaheadVariant {
+    @SubhutiRule
+    override Entry() {
+        if (this.LA(1)?.tokenValue === 'b') throw new Error('lookahead variant failed')
+        super.Entry()
+    }
+}
+const failingLookahead = new FailingLookaheadVariant()
+assert.throws(() => SubhutiRuleCollector.collectRules(failingLookahead, ['Entry'], {
+    Entry: [{ lookahead: { 1: { tokenName: 'B', tokenValue: 'b' } } }],
+}), error => error instanceof Error
+    && error.message === 'Cannot collect rule "Entry"'
+    && error.cause instanceof Error
+    && error.cause.message === 'lookahead variant failed')
+assert.equal(failingLookahead.LA(1), undefined)
+assert.equal(Object.hasOwn(failingLookahead, 'LA'), false)
+assert.equal((failingLookahead as any)._analysisMode, false)
+
+console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=19')

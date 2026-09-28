@@ -649,6 +649,28 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.executeOr([chosen])
     }
 
+    /**
+     * For mutually exclusive single-token alternatives, including contextual
+     * keywords that share a token name but have distinct literal values.
+     * A missing match executes the last branch to preserve zero-progress
+     * failure and recovery behavior of the ordinary ordered choice.
+     */
+    OrSingleTokenValues(alternatives: readonly {
+        tokenName: string
+        tokenValue?: string
+        alt: RuleFunction
+    }[]): void {
+        if (!this._filterOrByFirstToken || this._debugger || alternatives.length === 0) {
+            this.executeOr(alternatives)
+            return
+        }
+        const token = this.LA(1)
+        const chosen = alternatives.find(alt => alt.tokenName === token?.tokenName
+            && (alt.tokenValue === undefined || alt.tokenValue === token?.tokenValue))
+            ?? alternatives[alternatives.length - 1]
+        this.executeOr([chosen])
+    }
+
     OrFiltered(filter: SubhutiLazyRuleFilter, alternatives: SubhutiParserOr[]): void {
         if (!this._filterOrByLazyRules || this.parserFail) {
             this.executeOr(alternatives)
@@ -676,7 +698,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.executeOr(alternatives, predicted)
     }
 
-    private executeOr(normalizedAlternatives: SubhutiParserOr[], predicted: number | null = null): void {
+    private executeOr(normalizedAlternatives: readonly SubhutiParserOr[], predicted: number | null = null): void {
         if (this.parserFail) {
             return
         }

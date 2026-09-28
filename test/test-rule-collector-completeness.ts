@@ -101,6 +101,18 @@ assert.deepEqual(SubhutiRuleCollector.collectRules(new SingleTokens()).cstMap.ge
     ],
 }])
 
+class SingleTokenValues extends SingleTokens {
+    @SubhutiRule
+    override Entry() {
+        this.OrSingleTokenValues([
+            { tokenName: 'A', tokenValue: 'a', alt: () => this.tokenConsumer.A() },
+            { tokenName: 'B', tokenValue: 'b', alt: () => this.tokenConsumer.B() },
+        ])
+    }
+}
+assert.deepEqual(SubhutiRuleCollector.collectRules(new SingleTokenValues()).cstMap.get('Entry')?.nodes,
+    SubhutiRuleCollector.collectRules(new SingleTokens()).cstMap.get('Entry')?.nodes)
+
 class Rooted extends SubhutiParser<Consumer> {
     constructor() {
         super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
@@ -260,4 +272,4 @@ assert.equal(failingLookahead.LA(1), undefined)
 assert.equal(Object.hasOwn(failingLookahead, 'LA'), false)
 assert.equal((failingLookahead as any)._analysisMode, false)
 
-console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=19')
+console.log('RULE_COLLECTOR_COMPLETENESS status=OK cases=20')

@@ -179,6 +179,9 @@ export class SubhutiRuleCollector {
             collector.handleOr(alternatives, proxy)
         proxy.OrSingleTokens = (alternatives: Array<{ tokenName: string; alt: () => any }>) =>
             collector.handleOr(alternatives, proxy)
+        proxy.OrSingleTokenValues = (alternatives: Array<{
+            tokenName: string; tokenValue?: string; alt: () => any
+        }>) => collector.handleOr(alternatives, proxy)
         proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
         proxy.ManyFiltered = (_filter: unknown, fn: () => any) => collector.handleMany(fn, proxy)
         proxy.ManyTolerant = (fn: () => any) => collector.handleMany(fn, proxy)

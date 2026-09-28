@@ -95,6 +95,40 @@ class SingleTokenParser extends SubhutiParser<Consumer> {
     }
 }
 
+class SingleTokenValueParser extends SubhutiParser<Consumer> {
+    attempts: string[] = []
+
+    constructor(source: string) {
+        super(source, { tokenConsumer: Consumer, tokenDefinitions: tokens })
+    }
+
+    private consumeIdentifierValue(value: string) {
+        if (this.LA(1)?.tokenName === "Identifier" && this.LA(1)?.tokenValue === value) {
+            this.tokenConsumer.Identifier()
+        } else {
+            this.setParseFail()
+        }
+    }
+
+    @SubhutiRule
+    Choice() {
+        this.OrSingleTokenValues([
+            { tokenName: "Identifier", tokenValue: "alpha", alt: () => {
+                this.attempts.push("alpha")
+                this.consumeIdentifierValue("alpha")
+            } },
+            { tokenName: "Identifier", tokenValue: "beta", alt: () => {
+                this.attempts.push("beta")
+                this.consumeIdentifierValue("beta")
+            } },
+            { tokenName: "C", alt: () => {
+                this.attempts.push("C")
+                this.tokenConsumer.C()
+            } },
+        ])
+    }
+}
+
 function parse(source: string, enabled: boolean) {
     const parser = new Parser(source).filterOrByFirstToken(enabled)
     try {
@@ -134,6 +168,20 @@ const singleTokenMismatch = new SingleTokenParser("name").filterOrByFirstToken()
 assert.throws(() => singleTokenMismatch.Choice())
 assert.deepEqual(singleTokenMismatch.attempts, ["C"])
 
+for (const source of ["alpha", "beta", "c", "other"]) {
+    const before = new SingleTokenValueParser(source)
+    const after = new SingleTokenValueParser(source).filterOrByFirstToken()
+    const result = (parser: SingleTokenValueParser) => {
+        try {
+            return { cst: JSON.stringify(parser.Choice()), error: null }
+        } catch (error) {
+            return { cst: null, error: (error as Error).constructor.name }
+        }
+    }
+    assert.deepEqual(result(after), result(before), source)
+    assert.deepEqual(after.attempts, [source === "alpha" || source === "beta" ? source : "C"], source)
+}
+
 for (const source of ["a", "b"]) {
     const before = new FullyHintedParser(source)
     const after = new FullyHintedParser(source).filterOrByFirstToken()
@@ -142,4 +190,4 @@ for (const source of ["a", "b"]) {
 const rejected = new FullyHintedParser("c").filterOrByFirstToken()
 assert.throws(() => rejected.Choice())
 assert.equal(rejected.attempts, 2)
-console.log("OR_FIRST_TOKEN_FILTER status=OK cases=14")
+console.log("OR_FIRST_TOKEN_FILTER status=OK cases=18")

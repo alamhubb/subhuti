@@ -377,6 +377,19 @@ export class SubhutiRuleCollector {
         const rootNode: SequenceNode = {
             type: 'sequence',
             ruleName: ruleName,
+            ...((variant.args?.length || variant.lookahead) ? {
+                collectionVariant: {
+                    ...(variant.args?.length ? { args: [...variant.args] } : {}),
+                    ...(variant.lookahead ? {
+                        lookahead: Object.fromEntries(
+                            Object.entries(variant.lookahead).map(([offset, token]) => [
+                                Number(offset),
+                                { ...token },
+                            ]),
+                        ),
+                    } : {}),
+                },
+            } : {}),
             nodes: []
         }
         this.currentRuleStack.push(rootNode)

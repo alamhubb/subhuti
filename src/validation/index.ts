@@ -10,6 +10,7 @@ export type {
     ValidationStats,
     RuleNode,
     ConsumeNode,
+    RuleCollectionConstraint,
     SequenceNode,
     OrNode,
     OptionNode,

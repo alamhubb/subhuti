@@ -246,7 +246,17 @@ export interface ConsumeNode {
 export interface SequenceNode {
     type: 'sequence'
     ruleName?: string
+    collectionVariant?: RuleCollectionConstraint
     nodes: RuleNode[]
+}
+
+/**
+ * Conditions under which the collector observed this rule sequence.
+ * This is provenance metadata; existing conservative path expansion ignores it.
+ */
+export interface RuleCollectionConstraint {
+    args?: readonly unknown[]
+    lookahead?: Readonly<Record<number, { tokenName: string; tokenValue?: string }>>
 }
 
 /**

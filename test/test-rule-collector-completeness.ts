@@ -175,6 +175,7 @@ assert.deepEqual(variants.cstMap.get('Entry'), {
             { type: 'sequence', ruleName: 'Entry',
                 nodes: [{ type: 'consume', tokenName: 'A' }] },
             { type: 'sequence', ruleName: 'Entry',
+                collectionVariant: { args: ['extra'] },
                 nodes: [{ type: 'subrule', ruleName: 'Child' }] },
         ],
     }],
@@ -206,6 +207,9 @@ assert.deepEqual(lookaheadVariants.cstMap.get('Entry')?.nodes, [{
         { type: 'sequence', ruleName: 'Entry',
             nodes: [{ type: 'consume', tokenName: 'A' }] },
         { type: 'sequence', ruleName: 'Entry',
+            collectionVariant: {
+                lookahead: { 1: { tokenName: 'B', tokenValue: 'b' } },
+            },
             nodes: [{ type: 'consume', tokenName: 'B' }] },
     ],
 }])

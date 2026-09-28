@@ -34,6 +34,9 @@ interface State {
     tokens: PendingToken[]
     accepted: Set<number>
     transitions: Map<string, State | null>
+    byToken: Map<string, PendingToken[]>
+    decision: number | null
+    endDecision: number | null
 }
 
 /**
@@ -70,7 +73,7 @@ export class SubhutiLazyRuleFilter {
     canStart(tokenName: string | undefined): boolean | null {
         const state = this.initial
         if (!state || state.accepted.size) return null
-        return state.tokens.some(item => item.name === tokenName)
+        return tokenName === undefined ? false : state.byToken.has(tokenName)
     }
 
     /**
@@ -80,19 +83,15 @@ export class SubhutiLazyRuleFilter {
     predict(readTokenName: (offset: number) => string | undefined): number | null {
         let state = this.initial
         for (let offset = 1; state; offset++) {
-            const active = new Set(state.accepted)
-            for (const item of state.tokens) active.add(item.branch)
-            if (active.size === 0) return null
-            const first = Math.min(...active)
-            if (active.size === 1 || state.accepted.has(first)) return first
+            if (state.decision !== null) return state.decision
+            if (state.byToken.size === 0) return null
 
             const token = readTokenName(offset)
             if (token === undefined) {
-                return state.accepted.size ? Math.min(...state.accepted) : null
+                return state.endDecision
             }
             if (!state.transitions.has(token)) {
-                const next = state.tokens
-                    .filter(item => item.name === token)
+                const next = (state.byToken.get(token) ?? [])
                     .map(item => ({
                         branch: item.branch, stack: item.stack,
                         activeRules: new Set<string>(), activeRepeats: new Set<number>(),
@@ -203,7 +202,20 @@ export class SubhutiLazyRuleFilter {
         const existing = this.statesByKey.get(key)
         if (existing) return existing
         if (this.statesByKey.size >= this.maxStates) return null
-        const state = { tokens, accepted, transitions: new Map<string, State | null>() }
+        const byToken = new Map<string, PendingToken[]>()
+        const active = new Set(accepted)
+        for (const item of tokens) {
+            active.add(item.branch)
+            const group = byToken.get(item.name) ?? []
+            group.push(item)
+            byToken.set(item.name, group)
+        }
+        const first = active.size ? Math.min(...active) : null
+        const decision = active.size === 1 || (first !== null && accepted.has(first)) ? first : null
+        const state: State = {
+            tokens, accepted, transitions: new Map(), byToken, decision,
+            endDecision: accepted.size ? Math.min(...accepted) : null,
+        }
         this.statesByKey.set(key, state)
         return state
     }

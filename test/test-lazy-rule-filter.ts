@@ -22,6 +22,9 @@ assert.equal(predict(['Unknown']), null)
 assert.equal(filter.canStart('LParen'), true)
 assert.equal(filter.canStart('Unknown'), false)
 assert.equal(filter.canStart(undefined), false)
+const empty = new SubhutiLazyRuleFilter([], {})
+assert.equal(empty.predict(() => { throw new Error('Empty state must not read a token') }), null)
+assert.equal(empty.canStart('Identifier'), false)
 
 const nested = new SubhutiLazyRuleFilter(
     [seq(r('Nested'), t('B')), seq(r('Nested'), t('C'))],

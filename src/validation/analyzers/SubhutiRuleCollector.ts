@@ -189,6 +189,7 @@ export class SubhutiRuleCollector {
         proxy.AtLeastOne = (fn: () => any) => collector.handleAtLeastOne(fn, proxy)
         proxy.consume = (tokenName: string) => collector.handleConsume(tokenName)
         proxy._consumeToken = (tokenName: string) => collector.handleConsume(tokenName)
+        proxy.consumePartialToken = (tokenName: string) => collector.handleConsume(tokenName)
         proxy.tokenConsumer = collector.createTokenConsumerProxy((parser as any).tokenConsumer)
 
         for (const ruleName of this.getAllRuleNames(parser)) {

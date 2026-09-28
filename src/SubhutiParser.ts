@@ -408,6 +408,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
+     * Whether the grammar is currently being collected for validation.
+     *
+     * Parser rules may use this only to expose all structurally possible
+     * branches to the rule collector. Normal parsing must still use the
+     * concrete lookahead token.
+     */
+    get analysisMode(): boolean {
+        return this._analysisMode
+    }
+
+    /**
      * 禁用分析模式（恢复正常模式）
      *
      * @internal 仅供 SubhutiRuleCollector 使用

@@ -82,6 +82,25 @@ assert.deepEqual(variadic.cstMap.get('Entry')?.nodes, [{
     ],
 }])
 
+class SingleTokens extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+    @SubhutiRule
+    Entry() {
+        this.OrSingleTokens([
+            { tokenName: 'A', alt: () => this.tokenConsumer.A() },
+            { tokenName: 'B', alt: () => this.tokenConsumer.B() },
+        ])
+    }
+}
+assert.deepEqual(SubhutiRuleCollector.collectRules(new SingleTokens()).cstMap.get('Entry')?.nodes, [{
+    type: 'or', alternatives: [
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'A' }] },
+        { type: 'sequence', nodes: [{ type: 'consume', tokenName: 'B' }] },
+    ],
+}])
+
 class Rooted extends SubhutiParser<Consumer> {
     constructor() {
         super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })

@@ -633,6 +633,22 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         this.executeOr(normalized)
     }
 
+    /**
+     * Only for alternatives whose sole action consumes one distinct token in
+     * the default lexer mode. On total mismatch the original Or keeps the
+     * last zero-progress failure, so execute that branch to preserve recovery.
+     */
+    OrSingleTokens(alternatives: readonly { tokenName: string; alt: RuleFunction }[]): void {
+        if (!this._filterOrByFirstToken || this._debugger || alternatives.length === 0) {
+            this.executeOr(alternatives)
+            return
+        }
+        const tokenName = this.LA(1)?.tokenName
+        const chosen = alternatives.find(alt => alt.tokenName === tokenName)
+            ?? alternatives[alternatives.length - 1]
+        this.executeOr([chosen])
+    }
+
     OrFiltered(filter: SubhutiLazyRuleFilter, alternatives: SubhutiParserOr[]): void {
         if (!this._filterOrByLazyRules || this.parserFail) {
             this.executeOr(alternatives)

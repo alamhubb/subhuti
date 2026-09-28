@@ -69,6 +69,32 @@ class FullyHintedParser extends SubhutiParser<Consumer> {
     }
 }
 
+class SingleTokenParser extends SubhutiParser<Consumer> {
+    attempts: string[] = []
+
+    constructor(source: string) {
+        super(source, { tokenConsumer: Consumer, tokenDefinitions: tokens })
+    }
+
+    @SubhutiRule
+    Choice() {
+        this.OrSingleTokens([
+            { tokenName: "A", alt: () => {
+                this.attempts.push("A")
+                this.tokenConsumer.A()
+            } },
+            { tokenName: "B", alt: () => {
+                this.attempts.push("B")
+                this.tokenConsumer.B()
+            } },
+            { tokenName: "C", alt: () => {
+                this.attempts.push("C")
+                this.tokenConsumer.C()
+            } },
+        ])
+    }
+}
+
 function parse(source: string, enabled: boolean) {
     const parser = new Parser(source).filterOrByFirstToken(enabled)
     try {
@@ -94,6 +120,20 @@ assert.deepEqual(parse("a b", true).attempts, ["A-long"])
 assert.deepEqual(parse("a", true).attempts, ["A-long", "A-short"])
 assert.deepEqual(parse("b", true).attempts, ["Identifier", "B"])
 assert.deepEqual(parse("name", true).attempts, parse("name", false).attempts)
+
+for (const source of ["a", "b", "c"]) {
+    const baseline = new SingleTokenParser(source)
+    const filtered = new SingleTokenParser(source).filterOrByFirstToken()
+    assert.equal(JSON.stringify(filtered.Choice()), JSON.stringify(baseline.Choice()), source)
+    assert.deepEqual(filtered.attempts, [source.toUpperCase()], source)
+}
+const singleTokenOff = new SingleTokenParser("c").filterOrByFirstToken(false)
+singleTokenOff.Choice()
+assert.deepEqual(singleTokenOff.attempts, ["A", "B", "C"])
+const singleTokenMismatch = new SingleTokenParser("name").filterOrByFirstToken()
+assert.throws(() => singleTokenMismatch.Choice())
+assert.deepEqual(singleTokenMismatch.attempts, ["C"])
+
 for (const source of ["a", "b"]) {
     const before = new FullyHintedParser(source)
     const after = new FullyHintedParser(source).filterOrByFirstToken()
@@ -102,4 +142,4 @@ for (const source of ["a", "b"]) {
 const rejected = new FullyHintedParser("c").filterOrByFirstToken()
 assert.throws(() => rejected.Choice())
 assert.equal(rejected.attempts, 2)
-console.log("OR_FIRST_TOKEN_FILTER status=OK cases=7")
+console.log("OR_FIRST_TOKEN_FILTER status=OK cases=14")

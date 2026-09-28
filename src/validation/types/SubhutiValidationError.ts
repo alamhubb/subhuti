@@ -247,7 +247,15 @@ export interface SequenceNode {
     type: 'sequence'
     ruleName?: string
     collectionVariant?: RuleCollectionConstraint
+    predicateObservations?: readonly RulePredicateObservation[]
     nodes: RuleNode[]
+}
+
+export interface RulePredicateObservation {
+    kind: 'LA'
+    offset: number
+    tokenName?: string
+    tokenValue?: string
 }
 
 /**

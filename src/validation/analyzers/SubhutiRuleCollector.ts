@@ -31,7 +31,12 @@
  */
 
 import type SubhutiParser from "../../SubhutiParser"
-import type { ConsumeNode, RuleNode, SequenceNode } from "../types/SubhutiValidationError"
+import type {
+    ConsumeNode,
+    RuleNode,
+    RulePredicateObservation,
+    SequenceNode,
+} from "../types/SubhutiValidationError"
 
 export interface RuleCollectionVariant {
     readonly args?: readonly unknown[]
@@ -65,6 +70,9 @@ export class SubhutiRuleCollector {
 
     /** 当前规则名称 */
     private currentRuleName: string = ''
+
+    /** 当前规则在分析执行期间读取到的 lookahead 观察 */
+    private currentPredicateObservations: RulePredicateObservation[] = []
 
     /** 是否正在执行顶层规则调用 */
     private isExecutingTopLevelRule: boolean = false
@@ -371,6 +379,7 @@ export class SubhutiRuleCollector {
         // 重置状态
         this.currentRuleName = ruleName
         this.currentRuleStack = []
+        this.currentPredicateObservations = []
         this.isExecutingTopLevelRule = false
 
         // 创建根 Sequence 节点
@@ -395,19 +404,30 @@ export class SubhutiRuleCollector {
         this.currentRuleStack.push(rootNode)
         const proxyObject = proxy as any
         const ownLA = Object.getOwnPropertyDescriptor(proxyObject, 'LA')
+        const originalLA = proxyObject.LA
+        proxyObject.LA = (offset: number) => {
+            const observed = variant.lookahead?.[offset] ?? originalLA.call(proxyObject, offset)
+            this.currentPredicateObservations.push({
+                kind: 'LA',
+                offset,
+                ...(observed ? {
+                    tokenName: observed.tokenName,
+                    ...(observed.tokenValue !== undefined ? { tokenValue: observed.tokenValue } : {}),
+                } : {}),
+            })
+            return observed
+        }
 
         try {
-            if (variant.lookahead) {
-                const originalLA = proxyObject.LA
-                proxyObject.LA = (offset: number) =>
-                    variant.lookahead![offset] ?? originalLA.call(proxyObject, offset)
-            }
             // 执行规则（分析模式下会记录调用，不会抛解析异常）
             // 注意：这里调用proxy的方法，让内部的子规则调用被拦截
             const ruleMethod = (proxy as any)[ruleName]
             if (typeof ruleMethod !== 'function') throw new Error('Missing rule method')
             this.isExecutingTopLevelRule = true
             ruleMethod.call(proxy, ...(variant.args ?? []))
+            if (this.currentPredicateObservations.length) {
+                rootNode.predicateObservations = [...this.currentPredicateObservations]
+            }
 
             // ⏱️ 计算耗时
             const elapsed = Date.now() - startTime
@@ -424,6 +444,7 @@ export class SubhutiRuleCollector {
             else delete proxyObject.LA
             this.isExecutingTopLevelRule = false
             this.currentRuleStack = []
+            this.currentPredicateObservations = []
         }
     }
 

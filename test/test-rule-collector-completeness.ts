@@ -205,11 +205,15 @@ assert.deepEqual(lookaheadVariants.cstMap.get('Entry')?.nodes, [{
     type: 'or',
     alternatives: [
         { type: 'sequence', ruleName: 'Entry',
+            predicateObservations: [{ kind: 'LA', offset: 1 }],
             nodes: [{ type: 'consume', tokenName: 'A' }] },
         { type: 'sequence', ruleName: 'Entry',
             collectionVariant: {
                 lookahead: { 1: { tokenName: 'B', tokenValue: 'b' } },
             },
+            predicateObservations: [{
+                kind: 'LA', offset: 1, tokenName: 'B', tokenValue: 'b',
+            }],
             nodes: [{ type: 'consume', tokenName: 'B' }] },
     ],
 }])

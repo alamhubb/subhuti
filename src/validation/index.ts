@@ -11,6 +11,7 @@ export type {
     RuleNode,
     ConsumeNode,
     RuleCollectionConstraint,
+    RulePredicateObservation,
     SequenceNode,
     OrNode,
     OptionNode,

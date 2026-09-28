@@ -46,6 +46,20 @@ assert.equal(repeatedRule.predict(i => ['C'][i - 1]), 1)
 const bounded = new SubhutiLazyRuleFilter([
     seq(many(t('A')), t('B')), seq(many(t('A')), t('C')),
 ], {}, 20)
-assert.equal(bounded.predict(i => [...Array(100).fill('A'), 'C'][i - 1]), null)
+const shortPrefix = [...Array(100).fill('A'), 'C']
+const longPrefix = [...Array(10000).fill('A'), 'B']
+assert.equal(bounded.predict(i => shortPrefix[i - 1]), 1)
+assert.equal(bounded.predict(i => longPrefix[i - 1]), 0)
+const statesAfterBoth = bounded.cachedStateCount
+assert.equal(bounded.predict(i => shortPrefix[i - 1]), 1)
+assert.equal(bounded.cachedStateCount, statesAfterBoth)
+assert.ok(statesAfterBoth < 20)
+
+const distinct = new SubhutiLazyRuleFilter([
+    seq(...Array.from({ length: 40 }, (_, index) => t(`A${index}`)), t('B')),
+    seq(...Array.from({ length: 40 }, (_, index) => t(`A${index}`)), t('C')),
+], {}, 20)
+assert.equal(distinct.predict(i => [...Array.from({ length: 40 }, (_, index) => `A${index}`), 'C'][i - 1]), null)
+assert.equal(distinct.cachedStateCount, 20)
 
 console.log('LAZY_RULE_FILTER status=OK')

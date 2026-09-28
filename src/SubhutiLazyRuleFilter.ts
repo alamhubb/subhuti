@@ -44,7 +44,7 @@ interface State {
 export class SubhutiLazyRuleFilter {
     private readonly ids = new WeakMap<LookaheadPath, number>()
     private nextId = 0
-    private stateCount = 0
+    private readonly statesByKey = new Map<string, State>()
     private readonly initial: State | null
     private readonly maxStates: number
 
@@ -57,6 +57,10 @@ export class SubhutiLazyRuleFilter {
         this.initial = this.close(alternatives.map((path, branch) => ({
             branch, stack: [path], activeRules: new Set(), activeRepeats: new Set(),
         })))
+    }
+
+    get cachedStateCount(): number {
+        return this.statesByKey.size
     }
 
     /**
@@ -110,6 +114,14 @@ export class SubhutiLazyRuleFilter {
         return id
     }
 
+    private stackKey(stack: readonly StackEntry[]): (number | readonly [string, string | number])[] {
+        return stack.map(node => {
+            if (node.kind === 'endRule') return ['rule', node.name] as const
+            if (node.kind === 'endRepeat') return ['repeat', this.id(node.node)] as const
+            return this.id(node)
+        })
+    }
+
     private close(positions: Position[], previousAccepted: ReadonlySet<number> = new Set()): State | null {
         const queue = [...positions]
         const accepted = new Set(previousAccepted)
@@ -117,11 +129,11 @@ export class SubhutiLazyRuleFilter {
         const visited = new Set<string>()
         while (queue.length) {
             const position = queue.pop()!
-            const key = `${position.branch}:${position.stack.map(node => {
-                if (node.kind === 'endRule') return `R${node.name}`
-                if (node.kind === 'endRepeat') return `M${this.id(node.node)}`
-                return this.id(node)
-            }).join(',')}:${[...position.activeRules].sort().join(',')}:${[...position.activeRepeats].sort((a, b) => a - b).join(',')}`
+            const key = JSON.stringify([
+                position.branch, this.stackKey(position.stack),
+                [...position.activeRules].sort(),
+                [...position.activeRepeats].sort((a, b) => a - b),
+            ])
             if (visited.has(key)) continue
             visited.add(key)
             if (visited.size > this.maxStates) return null
@@ -183,8 +195,16 @@ export class SubhutiLazyRuleFilter {
                     break
             }
         }
-        if (this.stateCount >= this.maxStates) return null
-        this.stateCount++
-        return { tokens, accepted, transitions: new Map() }
+        const key = JSON.stringify([
+            [...accepted].sort((a, b) => a - b),
+            tokens.map(item => [item.branch, item.name, this.stackKey(item.stack)])
+                .map(item => JSON.stringify(item)).sort(),
+        ])
+        const existing = this.statesByKey.get(key)
+        if (existing) return existing
+        if (this.statesByKey.size >= this.maxStates) return null
+        const state = { tokens, accepted, transitions: new Map<string, State | null>() }
+        this.statesByKey.set(key, state)
+        return state
     }
 }

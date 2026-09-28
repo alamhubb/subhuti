@@ -34,6 +34,8 @@ export type RuleFunction = () => void
 
 export interface SubhutiParserOr {
     alt: RuleFunction
+    /** Complete, non-nullable FIRST(1) set in the default lexer mode. */
+    firstTokens?: readonly string[]
 }
 
 export class Alternative<T = void> implements SubhutiParserOr {
@@ -247,6 +249,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     // Packrat Parsing（默LRU 缓存
     enableMemoization: boolean = true
+    private _filterOrByFirstToken = false
     private readonly _cache: SubhutiPackratCache
     private _activeManyTolerantFrame: SubhutiManyTolerantFrame | null = null
 
@@ -322,6 +325,11 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     // 功能弢关（链式调用
     cache(enable: boolean = true): this {
         this.enableMemoization = enable
+        return this
+    }
+
+    filterOrByFirstToken(enable: boolean = true): this {
+        this._filterOrByFirstToken = enable
         return this
     }
 
@@ -612,6 +620,23 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const savedState = this.getCurState()
         const totalCount = normalizedAlternatives.length
         const parentRuleName = this.curCst?.name || 'Unknown'
+        const tokenName = this._filterOrByFirstToken
+            && normalizedAlternatives.some(alt => alt.firstTokens?.length)
+            ? this.LA(1)?.tokenName
+            : undefined
+        const hasMatchingHint = tokenName !== undefined
+            && normalizedAlternatives.some(alt => alt.firstTokens?.includes(tokenName))
+        let order: number[] | undefined
+        if (hasMatchingHint) {
+            const skipped: number[] = []
+            order = []
+            for (let i = 0; i < totalCount; i++) {
+                const hint = normalizedAlternatives[i].firstTokens
+                if (hint?.length && !hint.includes(tokenName!)) skipped.push(i)
+                else order.push(i)
+            }
+            order.push(...skipped)
+        }
 
         // 记录失败分支的状态快
         const failedStates: SubhutiAllowErrorOrBranchContextBackData[] = []
@@ -621,9 +646,9 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
         const startTokenIndex = this.currentTokenIndex
 
-        for (let i = 0; i < totalCount; i++) {
+        for (let position = 0; position < totalCount; position++) {
+            const i = order?.[position] ?? position
             const alt = normalizedAlternatives[i]
-            const isLast = i === totalCount - 1
 
             // 进入 Or 分支
             this._debugger?.onOrBranch?.(i, totalCount, parentRuleName)
@@ -647,10 +672,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
 
             // 失败：在 restoreState 之前保存当前状快
-            failedStates.push(orAllowErrorData)
+            failedStates[i] = orAllowErrorData
 
             // N-1 个分支：失败后回溯并重置状，继续尝试下一
-            if (!isLast) {
+            if (position < totalCount - 1) {
                 this.restoreState(savedState)
                 this.setParserSuccess()
             }

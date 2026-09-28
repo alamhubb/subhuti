@@ -288,6 +288,7 @@ export interface OptionNode {
  */
 export interface ManyNode {
     type: 'many'
+    stopTokens?: readonly string[]
     node: SequenceNode
 }
 

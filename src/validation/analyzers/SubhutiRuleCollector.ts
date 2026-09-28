@@ -188,6 +188,8 @@ export class SubhutiRuleCollector {
             tokenName: string; tokenValue?: string; alt: () => any
         }>) => collector.handleOr(alternatives, proxy)
         proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
+        proxy.ManyUntil = (stopTokens: readonly string[], fn: () => any) =>
+            collector.handleMany(fn, proxy, stopTokens)
         proxy.ManyFiltered = (_filter: unknown, fn: () => any) => collector.handleMany(fn, proxy)
         proxy.ManyTolerant = (fn: () => any) => collector.handleMany(fn, proxy)
         proxy.Option = (fn: () => any) => collector.handleOption(fn, proxy)
@@ -509,7 +511,7 @@ export class SubhutiRuleCollector {
     /**
      * 处理 Many 规则
      */
-    private handleMany(fn: () => any, target: any): void {
+    private handleMany(fn: () => any, target: any, stopTokens?: readonly string[]): void {
         const seqNode: SequenceNode = { type: 'sequence', nodes: [] }
         this.currentRuleStack.push(seqNode)
 
@@ -518,7 +520,11 @@ export class SubhutiRuleCollector {
         } finally {
             this.currentRuleStack.pop()
         }
-        this.recordNode({ type: 'many', node: seqNode })
+        this.recordNode({
+            type: 'many',
+            ...(stopTokens ? { stopTokens: [...stopTokens] } : {}),
+            node: seqNode,
+        })
     }
 
     /**

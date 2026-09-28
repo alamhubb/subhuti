@@ -220,6 +220,26 @@ assert.deepEqual(lookaheadVariants.cstMap.get('Entry')?.nodes, [{
 assert.equal(lookaheadParser.LA(1), undefined)
 assert.equal((lookaheadParser as any)._analysisMode, false)
 
+class BoundedRepeat extends SubhutiParser<Consumer> {
+    constructor() {
+        super('', { tokenDefinitions: tokens, tokenConsumer: Consumer })
+    }
+
+    @SubhutiRule
+    Entry() {
+        this.ManyUntil(['C'], () => this.tokenConsumer.A())
+    }
+}
+const boundedRepeat = SubhutiRuleCollector.collectRules(new BoundedRepeat(), ['Entry'])
+assert.deepEqual(boundedRepeat.cstMap.get('Entry')?.nodes, [{
+    type: 'many',
+    stopTokens: ['C'],
+    node: {
+        type: 'sequence',
+        nodes: [{ type: 'consume', tokenName: 'A' }],
+    },
+}])
+
 type FailureKind = 'rule' | 'or' | 'orFiltered' | 'many' | 'manyFiltered' | 'option' | 'atLeastOne'
 class Failing extends SubhutiParser<Consumer> {
     constructor(private readonly kind: FailureKind) {

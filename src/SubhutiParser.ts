@@ -813,6 +813,25 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
+     * ManyUntil - 在指定 token 到达前重复执行规则。
+     *
+     * 停止 token 是重复结构的显式边界，不需要把同一个 LA 判断
+     * 隐藏在 callback 内部；未知的成员起始 token 仍交给 fn 和普通
+     * PEG 回溯处理。
+     */
+    ManyUntil(stopTokens: readonly string[], fn: RuleFunction): void {
+        while (true) {
+            const tokenName = this.LA(1)?.tokenName
+            if (tokenName === undefined || stopTokens.includes(tokenName)) {
+                return
+            }
+            if (!this.tryAndRestore(fn)) {
+                return
+            }
+        }
+    }
+
+    /**
      * ManyTolerant - 容错Many（用ModuleList 等顶层循环）
      *
      * 失败但有进展（codeIndex 变化了）时，设置成功继续解析

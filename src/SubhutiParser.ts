@@ -46,6 +46,20 @@ export interface SubhutiTokenSwitchAlternative {
      */
     tokenName?: string
     tokenValue?: string
+    /** Select this branch when the current token is EOF. */
+    eof?: boolean
+    /**
+     * Additional token constraints evaluated without consuming input.
+     * Multiple constraints are conjunctive. A constraint may provide
+     * tokenNames or tokenValues to express a small finite lookahead set.
+     */
+    lookahead?: readonly {
+        offset: number
+        tokenName?: string
+        tokenNames?: readonly string[]
+        tokenValue?: string
+        tokenValues?: readonly string[]
+    }[]
     alt: RuleFunction
 }
 
@@ -709,10 +723,44 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
             this.executeOr(alternatives)
             return
         }
-        const token = this.LA(1)
-        const chosen = alternatives.find(alt => alt.tokenName !== undefined
-            && alt.tokenName === token?.tokenName
-            && (alt.tokenValue === undefined || alt.tokenValue === token?.tokenValue))
+        const matches = (alt: SubhutiTokenSwitchAlternative): boolean => {
+            const token = this.LA(1)
+            if (alt.eof) {
+                if (token !== undefined) return false
+            } else if (alt.tokenName === undefined
+                || alt.tokenName !== token?.tokenName
+                || (alt.tokenValue !== undefined && alt.tokenValue !== token?.tokenValue)) {
+                return false
+            }
+
+            return (alt.lookahead ?? []).every(constraint => {
+                if (!Number.isSafeInteger(constraint.offset) || constraint.offset < 1) {
+                    return false
+                }
+                const lookahead = this.LA(constraint.offset)
+                if (!lookahead) {
+                    return false
+                }
+                if (constraint.tokenName !== undefined
+                    && constraint.tokenName !== lookahead.tokenName) {
+                    return false
+                }
+                if (constraint.tokenNames !== undefined
+                    && !constraint.tokenNames.includes(lookahead.tokenName)) {
+                    return false
+                }
+                if (constraint.tokenValue !== undefined
+                    && constraint.tokenValue !== lookahead.tokenValue) {
+                    return false
+                }
+                if (constraint.tokenValues !== undefined
+                    && !constraint.tokenValues.includes(lookahead.tokenValue ?? "")) {
+                    return false
+                }
+                return true
+            })
+        }
+        const chosen = alternatives.find(matches)
             ?? alternatives[alternatives.length - 1]
         this.executeOr([chosen])
     }

@@ -188,7 +188,15 @@ export class SubhutiRuleCollector {
             tokenName: string; tokenValue?: string; alt: () => any
         }>) => collector.handleOr(alternatives, proxy)
         proxy.TokenSwitch = (alternatives: Array<{
-            tokenName?: string; tokenValue?: string; alt: () => any
+            tokenName?: string; tokenValue?: string; eof?: boolean
+            lookahead?: readonly {
+                offset: number
+                tokenName?: string
+                tokenNames?: readonly string[]
+                tokenValue?: string
+                tokenValues?: readonly string[]
+            }[]
+            alt: () => any
         }>) => collector.handleOr(alternatives, proxy)
         proxy.Many = (fn: () => any) => collector.handleMany(fn, proxy)
         proxy.ManyUntil = (stopTokens: readonly string[], fn: () => any) =>

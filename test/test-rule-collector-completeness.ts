@@ -3,12 +3,12 @@ import SubhutiParser, { SubhutiRule } from '../src/SubhutiParser.ts'
 import SubhutiTokenConsumer from '../src/SubhutiTokenConsumer.ts'
 import { SubhutiLazyRuleFilter, pathToken } from '../src/SubhutiLazyRuleFilter.ts'
 import { SubhutiRuleCollector } from '../src/validation/analyzers/SubhutiRuleCollector.ts'
-import { createKeywordToken } from '../src/struct/SubhutiCreateToken.ts'
+import { createValueRegToken } from '../src/struct/SubhutiCreateToken.ts'
 
 const tokens = [
-    createKeywordToken('A', 'a'),
-    createKeywordToken('B', 'b'),
-    createKeywordToken('C', 'c'),
+    createValueRegToken('A', /a/, 'a'),
+    createValueRegToken('B', /b/, 'b'),
+    createValueRegToken('C', /c/, 'c'),
 ]
 const filter = new SubhutiLazyRuleFilter([pathToken('A'), pathToken('C')], {})
 
@@ -138,6 +138,43 @@ for (const source of ['a', 'b', 'c']) {
     const baseline = new TokenSwitchParser(source)
     const filtered = new TokenSwitchParser(source).filterOrByFirstToken(false)
     assert.equal(JSON.stringify(filtered.Entry()), JSON.stringify(baseline.Entry()), source)
+}
+
+class LookaheadTokenSwitchParser extends SingleTokens {
+    constructor(source: string) {
+        super(source)
+    }
+
+    @SubhutiRule
+    override Entry() {
+        this.TokenSwitch([
+            {
+                tokenName: 'A',
+                lookahead: [{offset: 2, tokenName: 'C'}],
+                alt: () => {
+                    this.tokenConsumer.A()
+                    this.tokenConsumer.C()
+                },
+            },
+            {eof: true, alt: () => {}},
+            {alt: () => this.tokenConsumer.B()},
+        ])
+    }
+}
+assert.deepEqual(SubhutiRuleCollector.collectRules(new LookaheadTokenSwitchParser()).cstMap.get('Entry')?.nodes, [{
+    type: 'or', alternatives: [
+        {type: 'sequence', nodes: [
+            {type: 'consume', tokenName: 'A'},
+            {type: 'consume', tokenName: 'C'},
+        ]},
+        {type: 'sequence', nodes: []},
+        {type: 'sequence', nodes: [{type: 'consume', tokenName: 'B'}]},
+    ],
+}])
+for (const source of ['ac', '', 'b']) {
+    const parser = new LookaheadTokenSwitchParser(source)
+    parser.Entry()
+    assert.equal(parser.parserFail, false, source)
 }
 
 class PartialToken extends SingleTokens {

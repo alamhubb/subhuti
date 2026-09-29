@@ -670,18 +670,24 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
 
     /**
      * Only for alternatives that consume one distinct token in the default
-     * lexer mode. On total mismatch preserve the full Or failure recovery.
+     * lexer mode. A fast mismatch is safe only for callbacks that each
+     * consume exactly the declared token; otherwise keep full Or recovery.
      */
-    OrSingleTokens(alternatives: readonly { tokenName: string; alt: RuleFunction }[]): void {
+    OrSingleTokens(
+        alternatives: readonly { tokenName: string; alt: RuleFunction }[],
+        failFastOnMismatch = false,
+    ): void {
         if (!this._filterOrByFirstToken || this._debugger || alternatives.length === 0) {
             this.executeOr(alternatives)
             return
         }
         const tokenName = this.LA(1)?.tokenName
         const chosen = alternatives.find(alt => alt.tokenName === tokenName)
-        // On a total mismatch the original Or preserves the earliest
-        // furthest-failure branch, including its tolerant CST.
-        this.executeOr(chosen ? [chosen] : alternatives)
+        // Only opt in when every callback consumes exactly its declared token
+        // in DefaultMode. All mismatches then fail at the same input position,
+        // so the first branch preserves the original furthest-failure state.
+        this.executeOr(chosen ? [chosen]
+            : failFastOnMismatch ? [alternatives[0]] : alternatives)
     }
 
     /**

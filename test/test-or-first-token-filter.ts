@@ -72,7 +72,7 @@ class FullyHintedParser extends SubhutiParser<Consumer> {
 class SingleTokenParser extends SubhutiParser<Consumer> {
     attempts: string[] = []
 
-    constructor(source: string) {
+    constructor(source: string, private readonly failFastOnMismatch = false) {
         super(source, { tokenConsumer: Consumer, tokenDefinitions: tokens })
     }
 
@@ -91,7 +91,7 @@ class SingleTokenParser extends SubhutiParser<Consumer> {
                 this.attempts.push("C")
                 this.tokenConsumer.C()
             } },
-        ])
+        ], this.failFastOnMismatch)
     }
 }
 
@@ -167,6 +167,22 @@ assert.deepEqual(singleTokenOff.attempts, ["A", "B", "C"])
 const singleTokenMismatch = new SingleTokenParser("name").filterOrByFirstToken()
 assert.throws(() => singleTokenMismatch.Choice())
 assert.deepEqual(singleTokenMismatch.attempts, ["A", "B", "C"])
+for (const source of ["name", "", "a c"]) {
+    const baseline = new SingleTokenParser(source).filterOrByFirstToken()
+    const fast = new SingleTokenParser(source, true).filterOrByFirstToken()
+    const result = (parser: SingleTokenParser) => {
+        try {
+            return {cst: JSON.stringify(parser.Choice()), tokens: parser.parsedTokens, eof: parser.isEof, error: null}
+        } catch (error) {
+            return {cst: null, tokens: parser.parsedTokens, eof: parser.isEof,
+                error: (error as Error).constructor.name}
+        }
+    }
+    assert.deepEqual(result(fast), result(baseline), source)
+    assert.deepEqual(fast.attempts, ["A"], source)
+    assert.deepEqual(baseline.attempts, source === "name" || source === ""
+        ? ["A", "B", "C"] : ["A"], source)
+}
 
 for (const source of ["alpha", "beta", "c", "other"]) {
     const before = new SingleTokenValueParser(source)
@@ -191,4 +207,4 @@ for (const source of ["a", "b"]) {
 const rejected = new FullyHintedParser("c").filterOrByFirstToken()
 assert.throws(() => rejected.Choice())
 assert.equal(rejected.attempts, 2)
-console.log("OR_FIRST_TOKEN_FILTER status=OK cases=18")
+console.log("OR_FIRST_TOKEN_FILTER status=OK cases=21")

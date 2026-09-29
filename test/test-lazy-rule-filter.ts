@@ -151,5 +151,10 @@ assert.deepEqual(opaque.predictCandidates(() => 'D'), [2])
 assert.equal(opaque.canStart('Z'), false)
 assert.equal(new SubhutiLazyRuleFilter([pathUnknown(), t('D')], {}).canStart('Z'), null)
 assert.deepEqual(ordered.predictCandidates(i => ['A', 'B'][i - 1]), [0, 1])
+const laterAccepted = new SubhutiLazyRuleFilter([
+    seq(t('A'), t('B')), t('A'),
+], {})
+assert.deepEqual(laterAccepted.predictCandidates(i => ['A', 'C'][i - 1]), [1])
+assert.deepEqual(laterAccepted.predictCandidates(i => ['A', 'B'][i - 1]), [0, 1])
 
 console.log('LAZY_RULE_FILTER status=OK')

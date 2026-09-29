@@ -140,7 +140,7 @@ export class SubhutiLazyRuleFilter {
     predictCandidates(readToken: (offset: number) => ReadLookaheadToken | undefined): readonly number[] | null {
         let state = this.initial
         for (let offset = 1; state; offset++) {
-            if (state.decision !== null || state.accepted.size || !state.byToken.size) {
+            if (state.decision !== null || !state.byToken.size) {
                 return state.candidates
             }
             const token = readToken(offset)

@@ -2,7 +2,7 @@
 export { default as SubhutiParser, Subhuti, SubhutiRule, Alternative } from './SubhutiParser.ts'
 export {
     SubhutiLazyRuleFilter, pathToken, pathTokenValue, pathRule, pathSequence,
-    pathChoice, pathOptional, pathRepeat
+    pathChoice, pathOptional, pathRepeat, pathUnknown
 } from './SubhutiLazyRuleFilter.ts'
 export type { LookaheadPath, LookaheadToken, ReadLookaheadToken } from './SubhutiLazyRuleFilter.ts'
 export type {

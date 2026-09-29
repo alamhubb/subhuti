@@ -5,6 +5,7 @@ export type LookaheadPath =
     | { readonly kind: 'choice'; readonly parts: readonly LookaheadPath[] }
     | { readonly kind: 'optional'; readonly body: LookaheadPath }
     | { readonly kind: 'repeat'; readonly body: LookaheadPath }
+    | { readonly kind: 'unknown' }
 
 export const pathToken = (name: string): LookaheadPath => ({ kind: 'token', name })
 export const pathTokenValue = (name: string, value: string): LookaheadPath =>
@@ -14,6 +15,7 @@ export const pathSequence = (...parts: LookaheadPath[]): LookaheadPath => ({ kin
 export const pathChoice = (...parts: LookaheadPath[]): LookaheadPath => ({ kind: 'choice', parts })
 export const pathOptional = (body: LookaheadPath): LookaheadPath => ({ kind: 'optional', body })
 export const pathRepeat = (body: LookaheadPath): LookaheadPath => ({ kind: 'repeat', body })
+export const pathUnknown = (): LookaheadPath => ({ kind: 'unknown' })
 
 type StackEntry = LookaheadPath
     | { readonly kind: 'endRule'; readonly name: string }
@@ -45,6 +47,9 @@ interface State {
     accepted: Set<number>
     transitions: Map<string, State | null>
     byToken: Map<string, PendingToken[]>
+    valuesByToken: Map<string, Set<string>>
+    candidates: readonly number[]
+    acceptedBranches: readonly number[]
     decision: number | null
     endDecision: number | null
 }
@@ -122,29 +127,55 @@ export class SubhutiLazyRuleFilter {
                 return state.endDecision
             }
             const actual = typeof token === 'string' ? { name: token } : token
-            const transitionKey = JSON.stringify([actual.name, actual.value ?? null])
-            if (state.transitions.has(transitionKey)) {
-                this.transitionHits++
-            } else {
-                this.transitionMisses++
-                if (this.transitionCount >= this.maxTransitions) {
-                    this.budgetFallbacks++
-                    return null
-                }
-                const next = (state.byToken.get(actual.name) ?? [])
-                    .filter(item => actual.value === undefined
-                        || item.value === undefined || item.value === actual.value)
-                    .map(item => ({
-                        branch: item.branch, stack: item.stack,
-                        activeRules: new Set<string>(), activeRepeats: new Set<number>(),
-                    }))
-                const advanced = this.close(next, state.accepted)
-                state.transitions.set(transitionKey, advanced)
-                this.transitionCount++
-            }
-            state = state.transitions.get(transitionKey) ?? null
+            state = this.advance(state, actual)
         }
         return null
+    }
+
+    /**
+     * An ordered, conservative set: a removed branch cannot match this prefix.
+     * Unknown grammar tails keep their branch alive, rather than nominating a
+     * later branch that might change PEG choice priority.
+     */
+    predictCandidates(readToken: (offset: number) => ReadLookaheadToken | undefined): readonly number[] | null {
+        let state = this.initial
+        for (let offset = 1; state; offset++) {
+            if (state.decision !== null || state.accepted.size || !state.byToken.size) {
+                return state.candidates
+            }
+            const token = readToken(offset)
+            if (token === undefined) return state.acceptedBranches
+            state = this.advance(state, typeof token === 'string' ? {name: token} : token)
+        }
+        return null
+    }
+
+    private advance(state: State, actual: LookaheadToken): State | null {
+        const values = state.valuesByToken.get(actual.name)
+        const valueClass = actual.value !== undefined && values?.has(actual.value) ? actual.value : null
+        const transitionKey = JSON.stringify([
+            actual.name, valueClass, values !== undefined && actual.value === undefined,
+        ])
+        if (state.transitions.has(transitionKey)) {
+            this.transitionHits++
+            return state.transitions.get(transitionKey) ?? null
+        }
+        this.transitionMisses++
+        if (this.transitionCount >= this.maxTransitions) {
+            this.budgetFallbacks++
+            return null
+        }
+        const next = (state.byToken.get(actual.name) ?? [])
+            .filter(item => actual.value === undefined
+                || item.value === undefined || item.value === actual.value)
+            .map(item => ({
+                branch: item.branch, stack: item.stack,
+                activeRules: new Set<string>(), activeRepeats: new Set<number>(),
+            }))
+        const advanced = this.close(next, state.accepted)
+        state.transitions.set(transitionKey, advanced)
+        this.transitionCount++
+        return advanced
     }
 
     private id(node: LookaheadPath): number {
@@ -195,6 +226,11 @@ export class SubhutiLazyRuleFilter {
                 activeRepeats = position.activeRepeats,
             ) => queue.push({ branch: position.branch, stack: [...rest, ...next], activeRules, activeRepeats })
             switch (node.kind) {
+                case 'unknown':
+                    // An opaque action may consume arbitrary input. Neither it
+                    // nor its continuation can safely eliminate this branch.
+                    accepted.add(position.branch)
+                    break
                 case 'endRule': {
                     const active = new Set(position.activeRules)
                     active.delete(node.name)
@@ -257,17 +293,25 @@ export class SubhutiLazyRuleFilter {
             return null
         }
         const byToken = new Map<string, PendingToken[]>()
+        const valuesByToken = new Map<string, Set<string>>()
         const active = new Set(accepted)
         for (const item of tokens) {
             active.add(item.branch)
             const group = byToken.get(item.name) ?? []
             group.push(item)
             byToken.set(item.name, group)
+            if (item.value !== undefined) {
+                const values = valuesByToken.get(item.name) ?? new Set<string>()
+                values.add(item.value)
+                valuesByToken.set(item.name, values)
+            }
         }
         const first = active.size ? Math.min(...active) : null
         const decision = active.size === 1 || (first !== null && accepted.has(first)) ? first : null
         const state: State = {
-            tokens, accepted, transitions: new Map(), byToken, decision,
+            tokens, accepted, transitions: new Map(), byToken, valuesByToken, decision,
+            candidates: Object.freeze([...active].sort((a, b) => a - b)),
+            acceptedBranches: Object.freeze([...accepted].sort((a, b) => a - b)),
             endDecision: accepted.size ? Math.min(...accepted) : null,
         }
         this.statesByKey.set(key, state)

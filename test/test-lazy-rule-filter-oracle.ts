@@ -83,6 +83,16 @@ for (let grammar = 0; grammar < 500; grammar++) {
     for (const tokens of sequences) {
         const expected = alternatives.findIndex(path => matches(path, tokens, 0, rules).size > 0)
         const predicted = filter.predict(index => tokens[index - 1])
+        const candidates = filter.predictCandidates(index => tokens[index - 1])
+        if (candidates !== null) {
+            assert.deepEqual([...candidates].sort((a, b) => a - b), candidates)
+            for (let branch = 0; branch < alternatives.length; branch++) {
+                if (matches(alternatives[branch], tokens, 0, rules).size > 0) {
+                    assert.ok(candidates.includes(branch),
+                        `Removed viable branch=${branch} grammar=${grammar} tokens=${tokens.join(',')}`)
+                }
+            }
+        }
         // A prefix-only prediction may nominate a branch even when the
         // complete input matches none; the ordinary Or still handles failure.
         if (predicted !== null && expected !== -1) {

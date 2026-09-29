@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import SubhutiParser, { SubhutiRule } from '../src/SubhutiParser.ts'
 import SubhutiTokenConsumer from '../src/SubhutiTokenConsumer.ts'
-import { SubhutiLazyRuleFilter, pathToken as t, pathRule as r, pathSequence as seq, pathRepeat as many } from '../src/SubhutiLazyRuleFilter.ts'
+import { SubhutiLazyRuleFilter, pathToken as t, pathRule as r, pathSequence as seq, pathRepeat as many, pathUnknown } from '../src/SubhutiLazyRuleFilter.ts'
 import { createKeywordToken, createRegToken, createValueRegToken } from '../src/struct/SubhutiCreateToken.ts'
 
 const tokens = [
@@ -100,5 +100,25 @@ for (const length of [1, 2, 10, 100]) {
         if (suffix === 'c') assert.deepEqual(filtered.attempts, [1], source)
     }
 }
+
+const conservative = new SubhutiLazyRuleFilter([
+    seq(t('A'), pathUnknown()), seq(t('A'), t('C')), t('B'),
+], {})
+class OpaqueParser extends Parser {
+    @SubhutiRule
+    Priority() {
+        this.OrFiltered(conservative, [
+            {alt: () => { this.attempts.push(0); this.tokenConsumer.A(); this.tokenConsumer.C() }},
+            {alt: () => { this.attempts.push(1); this.tokenConsumer.A(); this.tokenConsumer.C() }},
+            {alt: () => { this.attempts.push(2); this.tokenConsumer.B() }},
+        ])
+    }
+}
+const priority = new OpaqueParser('a c', true)
+assert.ok(priority.Priority())
+assert.deepEqual(priority.attempts, [0], 'Opaque earlier alternatives must retain PEG priority')
+const skipped = new OpaqueParser('b', true)
+assert.ok(skipped.Priority())
+assert.deepEqual(skipped.attempts, [2])
 
 console.log('OR_LAZY_RULE_FILTER status=OK cases=16')

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {
     SubhutiLazyRuleFilter, pathToken as t, pathRule as r,
     pathTokenValue, pathSequence as seq, pathChoice as choice,
-    pathRepeat as many, pathOptional as opt,
+    pathRepeat as many, pathOptional as opt, pathUnknown,
 } from '../src/SubhutiLazyRuleFilter.ts'
 
 const parameter = choice(t('Identifier'), seq(t('LBracket'), t('Identifier'), t('RBracket')))
@@ -117,5 +117,39 @@ assert.equal(values('x', 'p', 'A'), 0)
 assert.equal(values('x', 'q', 'B'), 1)
 assert.equal(values('y', 'q', 'A'), 0)
 assert.equal(values('y', 'p', 'B'), 1)
+
+const identifierValues = new SubhutiLazyRuleFilter([
+    seq(t('IdentifierName'), t('B')), seq(t('IdentifierName'), t('C')),
+], {}, 20, 10)
+for (let index = 0; index < 10000; index++) {
+    assert.deepEqual(identifierValues.predictCandidates(offset => [
+        {name: 'IdentifierName', value: `variable${index}`}, {name: 'C'},
+    ][offset - 1]), [1])
+}
+assert.equal(identifierValues.cacheStats.transitions, 2)
+assert.equal(identifierValues.cacheStats.budgetFallbacks, 0)
+
+const contextualCandidates = new SubhutiLazyRuleFilter([
+    pathTokenValue('IdentifierName', 'keyof'), t('IdentifierName'),
+], {})
+assert.deepEqual(contextualCandidates.predictCandidates(() => ({name: 'IdentifierName', value: 'Other'})), [1])
+assert.deepEqual(contextualCandidates.predictCandidates(() => 'IdentifierName'), [0, 1])
+assert.deepEqual(contextualCandidates.predictCandidates(() => ({name: 'IdentifierName', value: 'keyof'})), [0, 1])
+for (let index = 0; index < 1000; index++) {
+    assert.deepEqual(contextualCandidates.predictCandidates(() => ({
+        name: 'IdentifierName', value: `Other${index}`,
+    })), [1])
+}
+assert.equal(contextualCandidates.cacheStats.transitions, 3)
+
+const opaque = new SubhutiLazyRuleFilter([
+    seq(t('A'), pathUnknown(), t('B')), seq(t('A'), t('C')), t('D'),
+], {})
+assert.deepEqual(opaque.predictCandidates(i => ['A', 'C'][i - 1]), [0, 1])
+assert.deepEqual(opaque.predictCandidates(i => ['A', 'Z'][i - 1]), [0, 1])
+assert.deepEqual(opaque.predictCandidates(() => 'D'), [2])
+assert.equal(opaque.canStart('Z'), false)
+assert.equal(new SubhutiLazyRuleFilter([pathUnknown(), t('D')], {}).canStart('Z'), null)
+assert.deepEqual(ordered.predictCandidates(i => ['A', 'B'][i - 1]), [0, 1])
 
 console.log('LAZY_RULE_FILTER status=OK')

@@ -772,7 +772,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         let lastTokenName = this._lastTokenName
         let offset = 0
         let failed = false
-        const predicted = filter.predict((requestedOffset: number): ReadLookaheadToken | undefined => {
+        const candidates = filter.predictCandidates((requestedOffset: number): ReadLookaheadToken | undefined => {
             if (failed || requestedOffset !== ++offset || !this._lexer) return undefined
             try {
                 const entry = requestedOffset === 1
@@ -790,10 +790,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 return undefined
             }
         })
-        this.executeOr(alternatives, predicted)
+        this.executeOr(alternatives, failed ? null : candidates)
     }
 
-    private executeOr(normalizedAlternatives: readonly SubhutiParserOr[], predicted: number | null = null): void {
+    private executeOr(normalizedAlternatives: readonly SubhutiParserOr[], candidates: readonly number[] | null = null): void {
         if (this.parserFail) {
             return
         }
@@ -808,10 +808,17 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const hasMatchingHint = tokenName !== undefined
             && normalizedAlternatives.some(alt => alt.firstTokens?.includes(tokenName))
         let order: number[] | undefined
-        if (predicted !== null && predicted >= 0 && predicted < totalCount) {
-            order = [predicted]
+        if (candidates?.length && candidates.length < totalCount
+            && candidates.every(index => Number.isInteger(index) && index >= 0 && index < totalCount)) {
+            const retained = new Set(candidates)
+            order = []
+            // Preserve ordered choice among every still-viable branch. Failed
+            // predictions retain the original branches for error recovery.
             for (let i = 0; i < totalCount; i++) {
-                if (i !== predicted) order.push(i)
+                if (retained.has(i)) order.push(i)
+            }
+            for (let i = 0; i < totalCount; i++) {
+                if (!retained.has(i)) order.push(i)
             }
         } else if (hasMatchingHint) {
             const skipped: number[] = []

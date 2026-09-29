@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import {
     SubhutiLazyRuleFilter, pathToken as t, pathRule as r,
-    pathSequence as seq, pathChoice as choice, pathRepeat as many, pathOptional as opt,
+    pathTokenValue, pathSequence as seq, pathChoice as choice,
+    pathRepeat as many, pathOptional as opt,
 } from '../src/SubhutiLazyRuleFilter.ts'
 
 const parameter = choice(t('Identifier'), seq(t('LBracket'), t('Identifier'), t('RBracket')))
@@ -64,5 +65,57 @@ const distinct = new SubhutiLazyRuleFilter([
 ], {}, 20)
 assert.equal(distinct.predict(i => [...Array.from({ length: 40 }, (_, index) => `A${index}`), 'C'][i - 1]), null)
 assert.equal(distinct.cachedStateCount, 20)
+
+const transitionBounded = new SubhutiLazyRuleFilter([
+    seq(t('A'), t('B')), seq(t('A'), t('C')),
+], {}, 20, 5)
+assert.equal(transitionBounded.predict(i => ['A', 'C'][i - 1]), 1)
+const warmStats = transitionBounded.cacheStats
+for (let index = 0; index < 100; index++) {
+    assert.equal(transitionBounded.predict(i => ['A', 'C'][i - 1]), 1)
+}
+assert.equal(transitionBounded.cacheStats.misses, warmStats.misses)
+assert.equal(transitionBounded.cacheStats.hits, warmStats.hits + 200)
+for (let index = 0; index < 100; index++) {
+    assert.equal(transitionBounded.predict(() => `Unknown${index}`), null)
+}
+assert.equal(transitionBounded.cacheStats.transitions, 5)
+assert.ok(transitionBounded.cacheStats.budgetFallbacks > 0)
+// Saturation must not invalidate a previously cached path.
+assert.equal(transitionBounded.predict(i => ['A', 'C'][i - 1]), 1)
+for (const budget of [0, -1, 1.5, NaN, Infinity]) {
+    assert.throws(() => new SubhutiLazyRuleFilter([], {}, budget), RangeError)
+    assert.throws(() => new SubhutiLazyRuleFilter([], {}, 10, budget), RangeError)
+}
+
+const contextual = new SubhutiLazyRuleFilter([
+    pathTokenValue('IdentifierName', 'keyof'),
+    pathTokenValue('IdentifierName', 'readonly'),
+    t('IdentifierName'),
+], {})
+assert.equal(contextual.predict(() => ({name: 'IdentifierName', value: 'keyof'})), 0)
+assert.equal(contextual.predict(() => ({name: 'IdentifierName', value: 'readonly'})), 1)
+assert.equal(contextual.predict(() => ({name: 'IdentifierName', value: 'UserType'})), 2)
+// A name-only reader cannot distinguish contextual values, so it may only
+// prioritize the first same-name branch; the parser still keeps PEG fallback.
+assert.equal(contextual.predict(() => 'IdentifierName'), 0)
+
+const valueStates = new SubhutiLazyRuleFilter([
+    choice(
+        seq(pathTokenValue('T', 'x'), pathTokenValue('T', 'p'), t('A')),
+        seq(pathTokenValue('T', 'y'), pathTokenValue('T', 'q'), t('A')),
+    ),
+    seq(t('T'), t('T'), t('B')),
+], {})
+const values = (first: string, second: string, last: string) =>
+    valueStates.predict(offset => [
+        { name: 'T', value: first },
+        { name: 'T', value: second },
+        { name: last },
+    ][offset - 1])
+assert.equal(values('x', 'p', 'A'), 0)
+assert.equal(values('x', 'q', 'B'), 1)
+assert.equal(values('y', 'q', 'A'), 0)
+assert.equal(values('y', 'p', 'B'), 1)
 
 console.log('LAZY_RULE_FILTER status=OK')

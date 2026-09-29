@@ -1,5 +1,5 @@
 export type LookaheadPath =
-    | { readonly kind: 'token'; readonly name: string }
+    | { readonly kind: 'token'; readonly name: string; readonly value?: string }
     | { readonly kind: 'rule'; readonly name: string }
     | { readonly kind: 'sequence'; readonly parts: readonly LookaheadPath[] }
     | { readonly kind: 'choice'; readonly parts: readonly LookaheadPath[] }
@@ -7,6 +7,8 @@ export type LookaheadPath =
     | { readonly kind: 'repeat'; readonly body: LookaheadPath }
 
 export const pathToken = (name: string): LookaheadPath => ({ kind: 'token', name })
+export const pathTokenValue = (name: string, value: string): LookaheadPath =>
+    ({ kind: 'token', name, value })
 export const pathRule = (name: string): LookaheadPath => ({ kind: 'rule', name })
 export const pathSequence = (...parts: LookaheadPath[]): LookaheadPath => ({ kind: 'sequence', parts })
 export const pathChoice = (...parts: LookaheadPath[]): LookaheadPath => ({ kind: 'choice', parts })
@@ -27,8 +29,16 @@ interface Position {
 interface PendingToken {
     branch: number
     name: string
+    value?: string
     stack: readonly StackEntry[]
 }
+
+export interface LookaheadToken {
+    readonly name: string
+    readonly value?: string
+}
+
+export type ReadLookaheadToken = string | LookaheadToken
 
 interface State {
     tokens: PendingToken[]
@@ -50,12 +60,21 @@ export class SubhutiLazyRuleFilter {
     private readonly statesByKey = new Map<string, State>()
     private readonly initial: State | null
     private readonly maxStates: number
+    private transitionCount = 0
+    private transitionHits = 0
+    private transitionMisses = 0
+    private budgetFallbacks = 0
 
     constructor(
         alternatives: readonly LookaheadPath[],
         private readonly rules: Readonly<Record<string, LookaheadPath>>,
         maxStates = 4096,
+        private readonly maxTransitions = maxStates * 16,
     ) {
+        if (!Number.isSafeInteger(maxStates) || maxStates < 1
+            || !Number.isSafeInteger(maxTransitions) || maxTransitions < 1) {
+            throw new RangeError('Lazy filter cache budgets must be positive safe integers')
+        }
         this.maxStates = maxStates
         this.initial = this.close(alternatives.map((path, branch) => ({
             branch, stack: [path], activeRules: new Set(), activeRepeats: new Set(),
@@ -66,40 +85,64 @@ export class SubhutiLazyRuleFilter {
         return this.statesByKey.size
     }
 
+    get cacheStats() {
+        return {
+            states: this.cachedStateCount,
+            transitions: this.transitionCount,
+            hits: this.transitionHits,
+            misses: this.transitionMisses,
+            budgetFallbacks: this.budgetFallbacks,
+        }
+    }
+
     /**
      * Only a definite mismatch may stop an optional/repeated rule. Nullable
      * paths and unsafe descriptions leave the runtime parser in control.
      */
-    canStart(tokenName: string | undefined): boolean | null {
+    canStart(token: ReadLookaheadToken | undefined): boolean | null {
         const state = this.initial
         if (!state || state.accepted.size) return null
-        return tokenName === undefined ? false : state.byToken.has(tokenName)
+        if (token === undefined) return false
+        const tokenName = typeof token === 'string' ? token : token.name
+        return state.byToken.has(tokenName)
     }
 
     /**
      * Returns a branch to try first, or null when the graph cannot prove
      * enough. The ordinary Or still handles failure and error recovery.
      */
-    predict(readTokenName: (offset: number) => string | undefined): number | null {
+    predict(readToken: (offset: number) => ReadLookaheadToken | undefined): number | null {
         let state = this.initial
         for (let offset = 1; state; offset++) {
             if (state.decision !== null) return state.decision
             if (state.byToken.size === 0) return null
 
-            const token = readTokenName(offset)
+            const token = readToken(offset)
             if (token === undefined) {
                 return state.endDecision
             }
-            if (!state.transitions.has(token)) {
-                const next = (state.byToken.get(token) ?? [])
+            const actual = typeof token === 'string' ? { name: token } : token
+            const transitionKey = JSON.stringify([actual.name, actual.value ?? null])
+            if (state.transitions.has(transitionKey)) {
+                this.transitionHits++
+            } else {
+                this.transitionMisses++
+                if (this.transitionCount >= this.maxTransitions) {
+                    this.budgetFallbacks++
+                    return null
+                }
+                const next = (state.byToken.get(actual.name) ?? [])
+                    .filter(item => actual.value === undefined
+                        || item.value === undefined || item.value === actual.value)
                     .map(item => ({
                         branch: item.branch, stack: item.stack,
                         activeRules: new Set<string>(), activeRepeats: new Set<number>(),
                     }))
                 const advanced = this.close(next, state.accepted)
-                state.transitions.set(token, advanced)
+                state.transitions.set(transitionKey, advanced)
+                this.transitionCount++
             }
-            state = state.transitions.get(token) ?? null
+            state = state.transitions.get(transitionKey) ?? null
         }
         return null
     }
@@ -135,7 +178,10 @@ export class SubhutiLazyRuleFilter {
             ])
             if (visited.has(key)) continue
             visited.add(key)
-            if (visited.size > this.maxStates) return null
+            if (visited.size > this.maxStates) {
+                this.budgetFallbacks++
+                return null
+            }
             const stack = position.stack
             if (stack.length === 0) {
                 accepted.add(position.branch)
@@ -164,7 +210,12 @@ export class SubhutiLazyRuleFilter {
                     break
                 }
                 case 'token':
-                    tokens.push({ branch: position.branch, name: node.name, stack: rest })
+                    tokens.push({
+                        branch: position.branch,
+                        name: node.name,
+                        value: node.value,
+                        stack: rest,
+                    })
                     break
                 case 'rule': {
                     if (position.activeRules.has(node.name)) return null
@@ -196,12 +247,15 @@ export class SubhutiLazyRuleFilter {
         }
         const key = JSON.stringify([
             [...accepted].sort((a, b) => a - b),
-            tokens.map(item => [item.branch, item.name, this.stackKey(item.stack)])
+            tokens.map(item => [item.branch, item.name, item.value ?? null, this.stackKey(item.stack)])
                 .map(item => JSON.stringify(item)).sort(),
         ])
         const existing = this.statesByKey.get(key)
         if (existing) return existing
-        if (this.statesByKey.size >= this.maxStates) return null
+        if (this.statesByKey.size >= this.maxStates) {
+            this.budgetFallbacks++
+            return null
+        }
         const byToken = new Map<string, PendingToken[]>()
         const active = new Set(accepted)
         for (const item of tokens) {

@@ -166,7 +166,7 @@ singleTokenOff.Choice()
 assert.deepEqual(singleTokenOff.attempts, ["A", "B", "C"])
 const singleTokenMismatch = new SingleTokenParser("name").filterOrByFirstToken()
 assert.throws(() => singleTokenMismatch.Choice())
-assert.deepEqual(singleTokenMismatch.attempts, ["C"])
+assert.deepEqual(singleTokenMismatch.attempts, ["A", "B", "C"])
 
 for (const source of ["alpha", "beta", "c", "other"]) {
     const before = new SingleTokenValueParser(source)
@@ -179,7 +179,8 @@ for (const source of ["alpha", "beta", "c", "other"]) {
         }
     }
     assert.deepEqual(result(after), result(before), source)
-    assert.deepEqual(after.attempts, [source === "alpha" || source === "beta" ? source : "C"], source)
+    assert.deepEqual(after.attempts, source === "alpha" || source === "beta"
+        ? [source] : source === "c" ? ["C"] : ["alpha", "beta", "C"], source)
 }
 
 for (const source of ["a", "b"]) {

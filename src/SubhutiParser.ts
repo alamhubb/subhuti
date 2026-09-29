@@ -24,7 +24,7 @@ import {SubhutiDebugRuleTracePrint, setShowRulePath} from "./SubhutiDebugRuleTra
 import SubhutiLexer from "./SubhutiLexer.ts";
 import {SubhutiCreateToken, DefaultMode, type LexerMode} from "./struct/SubhutiCreateToken.ts";
 import {SubhutiGrammarValidator} from "./validation";
-import {SubhutiLazyRuleFilter} from "./SubhutiLazyRuleFilter.ts";
+import {SubhutiLazyRuleFilter, type ReadLookaheadToken} from "./SubhutiLazyRuleFilter.ts";
 
 
 // ============================================
@@ -669,9 +669,8 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
     }
 
     /**
-     * Only for alternatives whose sole action consumes one distinct token in
-     * the default lexer mode. On total mismatch the original Or keeps the
-     * last zero-progress failure, so execute that branch to preserve recovery.
+     * Only for alternatives that consume one distinct token in the default
+     * lexer mode. On total mismatch preserve the full Or failure recovery.
      */
     OrSingleTokens(alternatives: readonly { tokenName: string; alt: RuleFunction }[]): void {
         if (!this._filterOrByFirstToken || this._debugger || alternatives.length === 0) {
@@ -680,15 +679,15 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         }
         const tokenName = this.LA(1)?.tokenName
         const chosen = alternatives.find(alt => alt.tokenName === tokenName)
-            ?? alternatives[alternatives.length - 1]
-        this.executeOr([chosen])
+        // On a total mismatch the original Or preserves the earliest
+        // furthest-failure branch, including its tolerant CST.
+        this.executeOr(chosen ? [chosen] : alternatives)
     }
 
     /**
      * For mutually exclusive single-token alternatives, including contextual
      * keywords that share a token name but have distinct literal values.
-     * A missing match executes the last branch to preserve zero-progress
-     * failure and recovery behavior of the ordinary ordered choice.
+     * A missing match retains the ordinary ordered choice's failure recovery.
      */
     OrSingleTokenValues(alternatives: readonly {
         tokenName: string
@@ -702,8 +701,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         const token = this.LA(1)
         const chosen = alternatives.find(alt => alt.tokenName === token?.tokenName
             && (alt.tokenValue === undefined || alt.tokenValue === token?.tokenValue))
-            ?? alternatives[alternatives.length - 1]
-        this.executeOr([chosen])
+        this.executeOr(chosen ? [chosen] : alternatives)
     }
 
     /**
@@ -774,7 +772,7 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
         let lastTokenName = this._lastTokenName
         let offset = 0
         let failed = false
-        const predicted = filter.predict(requestedOffset => {
+        const predicted = filter.predict((requestedOffset: number): ReadLookaheadToken | undefined => {
             if (failed || requestedOffset !== ++offset || !this._lexer) return undefined
             try {
                 const entry = requestedOffset === 1
@@ -783,7 +781,10 @@ export default class SubhutiParser<T extends SubhutiTokenConsumer<any> = Subhuti
                 if (!entry) return undefined
                 nextInfo = entry.nextTokenInfo
                 lastTokenName = entry.token.tokenName
-                return lastTokenName
+                return {
+                    name: lastTokenName,
+                    value: entry.token.tokenValue,
+                }
             } catch {
                 failed = true
                 return undefined
